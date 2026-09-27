@@ -1,6 +1,6 @@
 # Runtime specification
 
-**Status:** Initial implementation baseline; protocol and security details remain open.
+**Status:** Runtime and HA state-ingestion baseline; module protocol and security details remain open.
 
 This specification narrows the platform docs to the Runtime repository. It records what an implementation agent may rely on and what must be resolved before work crosses a security or compatibility boundary.
 
@@ -12,43 +12,55 @@ Housefold Runtime is the stable, local supervisor and control plane for Housefol
 
 | Topic | Baseline |
 |---|---|
-| First deployment form | Home Assistant OS add-on. Exact add-on configuration, privileges, and supervisor integration still need an ADR. |
-| HA connection | REST and WebSocket APIs first. The custom HA integration Bridge is optional and cannot be a boot or core-operation dependency. |
+| First deployment form | Supervisor-managed Home Assistant OS app, auto-started with `system` startup ordering, protected mode and AppArmor enabled, no host port or extra host privileges. Supervisor owns process lifecycle and initial local recovery. See [ADR-001](adr/001-haos-runtime-lifecycle.md). |
+| HA connection | WebSocket state session through the Supervisor Core API proxy (`homeassistant_api: true`) is authoritative for operational HA status and freshness; REST is diagnostic only. General Supervisor API access stays disabled. The custom HA integration Bridge is optional and cannot be a boot or core-operation dependency. Reconnect uses the bounded schedule in [ADR-004](adr/004-ha-connection-checks.md). |
 | Optional Go modules | Separate processes supervised by Runtime. The control protocol and process containment model remain open. |
 | Operating principle | Essential, latency-sensitive behavior remains local when the VPS, internet, cloud AI, or an optional module is unavailable. |
-| HA ownership | HA remains authoritative for its device integrations, raw entity state, and service execution. Runtime reconciles cached state after disconnects. |
-| Management | Runtime has a small local management and recovery surface; the full PWA is optional. |
+| HA ownership | HA remains authoritative for device integrations, raw entity state, and service execution. Runtime keeps a private, memory-only state view and rebuilds it after disconnects. See [ADR-003](adr/003-ha-state-cache-and-reconnection.md). |
+| Management | Runtime exposes a read-only status page through authenticated HA ingress; Supervisor app controls/logs and the HAOS host console provide recovery. The full PWA is optional. See [ADR-005](adr/005-local-operator-status.md). |
 
 ## First implementation boundary
 
 The first implementation should establish the smallest dependable Runtime foundation:
 
 - Start on the HAOS add-on target and report its own health.
-- Connect to HA through standard APIs, show connection/permission status, and handle disconnect and reconnect without treating stale cached state as current.
+- Connect to HA through standard APIs and show connection/permission status with bounded reconnect behavior.
 - Provide a local management/recovery path that does not require the VPS or PWA.
 - Establish the Runtime's internal boundaries so later module supervision does not couple feature logic to HA internals.
 
+The HA state view is an internal Runtime facility. It is not a public module API, Bridge endpoint, or network control endpoint. Runtime may collect all states visible to its HA identity under the approved memory-only boundary in [ADR-003](adr/003-ha-state-cache-and-reconnection.md).
+
 Implementations may use small internal packages, but must not prematurely freeze a public module API or add feature modules just to demonstrate extensibility.
+
+## Implemented foundation
+
+- The HAOS app starts the foreground Go process, exposes a read-only `/healthz` watchdog check, and handles bounded termination without publishing a host port.
+- Runtime opens a long-lived WebSocket through the Supervisor Core API proxy. The synchronization state machine is `Disconnected → Connecting → Authenticating → Subscribing → Syncing → Ready`. Runtime bounds and buffers `state_changed` frames as soon as it requests the subscription; only after acknowledgement does it request `get_states`, reconcile the candidate, and publish it atomically. HA WebSocket health controls operational connection and freshness; REST diagnostics cannot override it. See [ADR-003](adr/003-ha-state-cache-and-reconnection.md) and [ADR-004](adr/004-ha-connection-checks.md).
+- Runtime health is independent of HA/state readiness. `/healthz` remains healthy while HA is denied or unavailable; loss of WebSocket continuity immediately marks the published state generation stale and retains it until a new candidate is synchronized. Bounded retry and shutdown behavior remain local and do not require HA.
+- The in-memory view stores current state, attributes, `last_changed`, and `last_updated`; no history, context identity, persistence, or service calls are included. Each successful synchronization increments a local generation. Canonical normalized payload accounting is capped at 64 MiB per generation; this is not a Go heap usage guarantee. The separately bounded event buffer is limited to 8 MiB of received event JSON or 4,096 events, whichever comes first. Deletion watermarks are capped at 4,096 tombstones and 8 MiB of canonical payload; overflow makes the session stale and forces resynchronization.
+- HA ingress serves a read-only local status page to authenticated HA users. Only `GET /` from ingress peer `172.30.32.2` is accepted; unknown paths and other methods are rejected. The page shows process health and coarse HA/cache metadata only (phase, freshness, generation, entity count, and last successful sync), never entity contents. The host port remains unpublished; `/healthz` remains available to Supervisor. See [ADR-005](adr/005-local-operator-status.md).
+- A clean HAOS 18.3 generic AArch64 VM test stopped and restarted Core while Runtime stayed healthy; its connection status moved from connected to unavailable and back without an app restart. This does not verify the new state-sync path. See ADR-004 for the VM verification limits.
+- The optional Bridge, VPS, internet, and cloud are not startup dependencies.
 
 ## Acceptance outcomes
 
-The initial usable Runtime should demonstrate that:
+The HAOS Runtime foundation should demonstrate that:
 
 1. It starts on a clean HAOS installation without the custom Bridge or optional feature modules.
-2. It connects to HA with the minimum required access and exposes useful health and connection status locally.
-3. HA disconnection leaves Runtime management available, marks HA-derived data stale, reconnects with bounded behavior, and reconciles state.
-4. VPS, internet, cloud, and optional PWA outages do not prevent local Runtime management or local critical-path behavior.
-5. A module failure cannot make Runtime management unavailable or silently replace the last healthy version.
-6. Later automation activation can guarantee that only one version is permitted to issue actions at a time.
+2. It connects with the approved Core API proxy, builds a candidate state generation, and reports readiness only after reconciliation and atomic publication.
+3. HA unavailability leaves process health available, keeps the last generation stale, and retries with bounded behavior.
+4. VPS, internet, cloud, and optional PWA outages do not prevent local Runtime management.
+
+Module failure isolation, last-healthy-version preservation, and single-active-automation guarantees belong to later module-supervision and activation designs.
 
 Latency, memory, disk, reconnect, and recovery thresholds must be measured and added here before claiming target-hardware readiness.
 
 ## Decisions still requiring an ADR or explicit review
 
-- HAOS add-on configuration, required privileges, startup ordering, and interaction with Supervisor lifecycle.
-- HA API credential provisioning and secure storage.
-- Local console binding, authentication, authorization, and recovery access.
-- HA REST/WebSocket reconnect, rate limits, state reconciliation, event ordering, and stale-state behavior.
+- Appliance-hardware behavior, LAN discovery and USB-radio passthrough; the clean HAOS 18.3 generic AArch64 VM smoke verified internal watchdog reachability, app recovery, and auto-start, but not appliance hardware.
+- HA WebSocket guarantees beyond the observed snapshot-plus-buffer reconciliation, event-gap detection, supported-version behavior, and appliance performance remain verification limits in [ADR-003](adr/003-ha-state-cache-and-reconnection.md). No HA action permission is included.
+- HA ingress user experience and source filtering on appliance hardware; see [ADR-005](adr/005-local-operator-status.md). The accepted page is not a recovery surface when HA Core UI is unavailable; use the HAOS host console.
+- Measured HA REST/WebSocket rate limits, state reconciliation, event ordering, and stale-state behavior; the accepted cache/data boundary is recorded in [ADR-003](adr/003-ha-state-cache-and-reconnection.md).
 - Runtime-to-module protocol, compatibility negotiation, health/readiness, timeouts, and backpressure.
 - Module process containment, resource limits, requested capabilities, and least-privilege enforcement.
 - Module package format, provenance/signatures, approved sources, installation approval, staged activation, rollback, and update policy.

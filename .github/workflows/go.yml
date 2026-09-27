@@ -30,7 +30,13 @@ jobs:
             echo 'Go files must be formatted with gofmt.'
             exit 1
           fi
+      - name: Test
+        run: go test ./...
       - name: Vet
         run: go vet ./...
       - name: Build
         run: go build ./...
+      - name: Build HAOS app images
+        run: |
+          docker buildx build --platform linux/amd64 --build-arg BUILD_ARCH=amd64 --build-arg BUILD_VERSION=0.1.0 -f Dockerfile -t housefold-runtime:amd64 .
+          docker buildx build --platform linux/arm64 --build-arg BUILD_ARCH=aarch64 --build-arg BUILD_VERSION=0.1.0 -f Dockerfile -t housefold-runtime:arm64 .

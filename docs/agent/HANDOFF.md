@@ -1,7 +1,5 @@
 # Handoff
 
-Read AGENTS.md and WORKFLOW.md, inspect checkout, then run python3 scripts/agent_tasks.py next.
+R01 complete; evidence in evidence/R01.md. Required source checks pass on Go 1.26.8. Docker Hub returned 429 for the build base; retry packaging after registry availability returns. No baseline code defects found. No HAOS test target is configured.
 
-No task claimed. Do not assume state.go/ADR-006 exists. Establish local baseline; Go/Docker were unavailable during audit.
-
-After every slice record HEAD, files, acceptance evidence, exact checks, decisions, blockers and next concrete action.
+Next: claim R02; serialize reads and subscriptions with ingestion; keep types independent of HA wire transport. Use PATH=/workspace/scratch/go/bin:$PATH for verification. No pushing or releases authorized.

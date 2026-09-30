@@ -7,9 +7,9 @@
       "title": "Establish baseline and repeatable verification",
       "depends_on": [],
       "kind": "implementation",
-      "status": "todo",
+      "status": "done",
       "approval_required": null,
-      "evidence": null,
+      "evidence": "docs/agent/evidence/R01.md",
       "blocker": null,
       "acceptance": [
         "Run formatting, uncached tests, race tests, vet/build and Linux amd64/arm64 cross-builds on actual source; record platform/toolchain and blockers.",

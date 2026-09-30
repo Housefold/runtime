@@ -115,10 +115,10 @@
         "R06"
       ],
       "kind": "environment",
-      "status": "todo",
+      "status": "blocked",
       "approval_required": null,
-      "evidence": null,
-      "blocker": null,
+      "evidence": "docs/agent/evidence/R07.md",
+      "blocker": "No authorized clean HAOS/appliance target or test access. Attach one with exact HAOS/Core/Supervisor versions and run docs/agent/HAOS-VALIDATION.md; Docker/fake transport is insufficient.",
       "acceptance": [
         "Run R06 on an available authorized clean HAOS test environment and record exact versions/architecture.",
         "Validate current ingestion, ingress filter and restart/recovery; record appliance-specific evidence separately.",

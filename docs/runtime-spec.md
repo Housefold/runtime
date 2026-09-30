@@ -77,3 +77,15 @@ Until these are decided, agents may implement bounded local foundations that do 
 - Defining a general module marketplace or allowing unreviewed code execution.
 - Shipping every Housefold capability inside the Runtime repository.
 - Treating event delivery as durable or exactly-once before those guarantees are specified.
+
+## Private consumer foundation
+
+Private in-process reads and subscriptions are implemented under harness R02;
+see [ADR-006](adr/006-private-state-consumers.md). Reads carry atomic generation,
+revision and freshness. Independent ordered streams begin with an authoritative
+complete reset, then deliver visible deltas, freshness loss and generation resets.
+Consumers own deep copies. Four subscribers reserve at most 32 MiB of canonical
+queued payload, each capped at 256 events/8 MiB, including initial/reset views.
+Oversized initial views fail explicitly; slow-consumer overflow, cancellation and
+source shutdown are distinct terminal outcomes. This adds no module interface,
+network surface, persistence or HA action authority.

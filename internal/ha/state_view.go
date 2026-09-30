@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"time"
+
+	"github.com/housefold/runtime/internal/state"
 )
 
 const maxStatePayloadBytes = 64 * 1024 * 1024
@@ -25,13 +27,7 @@ const (
 
 // EntityState is the latest in-memory Home Assistant state for one entity.
 // Context identifiers and prior-state history are intentionally omitted.
-type EntityState struct {
-	EntityID    string         `json:"entity_id"`
-	State       string         `json:"state"`
-	Attributes  map[string]any `json:"attributes"`
-	LastChanged time.Time      `json:"last_changed"`
-	LastUpdated time.Time      `json:"last_updated"`
-}
+type EntityState = state.Entity
 
 // StateMetadata describes readiness without copying the entity map.
 // Ready means the subscription/snapshot/replay sequence completed; it does
@@ -40,17 +36,14 @@ type StateMetadata struct {
 	Phase              Phase      `json:"phase"`
 	Status             Status     `json:"status"`
 	Fresh              bool       `json:"fresh"`
+	Revision           uint64     `json:"revision"`
 	Generation         uint64     `json:"generation"`
 	EntityCount        int        `json:"entity_count"`
 	LastSuccessfulSync *time.Time `json:"last_successful_sync,omitempty"`
 }
 
 // StateSnapshot is an isolated copy of the current generation.
-type StateSnapshot struct {
-	Generation uint64                 `json:"generation"`
-	Fresh      bool                   `json:"fresh"`
-	States     map[string]EntityState `json:"states"`
-}
+type StateSnapshot = state.Snapshot
 
 type stateCandidate struct {
 	states         map[string]EntityState

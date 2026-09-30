@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/coder/websocket"
+	"github.com/housefold/runtime/internal/state"
 )
 
 const (
@@ -22,20 +23,23 @@ const (
 )
 
 type StateSession struct {
-	mu             sync.RWMutex
-	metadata       StateMetadata
-	states         map[string]EntityState
-	stateBytes     int
-	watermarks     map[string]stateWatermark
-	tombstones     map[string]time.Time
-	tombstoneBytes int
-	changed        chan struct{}
-	url            string
-	wait           waitFunc
-	syncTimeout    time.Duration
-	pingInterval   time.Duration
-	pongTimeout    time.Duration
-	logger         *slog.Logger
+	mu              sync.RWMutex
+	subscribers     map[*Subscription]struct{}
+	subscriberBytes int
+	closed          bool
+	metadata        StateMetadata
+	states          map[string]EntityState
+	stateBytes      int
+	watermarks      map[string]stateWatermark
+	tombstones      map[string]time.Time
+	tombstoneBytes  int
+	changed         chan struct{}
+	url             string
+	wait            waitFunc
+	syncTimeout     time.Duration
+	pingInterval    time.Duration
+	pongTimeout     time.Duration
+	logger          *slog.Logger
 }
 
 func NewStateSession(logger *slog.Logger) *StateSession {
@@ -66,7 +70,7 @@ func (s *StateSession) Metadata() StateMetadata {
 func (s *StateSession) Snapshot() StateSnapshot {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	return StateSnapshot{Generation: s.metadata.Generation, Fresh: s.metadata.Fresh, States: cloneStateMap(s.states)}
+	return StateSnapshot{Generation: s.metadata.Generation, Revision: s.metadata.Revision, Fresh: s.metadata.Fresh, States: cloneStateMap(s.states)}
 }
 
 // Changes yields coalesced notifications for metadata or state changes.
@@ -103,6 +107,7 @@ func (s *StateSession) setStatus(status Status) {
 
 // Run owns the connection lifecycle and retries failed sessions until ctx ends.
 func (s *StateSession) Run(ctx context.Context, token string) {
+	defer s.shutdownSubscriptions()
 	delay := firstRetryDelay
 	for ctx.Err() == nil {
 		beforeGeneration := s.Metadata().Generation
@@ -513,12 +518,14 @@ func (s *StateSession) publish(candidate *stateCandidate) {
 	s.tombstones = candidate.tombstones
 	s.tombstoneBytes = candidate.tombstoneBytes
 	s.metadata.Generation++
+	s.metadata.Revision = 0
 	s.metadata.EntityCount = len(candidate.states)
 	s.metadata.Fresh = true
 	now := time.Now().UTC()
 	s.metadata.LastSuccessfulSync = &now
 	s.metadata.Phase = PhaseReady
 	s.metadata.Status = StatusConnected
+	s.broadcastLocked(state.Event{Position: s.positionLocked(), Kind: state.Reset, Fresh: true, Snapshot: &StateSnapshot{Generation: s.metadata.Generation, Revision: 0, Fresh: true, States: s.states}})
 	s.mu.Unlock()
 	if s.logger != nil && previousStatus != StatusConnected {
 		s.logger.Info("Home Assistant state session status changed", "status", StatusConnected)
@@ -527,14 +534,32 @@ func (s *StateSession) publish(candidate *stateCandidate) {
 }
 func (s *StateSession) applyLive(event stateEvent) bool {
 	s.mu.Lock()
+	old, existed := s.states[event.Data.EntityID]
 	candidate := &stateCandidate{states: s.states, watermarks: s.watermarks, tombstones: s.tombstones, tombstoneBytes: s.tombstoneBytes, bytes: s.stateBytes, maxBytes: maxStatePayloadBytes}
 	if err := applyEvent(candidate, event); err != nil {
+		s.staleLocked()
 		s.mu.Unlock()
 		return false
 	}
 	s.stateBytes = candidate.bytes
 	s.tombstoneBytes = candidate.tombstoneBytes
 	s.metadata.EntityCount = len(candidate.states)
+	current, exists := s.states[event.Data.EntityID]
+	if existed != exists || (exists && !sameState(old, current)) {
+		s.metadata.Revision++
+		change := state.Event{Position: s.positionLocked(), Fresh: s.metadata.Fresh, EntityID: event.Data.EntityID}
+		switch {
+		case !exists:
+			change.Kind = state.Remove
+		case !existed:
+			change.Kind = state.Add
+			change.Entity = &current
+		default:
+			change.Kind = state.Update
+			change.Entity = &current
+		}
+		s.broadcastLocked(change)
+	}
 	s.mu.Unlock()
 	s.signal()
 	return true
@@ -561,7 +586,7 @@ func (s *StateSession) markDisconnected(status Status) {
 	previousStatus := s.metadata.Status
 	s.metadata.Phase = PhaseDisconnected
 	s.metadata.Status = status
-	s.metadata.Fresh = false
+	s.staleLocked()
 	s.mu.Unlock()
 	if s.logger != nil && previousStatus != status {
 		s.logger.Info("Home Assistant state session status changed", "status", status)

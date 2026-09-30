@@ -1,0 +1,181 @@
+{
+  "repository": "Housefold/runtime",
+  "commit": "bd36bebf7bf922d5b19ea83428d4345758ef6ac5",
+  "files": [
+    {
+      "path": ".editorconfig",
+      "git_blob_sha1": "fd103d02502fd5782103dc4d0864ca7980ebefff",
+      "sha256": "563c766337c32361e1e0c130b0a9cfb7fa36626d1cbcb852badb194c702dc60b"
+    },
+    {
+      "path": ".github/dependabot.yml",
+      "git_blob_sha1": "01fffd3419a88f1664d8de43397e6ca78456a908",
+      "sha256": "c6c9fcf02b216a47be24964b67cf8bde779cc853caf2a5508efce092ebc257a6"
+    },
+    {
+      "path": ".github/workflows/go.yml",
+      "git_blob_sha1": "b5d12eab2668775c9acbe08be136b11e25679b62",
+      "sha256": "54fc2295e3989899d380ee0a55561ea30d3b8bf6c00bdfe398346c41357fb978"
+    },
+    {
+      "path": ".gitignore",
+      "git_blob_sha1": "80a9e287a3fbe2220014c120876bfc45c5aa8fc7",
+      "sha256": "782d261898146d237d98c4e32b5e9fbe70364a8c774bd3c5266f5b91bb45ba9c"
+    },
+    {
+      "path": "AGENTS.md",
+      "git_blob_sha1": "5e4992631601b338081f448a15d62b9058eedec7",
+      "sha256": "27ac75248dd4fd9aa75af597331ba7034f1afb90e8ef520c80da303800fb8b5a"
+    },
+    {
+      "path": "CONTRIBUTING.md",
+      "git_blob_sha1": "f72bf2e1a9d396c35af9249238a53ef627f97116",
+      "sha256": "f21d03eea4a000ec55a8bd08c02b4dacad0b38cb726b2ef81d6da0fd47a4cf2b"
+    },
+    {
+      "path": "DOCS.md",
+      "git_blob_sha1": "393ae61404b68b8496fb15f9fde3e04fc5db0a26",
+      "sha256": "76498794dca8a980d4e62d88872767cbd7e0efb3f573ac66fd692933091c0649"
+    },
+    {
+      "path": "Dockerfile",
+      "git_blob_sha1": "de072800b40d361700aeeb062a340e2ba929d31f",
+      "sha256": "570b0641ff4da7f4b11a9bdaff9ea9e05ac96ac5366d76c500867e22edb1c335"
+    },
+    {
+      "path": "LICENSE",
+      "git_blob_sha1": "73ba0eddc75372831eb95f815df1b188e7a3a96d",
+      "sha256": "baf96ddf3d2e7881d07bfb665beb8c24dea62167199e4b2b65d3660233fe23e2"
+    },
+    {
+      "path": "README.md",
+      "git_blob_sha1": "c41a0d00c141ecc33ba5929f1b0c5be8ff773db2",
+      "sha256": "ac3dcce272ef9b345fff6ff6bf91125c840d36680dc6eea7a2cc48e20d33f7b0"
+    },
+    {
+      "path": "SECURITY.md",
+      "git_blob_sha1": "5050ce67a4fee609de0113938377da3220d58dd8",
+      "sha256": "5a96f4b4fd7aa5ef0088ffaff99ac22f54ddfef19ac7ac0868f5b184754eb7d5"
+    },
+    {
+      "path": "cmd/runtime/main.go",
+      "git_blob_sha1": "560a3ae126578094cf979736df89b958bf9a08ef",
+      "sha256": "641f2906e0c345be813ac6db023afbb35d8d13548552a7210f6c67d1bf43a967"
+    },
+    {
+      "path": "cmd/runtime/main_test.go",
+      "git_blob_sha1": "dda96cad640a2a4a1f8a7c8fe62ac15979aeaebe",
+      "sha256": "cb5e8e5086aa3c4b3c55ccf7e5ad4e68711be1ee807ef23c3ecc6c5100ba63c3"
+    },
+    {
+      "path": "config.yaml",
+      "git_blob_sha1": "315b36a4d0fc35a0ea8b58b5ea30503a3ba67890",
+      "sha256": "722f5e8f56a4c28931361a08eabcacb32a1a138209c79975bb814e6689ff0f88"
+    },
+    {
+      "path": "docs/adr/000-template.md",
+      "git_blob_sha1": "82fc67a11e6e90a7f2b190142356cb2efe0a2206",
+      "sha256": "83f882ada952e26739bddd5b2be221d84ce5b324318cc2e6c24b5c6dd03d5e10"
+    },
+    {
+      "path": "docs/adr/001-haos-runtime-lifecycle.md",
+      "git_blob_sha1": "831cea9cc882f263f062bc82c21b40682e471cc6",
+      "sha256": "1924e22df332fb65c42e554e52b73c8bc9d42bec67647a1d0f2a9667923758ca"
+    },
+    {
+      "path": "docs/adr/002-ha-api-credentials.md",
+      "git_blob_sha1": "18269d08703f635cf18bdaff4860469f47260601",
+      "sha256": "54ad4eb5f0a682f4822d21f072b0613c154ae95a9727239a575a03167f4c2f1d"
+    },
+    {
+      "path": "docs/adr/003-ha-state-cache-and-reconnection.md",
+      "git_blob_sha1": "6631ac2328e82f6da88e50aa9f047ab42e16263b",
+      "sha256": "ea2c5c0bf01b12aee6666d34aaabdf7147217679d8a315cb04671f0b66f611f3"
+    },
+    {
+      "path": "docs/adr/004-ha-connection-checks.md",
+      "git_blob_sha1": "a60cd9555ff232b94822e965f9493c10cf61b6fe",
+      "sha256": "7d2bd2a95d8fd8d4e020cdfca33c5cb57b04e007671ea7d917df592c2011509e"
+    },
+    {
+      "path": "docs/adr/005-local-operator-status.md",
+      "git_blob_sha1": "209866611c9c7e30c12dea2b2fcd5f070091e352",
+      "sha256": "1fe7fed54ed26541aac5ba678f7aa1e33da426d3192d5319cea384e4ee3a4700"
+    },
+    {
+      "path": "docs/runtime-spec.md",
+      "git_blob_sha1": "fd6860f784c65d4977bbfe18a656eb6cc761215e",
+      "sha256": "be86bdef791da885c9877a5008b9598537323d89d47e06c262c8cd150eeca92b"
+    },
+    {
+      "path": "go.mod",
+      "git_blob_sha1": "648ee4e519e5409e6c9ba73eaa9db92a3380b097",
+      "sha256": "1d3d52a971525cc5c4abb6d1007a0842aa55ef523680146a97c78c8b2f69d07a"
+    },
+    {
+      "path": "go.sum",
+      "git_blob_sha1": "4e0a48d666eb69c4b45312c8f171be3d6b07292a",
+      "sha256": "874a91c5fb043526bc117c0f260c77e4372ab11a28eb6ef2b754fdbb55101f7a"
+    },
+    {
+      "path": "internal/ha/client.go",
+      "git_blob_sha1": "712944cf9d93773ea8fbc50d00acc553692adf63",
+      "sha256": "f6ccac85ef4ecd0692d1b8ec3e91e60fb3fea71464ce0f8c4ce61c87087763d4"
+    },
+    {
+      "path": "internal/ha/client_test.go",
+      "git_blob_sha1": "7d9d88f20a8e679af64507c1b22080c7dfb4fb59",
+      "sha256": "80902eb7b9dd097669890e8768c3761be6bd19aa3b286a91e2a8bde84867039b"
+    },
+    {
+      "path": "internal/ha/monitor.go",
+      "git_blob_sha1": "e4d6b4420564a752fbdb94b4ddc00ec1c3e3067f",
+      "sha256": "5e9fb5ea5cd14a5b4cbfcf907c17a713798cf327dd37555baa8320f5b3df88cf"
+    },
+    {
+      "path": "internal/ha/monitor_integration_test.go",
+      "git_blob_sha1": "259f7bf1c6ff850b0bfd75aa8936264ac1f6166a",
+      "sha256": "526350498934892069293d5ae23e7193f63e5c0eaf0d13e9d11b55ff99600cc6"
+    },
+    {
+      "path": "internal/ha/monitor_test.go",
+      "git_blob_sha1": "d7a3dd90d908dfb1c443e9e32d624f67309dd014",
+      "sha256": "fabc3aa27376b82eb884670405e1d140bbb2bad63dd0ccdce2abe22642e11668"
+    },
+    {
+      "path": "internal/ha/state_session.go",
+      "git_blob_sha1": "8a0e86c156a45132282a3b0f19f12262d6bc2774",
+      "sha256": "a9a1061636c2cb40acfe3f38891745cc8a5bc5465265950fe5ea47cf34dad83e"
+    },
+    {
+      "path": "internal/ha/state_session_test.go",
+      "git_blob_sha1": "e01f57e9a28311cf5347a50661766c61e0753d98",
+      "sha256": "aee3ddb5352fac96d5a50996bf6c5c16b25bab33ee81c99d04525d0a6057d5c2"
+    },
+    {
+      "path": "internal/ha/state_view.go",
+      "git_blob_sha1": "a521d782ca22a76c34f0403ec0880fb38875f603",
+      "sha256": "2e5ac9557f98f67bf70389faab74c3080d082663e1510e01d390951d018517ab"
+    },
+    {
+      "path": "internal/supervisor/doc.go",
+      "git_blob_sha1": "b7221f316737e09229102eb6e09eb532758e4986",
+      "sha256": "58fa40694aeb36077c216fa88b2ba5275b2aa54d0ae1b37e6a56c139917f52a9"
+    },
+    {
+      "path": "internal/supervisor/service.go",
+      "git_blob_sha1": "491abb4036d638d565b0e6a44ae916bb610807e0",
+      "sha256": "611e948b0a93351b150354a3760743434e765896a791f5e0b66eeb71ab41bef9"
+    },
+    {
+      "path": "internal/supervisor/service_test.go",
+      "git_blob_sha1": "6f2713830c3dae2e82efaf14e74c842296f94a04",
+      "sha256": "51685da07383f96ddfdfecd3514ad7b06d86c2eab9081c91b3b6d584811117bb"
+    },
+    {
+      "path": "repository.yaml",
+      "git_blob_sha1": "eda7958525a3b721c2cb2f659ec25383dd2bcf1e",
+      "sha256": "ac35ff8471c2cef7da33e892c7ebaa77f4c85f6954953fb395442587eaa1762e"
+    }
+  ]
+}

@@ -1,0 +1,216 @@
+{
+  "schema_version": 1,
+  "baseline": "bd36bebf7bf922d5b19ea83428d4345758ef6ac5",
+  "tasks": [
+    {
+      "id": "R01",
+      "title": "Establish baseline and repeatable verification",
+      "depends_on": [],
+      "kind": "implementation",
+      "status": "todo",
+      "approval_required": null,
+      "evidence": null,
+      "blocker": null,
+      "acceptance": [
+        "Run formatting, uncached tests, race tests, vet/build and Linux amd64/arm64 cross-builds on actual source; record platform/toolchain and blockers.",
+        "Confirm supplemental CI runs the verification script without weakening existing image checks. Fix proven baseline defects in small slices."
+      ]
+    },
+    {
+      "id": "R02",
+      "title": "Implement private state access and ordered subscriptions",
+      "depends_on": [
+        "R01"
+      ],
+      "kind": "implementation",
+      "status": "todo",
+      "approval_required": null,
+      "evidence": null,
+      "blocker": null,
+      "acceptance": [
+        "Provide whole snapshot and entity read with atomic generation/revision and freshness metadata; missing entity differs from unknown initial cache.",
+        "Initial snapshot and subscriber registration serialize atomically against update, disconnect and generation publication.",
+        "Each visible add/update/remove increments revision within generation; new generation begins at revision 0. Ignored older/duplicate events and freshness transitions preserve position.",
+        "Independent consumers receive ordered add/update/remove, reset and freshness events; reset gives authoritative complete view or explicit resnapshot contract.",
+        "Reads, initial snapshots and events deep-copy nested maps/arrays; caller mutation cannot affect Runtime or another consumer.",
+        "Per-subscriber queue bounded by 256 events and 8 MiB canonical payload including resets/initial data; oversized initial view fails explicitly. Define bounded subscriber count and total resource budget.",
+        "Overflow terminates only slow subscriber visibly; cancellation and Runtime shutdown have distinct terminal outcomes, no send/close races or leaks.",
+        "Keep Changes as coarse status notifications. No public endpoints, modules, HA actions, history or persistence.",
+        "Update internal contract ADR/spec and cover atomicity, ownership, reset/backpressure under race tests. Proposed package internal/state is optional; choose clean actual boundaries."
+      ]
+    },
+    {
+      "id": "R03",
+      "title": "Prove reconciliation and accounting invariants",
+      "depends_on": [
+        "R02"
+      ],
+      "kind": "implementation",
+      "status": "todo",
+      "approval_required": null,
+      "evidence": null,
+      "blocker": null,
+      "acceptance": [
+        "Add bounded fuzz/model tests for add/update/remove/recreate, duplicates, ambiguous equal/older timestamps, malformed/deep attributes and count/byte boundaries.",
+        "Failed candidates never replace published generation; detected live failure leaves retained state stale.",
+        "Assert payload accounting and subscriber ownership with an independent behavioral oracle. Use deterministic coordination, run limited reproducible fuzz smoke, retain failing seeds."
+      ]
+    },
+    {
+      "id": "R04",
+      "title": "Measure contention and harden whole-process shutdown",
+      "depends_on": [
+        "R02"
+      ],
+      "kind": "implementation",
+      "status": "todo",
+      "approval_required": null,
+      "evidence": null,
+      "blocker": null,
+      "acceptance": [
+        "Benchmark synthetic small/large/near-limit cache reads/copies/deltas; report allocations, memory amplification and update delay under concurrent reads.",
+        "Exercise cancellation during dial/auth/subscribe/snapshot/replay/live ping and near-limit copy.",
+        "Measure entire process exit against 10-second Supervisor grant, separately from HTTP 8-second budget; fix demonstrated stalls/leaks/violations while preserving ownership and atomicity.",
+        "Record developer-host provisional budgets and limitations; do not claim appliance readiness."
+      ]
+    },
+    {
+      "id": "R05",
+      "title": "Resolve legacy diagnostic probe ownership",
+      "depends_on": [
+        "R01"
+      ],
+      "kind": "implementation",
+      "status": "todo",
+      "approval_required": null,
+      "evidence": null,
+      "blocker": null,
+      "acceptance": [
+        "Trace all probe/monitor callers and document intended diagnostic use or remove proven dead code with focused tests.",
+        "REST never overrides operational WebSocket readiness/freshness; no new credentials or surface."
+      ]
+    },
+    {
+      "id": "R06",
+      "title": "Create repeatable HAOS validation and recovery runbook",
+      "depends_on": [
+        "R03",
+        "R04"
+      ],
+      "kind": "implementation",
+      "status": "todo",
+      "approval_required": null,
+      "evidence": null,
+      "blocker": null,
+      "acceptance": [
+        "Provide synthetic setup and expected outcomes for startup without Bridge/modules/cloud, deny/recover, Core restart/resync, burst/overflow, ingress/watchdog and shutdown.",
+        "Define evidence fields for exact HAOS/Core versions, architecture/hardware and latency/memory/reconnect/exit measurements.",
+        "Keep recovery local; do not operate real home automatically. Docker image builds are distinct from HAOS acceptance."
+      ]
+    },
+    {
+      "id": "R07",
+      "title": "Execute supported HAOS and appliance validation",
+      "depends_on": [
+        "R06"
+      ],
+      "kind": "environment",
+      "status": "todo",
+      "approval_required": null,
+      "evidence": null,
+      "blocker": null,
+      "acceptance": [
+        "Run R06 on an available authorized clean HAOS test environment and record exact versions/architecture.",
+        "Validate current ingestion, ingress filter and restart/recovery; record appliance-specific evidence separately.",
+        "If no test environment is available, mark blocked with concrete restart condition and continue proposals. Never substitute fake transport/image builds for HAOS acceptance."
+      ]
+    },
+    {
+      "id": "D01",
+      "title": "Propose public consumer and HA action contracts",
+      "depends_on": [
+        "R02"
+      ],
+      "kind": "proposal",
+      "status": "todo",
+      "approval_required": null,
+      "evidence": null,
+      "blocker": null,
+      "acceptance": [
+        "Define version/compatibility negotiation, transport options, scoped state/events, readiness/staleness, deadlines/backpressure and disconnect recovery.",
+        "Define actor/grant enforcement, service acceptance versus observed outcome and unknown/timeouts; no blind retry of uncertain actions.",
+        "List registry/service discovery and generated Go binding requirements without implementing them.",
+        "Produce concrete recommended schemas/examples, alternatives, migration and adversarial test plan. Keep Status Proposed."
+      ]
+    },
+    {
+      "id": "D02",
+      "title": "Propose containment, trust and safe activation",
+      "depends_on": [
+        "D01"
+      ],
+      "kind": "proposal",
+      "status": "todo",
+      "approval_required": null,
+      "evidence": null,
+      "blocker": null,
+      "acceptance": [
+        "Threat model child access to environment/files/network; separate processes and non-root alone do not enforce grants.",
+        "Compare feasible HAOS containment/resource limits; never share Supervisor token with modules.",
+        "Define manifest/provenance/signatures/source approval, staged installation, health gates, crash-loop quarantine and rollback.",
+        "Define single-active fencing, drain, timer ownership, uncertain in-flight actions and recovery after Runtime restart.",
+        "Separate Supervisor-owned Runtime recovery/self-update from module deployment. Keep Status Proposed."
+      ]
+    },
+    {
+      "id": "D03",
+      "title": "Propose optional Bridge compatibility and fallback",
+      "depends_on": [
+        "R02"
+      ],
+      "kind": "proposal",
+      "status": "todo",
+      "approval_required": null,
+      "evidence": null,
+      "blocker": null,
+      "acceptance": [
+        "Define cross-container transport/topology options, authentication, version/capability negotiation, discovery enrichment and heartbeat/reconnect.",
+        "One authoritative state source at a time; generation reset on source switching, graceful fallback to existing HA path.",
+        "Python integration belongs to a separate repository; Bridge never becomes boot dependency. Keep Status Proposed."
+      ]
+    },
+    {
+      "id": "G01",
+      "title": "Implement reviewed module/action foundation",
+      "depends_on": [
+        "D01",
+        "D02"
+      ],
+      "kind": "gated",
+      "status": "gated",
+      "approval_required": "Explicit maintainer acceptance of D01 and D02 with recorded references",
+      "evidence": null,
+      "blocker": null,
+      "acceptance": [
+        "Split accepted designs into small executable tasks with fault tests before enabling epic.",
+        "Implement only accepted contracts/grants/containment; prove single-active action-capable version."
+      ]
+    },
+    {
+      "id": "G02",
+      "title": "Implement reviewed Runtime Bridge adapter",
+      "depends_on": [
+        "D03"
+      ],
+      "kind": "gated",
+      "status": "gated",
+      "approval_required": "Explicit maintainer acceptance of D03 with recorded reference",
+      "evidence": null,
+      "blocker": null,
+      "acceptance": [
+        "Split accepted design into small tasks and coordinate separately owned Python integration.",
+        "Prove Runtime still boots/operates with Bridge absent, incompatible or failed."
+      ]
+    }
+  ]
+}

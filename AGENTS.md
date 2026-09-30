@@ -26,3 +26,15 @@ This file is a map and a set of guardrails. The product and architecture documen
 ## Completion
 
 For behavior changes, add or update focused tests and report the exact checks run. The standard static checks are `gofmt`, `go vet ./...`, and `go build ./...`; run focused tests for behavior changes. Do not claim acceptance criteria are met by compilation alone.
+
+<!-- HOUSEFOLD_SOLO_HARNESS_V1 -->
+## Solo development harness
+
+The assigned scope is the private foundation and proposals in docs/agent/tasks.json. Read AUDIT.md, WORKFLOW.md, STATE.md and the selected task before coding. Existing guardrails remain authoritative; this harness does not approve public module contracts, HA action authority, trust or installation policy.
+
+Work independently through ready tasks. Make ordinary internal implementation decisions, document rationale, prove failure behavior and continue. Do not stop at a plan or compilation, and do not infer implemented work from earlier chat. Work alone; no sub-agents.
+
+Keep proposals proposed until explicit maintainer acceptance. Record blockers and continue independent ready tasks. Never change authorization fields merely to unlock an implementation epic. Use small cohesive changes on main per existing policy; no reset, force push, release, production HA actions, or module downloads/execution. Local verified commits are allowed; pushing needs direction.
+
+Run bash scripts/agent_verify.sh for code changes and --images for packaging when Docker is available. Missing checks are BLOCKED. Update evidence, STATE.md and HANDOFF.md after every task.
+<!-- END_HOUSEFOLD_SOLO_HARNESS_V1 -->

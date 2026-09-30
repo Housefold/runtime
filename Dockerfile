@@ -8,7 +8,9 @@ COPY internal/ ./internal/
 
 ARG BUILD_ARCH
 ARG BUILD_VERSION=dev
-RUN mkdir -p /out && \
+RUN --mount=type=secret,id=proxy_ca \
+    if [ -f /run/secrets/proxy_ca ]; then export SSL_CERT_FILE=/run/secrets/proxy_ca; fi && \
+    mkdir -p /out && \
     case "${BUILD_ARCH}" in \
       amd64) goarch=amd64 ;; \
       aarch64) goarch=arm64 ;; \

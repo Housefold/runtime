@@ -28,3 +28,10 @@ docker buildx build --load --platform linux/amd64 --build-arg BUILD_ARCH=amd64 -
 For ARM64, use `--platform linux/arm64 --build-arg BUILD_ARCH=aarch64` with the same context. A Docker build does not prove HAOS behavior; the reported VM smoke covers generic AArch64 only, not appliance hardware or long-duration operation.
 
 See [AGENTS.md](AGENTS.md) for repository instructions and [CONTRIBUTING.md](CONTRIBUTING.md) for change guidelines.
+
+The agent harness uses `bash scripts/agent_verify.sh` for uncached/race/static and
+cross-build checks; add `--images` to build and load both HAOS architectures.
+When a managed worker's HTTPS proxy needs its CA inside the builder, pass a
+combined trusted CA bundle via `HOUSEFOLD_BUILD_CA=/path/to/bundle.pem`. The
+optional BuildKit secret is used only by the Go build step and is absent from
+the final scratch images; ordinary builds use their normal system trust.

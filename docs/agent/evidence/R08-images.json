@@ -1,0 +1,32 @@
+[
+  {
+    "tags": [
+      "housefold-runtime:agent-amd64"
+    ],
+    "architecture": "amd64",
+    "user": "10001:10001",
+    "regular_files": [
+      "housefold-runtime"
+    ],
+    "binary_bytes": 9289890,
+    "static_elf": true,
+    "env_names": [
+      "PATH"
+    ]
+  },
+  {
+    "tags": [
+      "housefold-runtime:agent-arm64"
+    ],
+    "architecture": "arm64",
+    "user": "10001:10001",
+    "regular_files": [
+      "housefold-runtime"
+    ],
+    "binary_bytes": 8650914,
+    "static_elf": true,
+    "env_names": [
+      "PATH"
+    ]
+  }
+]

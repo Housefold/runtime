@@ -211,6 +211,22 @@
         "Split accepted design into small tasks and coordinate separately owned Python integration.",
         "Prove Runtime still boots/operates with Bridge absent, incompatible or failed."
       ]
+    },
+    {
+      "id": "R08",
+      "title": "Complete packaging verification with mounted builder CA trust",
+      "depends_on": [
+        "R01"
+      ],
+      "kind": "implementation",
+      "status": "done",
+      "approval_required": null,
+      "evidence": "docs/agent/evidence/R08.md",
+      "blocker": null,
+      "acceptance": [
+        "Support optional BuildKit CA trust for managed-proxy image checks without disabling TLS or embedding the worker certificate in final images.",
+        "Run the full verification script with both HAOS image architectures and inspect final scratch image permissions/contents; record registry recovery and distinguish builds from HAOS acceptance."
+      ]
     }
   ]
 }

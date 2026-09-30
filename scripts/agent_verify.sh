@@ -29,7 +29,12 @@ CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -trimpath -o "$out/runtime-arm64"
 if [[ "${1:-}" == "--images" ]]; then
   command -v docker >/dev/null || { echo "BLOCKED: Docker/buildx required" >&2; exit 2; }
   docker buildx version
-  docker buildx build --platform linux/amd64 --build-arg BUILD_ARCH=amd64 -f Dockerfile -t housefold-runtime:agent-amd64 .
-  docker buildx build --platform linux/arm64 --build-arg BUILD_ARCH=aarch64 -f Dockerfile -t housefold-runtime:agent-arm64 .
+  image_flags=(--load)
+  if [[ -n "${HOUSEFOLD_BUILD_CA:-}" ]]; then
+    [[ -f "$HOUSEFOLD_BUILD_CA" ]] || { echo "BLOCKED: HOUSEFOLD_BUILD_CA file unavailable" >&2; exit 2; }
+    image_flags+=(--secret "id=proxy_ca,src=$HOUSEFOLD_BUILD_CA")
+  fi
+  docker buildx build "${image_flags[@]}" --platform linux/amd64 --build-arg BUILD_ARCH=amd64 -f Dockerfile -t housefold-runtime:agent-amd64 .
+  docker buildx build "${image_flags[@]}" --platform linux/arm64 --build-arg BUILD_ARCH=aarch64 -f Dockerfile -t housefold-runtime:agent-arm64 .
 fi
 echo "PASS: requested checks completed; HAOS/hardware validation is separate"

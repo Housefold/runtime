@@ -190,7 +190,7 @@
       "status": "gated",
       "approval_required": "Explicit maintainer acceptance of D01 and D02 with recorded references",
       "evidence": null,
-      "blocker": null,
+      "blocker": "Await explicit maintainer acceptance of ADR-007 and ADR-008, recorded references and small executable task decomposition. Containment prerequisites must be proven before execution.",
       "acceptance": [
         "Split accepted designs into small executable tasks with fault tests before enabling epic.",
         "Implement only accepted contracts/grants/containment; prove single-active action-capable version."
@@ -206,7 +206,7 @@
       "status": "gated",
       "approval_required": "Explicit maintainer acceptance of D03 with recorded reference",
       "evidence": null,
-      "blocker": null,
+      "blocker": "Await explicit maintainer acceptance of ADR-009 and recorded reference, then small executable tasks coordinated with the separate Python integration repository.",
       "acceptance": [
         "Split accepted design into small tasks and coordinate separately owned Python integration.",
         "Prove Runtime still boots/operates with Bridge absent, incompatible or failed."

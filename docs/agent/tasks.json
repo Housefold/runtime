@@ -46,9 +46,9 @@
         "R02"
       ],
       "kind": "implementation",
-      "status": "todo",
+      "status": "done",
       "approval_required": null,
-      "evidence": null,
+      "evidence": "docs/agent/evidence/R03.md",
       "blocker": null,
       "acceptance": [
         "Add bounded fuzz/model tests for add/update/remove/recreate, duplicates, ambiguous equal/older timestamps, malformed/deep attributes and count/byte boundaries.",

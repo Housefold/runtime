@@ -119,9 +119,12 @@ func (c *stateCandidate) set(entityID string, state EntityState) error {
 }
 
 func tombstonePayloadSize(entityID string, deletedAt time.Time) int {
-	key, _ := json.Marshal(entityID)
-	value, _ := json.Marshal(deletedAt.UTC().Format(time.RFC3339Nano))
-	return len(key) + len(value) + 24 // field names, separators, and braces
+	// Account the canonical normalized tombstone record, including field names.
+	raw, _ := json.Marshal(struct {
+		EntityID  string    `json:"entity_id"`
+		DeletedAt time.Time `json:"deleted_at"`
+	}{entityID, deletedAt.UTC()})
+	return len(raw)
 }
 
 func (c *stateCandidate) remove(entityID string) {

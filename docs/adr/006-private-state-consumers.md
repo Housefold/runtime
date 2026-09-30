@@ -71,3 +71,12 @@ reads/reset/deltas, known versus absent, duplicate/older positions, authoritativ
 reset and stale retention, registration racing publication/disconnect, count and
 byte overflow, capacity, cancellation/shutdown, resource release and concurrent
 mutation/read/update/termination under the race detector. All data is synthetic.
+
+### Accounting validation (R03)
+
+Tombstone accounting sums each canonical normalized JSON record with fields
+`entity_id` and `deleted_at` (UTC RFC3339Nano). Field names, punctuation and values
+are included exactly. The prior arithmetic allowance undercounted this envelope
+by four bytes and is corrected without changing the accepted 8 MiB limit.
+Standalone state decoding now rejects trailing JSON/content; timestamp semantics
+remain those in ADR-003, with no new relationship rejection rule.

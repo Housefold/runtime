@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"io"
 	"log/slog"
 	"net/http"
 	"strings"
@@ -391,6 +392,10 @@ func decodeEntityState(raw json.RawMessage) (EntityState, error) {
 	decoder.UseNumber()
 	if err := decoder.Decode(&wire); err != nil {
 		return EntityState{}, err
+	}
+	var trailing any
+	if err := decoder.Decode(&trailing); err != io.EOF {
+		return EntityState{}, errors.New("trailing state data")
 	}
 	if wire.EntityID == "" || wire.State == nil || wire.Attributes == nil {
 		return EntityState{}, errors.New("invalid state")

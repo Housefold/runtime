@@ -1,6 +1,7 @@
 package ha
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -66,8 +67,18 @@ func newStateCandidate(snapshot []json.RawMessage) (*stateCandidate, error) {
 }
 
 func newStateCandidateWithLimit(snapshot []json.RawMessage, limit int) (*stateCandidate, error) {
+	return newStateCandidateContext(context.Background(), snapshot, limit)
+}
+
+func newStateCandidateContext(ctx context.Context, snapshot []json.RawMessage, limit int) (*stateCandidate, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
 	candidate := &stateCandidate{states: make(map[string]EntityState, len(snapshot)), watermarks: make(map[string]stateWatermark, len(snapshot)), tombstones: make(map[string]time.Time), bytes: 2, maxBytes: limit}
 	for _, raw := range snapshot {
+		if err := ctx.Err(); err != nil {
+			return nil, err
+		}
 		state, err := decodeEntityState(raw)
 		if err != nil {
 			return nil, err
@@ -79,6 +90,9 @@ func newStateCandidateWithLimit(snapshot []json.RawMessage, limit int) (*stateCa
 			return nil, err
 		}
 		candidate.watermarks[state.EntityID] = stateWatermark{lastUpdated: state.LastUpdated}
+	}
+	if err := ctx.Err(); err != nil {
+		return nil, err
 	}
 	return candidate, nil
 }

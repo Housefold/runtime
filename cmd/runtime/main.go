@@ -15,6 +15,10 @@ import (
 	"github.com/housefold/runtime/internal/supervisor"
 )
 
+const processShutdownTimeout = 9 * time.Second
+
+var errProcessShutdownTimeout = errors.New("runtime shutdown deadline exceeded")
+
 func main() {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
@@ -90,10 +94,32 @@ func runListener(ctx context.Context, listener net.Listener, token string, logge
 		}
 	}()
 
-	err := <-serviceDone
+	// The Supervisor grants ten seconds. Start one whole-process deadline
+	// when shutdown is requested, rather than spending eight seconds in HTTP
+	// shutdown and then waiting indefinitely for worker joins.
+	var err error
+	serviceWait, sessionWait, notifyWait := serviceDone, sessionRunDone, sessionNotifyDone
+	select {
+	case err = <-serviceWait:
+		serviceWait = nil
+	case <-ctx.Done():
+	}
 	cancel()
-	<-sessionRunDone
-	<-sessionNotifyDone
+	deadline := time.NewTimer(processShutdownTimeout)
+	defer deadline.Stop()
+	for serviceWait != nil || sessionWait != nil || notifyWait != nil {
+		select {
+		case err = <-serviceWait:
+			serviceWait = nil
+		case <-sessionWait:
+			sessionWait = nil
+		case <-notifyWait:
+			notifyWait = nil
+		case <-deadline.C:
+			_ = listener.Close()
+			return errProcessShutdownTimeout
+		}
+	}
 	if err != nil && !errors.Is(err, context.Canceled) {
 		return err
 	}

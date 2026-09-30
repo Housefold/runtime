@@ -63,9 +63,9 @@
         "R02"
       ],
       "kind": "implementation",
-      "status": "todo",
+      "status": "done",
       "approval_required": null,
-      "evidence": null,
+      "evidence": "docs/agent/evidence/R04.md",
       "blocker": null,
       "acceptance": [
         "Benchmark synthetic small/large/near-limit cache reads/copies/deltas; report allocations, memory amplification and update delay under concurrent reads.",

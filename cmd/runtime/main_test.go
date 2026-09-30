@@ -2,10 +2,13 @@ package main
 
 import (
 	"context"
+	"errors"
 	"io"
 	"log/slog"
 	"net"
 	"net/http"
+	"os"
+	"os/exec"
 	"testing"
 	"time"
 
@@ -115,4 +118,54 @@ func TestRunReturnsListenFailure(t *testing.T) {
 	if err := run(context.Background(), "127.0.0.1:-1", slog.New(slog.NewTextHandler(io.Discard, nil))); err == nil {
 		t.Fatal("run returned nil for an invalid listen address")
 	}
+}
+
+// A session that ignores cancellation demonstrates the previously unbounded
+// post-HTTP join. Release it after each test so the fault fixture cannot leak.
+type stubbornSession struct {
+	fakeStateSession
+	release chan struct{}
+}
+
+func (s *stubbornSession) Run(ctx context.Context, token string) {
+	s.started <- token
+	<-s.release
+	close(s.stopped)
+}
+func TestWholeProcessJoinHasDeadline(t *testing.T) {
+	if os.Getenv("HOUSEFOLD_SHUTDOWN_FAULT_CHILD") != "1" {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		cmd := exec.CommandContext(ctx, os.Args[0], "-test.run=^TestWholeProcessJoinHasDeadline$")
+		// Remove the race runtime's artificial one-second exit sleep in the
+		// subprocess; race detection itself remains enabled.
+		cmd.Env = append(os.Environ(), "HOUSEFOLD_SHUTDOWN_FAULT_CHILD=1", "GORACE=atexit_sleep_ms=0")
+		before := time.Now()
+		err := cmd.Run()
+		var exit *exec.ExitError
+		if ctx.Err() != nil || !errors.As(err, &exit) || exit.ExitCode() != 23 {
+			t.Fatalf("fault child did not exit at whole-process deadline: %v", err)
+		}
+		t.Logf("stalled-worker whole process start-to-exit: %s", time.Since(before))
+		return
+	}
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		os.Exit(24)
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	session := &stubbornSession{fakeStateSession: fakeStateSession{started: make(chan string, 1), stopped: make(chan struct{}), changes: make(chan struct{}, 1)}, release: make(chan struct{})}
+	done := make(chan error, 1)
+	go func() {
+		done <- runListener(ctx, listener, "", slog.New(slog.NewTextHandler(io.Discard, nil)), func() stateSession { return session })
+	}()
+	<-session.started
+	cancel()
+	err = <-done
+	// Exercise the same process termination decision as main: the stuck worker
+	// is never released, and process exit is what kills it.
+	if errors.Is(err, errProcessShutdownTimeout) {
+		os.Exit(23)
+	}
+	os.Exit(24)
 }

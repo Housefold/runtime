@@ -195,13 +195,8 @@ func (s *StateSession) runConnection(parent context.Context, token string) Statu
 	if status != StatusConnected {
 		return status
 	}
-	for _, event := range buffered {
-		if err := syncCtx.Err(); err != nil {
-			return StatusUnavailable
-		}
-		if err := applyEvent(candidate, event); err != nil {
-			return StatusUnavailable
-		}
+	if err := replayCandidate(syncCtx, candidate, buffered); err != nil {
+		return StatusUnavailable
 	}
 	if syncCtx.Err() != nil || candidate.bytes > maxStatePayloadBytes {
 		return StatusUnavailable
@@ -209,7 +204,10 @@ func (s *StateSession) runConnection(parent context.Context, token string) Statu
 	s.publish(candidate)
 	liveCtx, stopLive := context.WithCancel(parent)
 	defer stopLive()
+	pingDone := make(chan struct{})
+	defer func() { stopLive(); _ = conn.CloseNow(); <-pingDone }()
 	go func() {
+		defer close(pingDone)
 		ticker := time.NewTicker(s.pingInterval)
 		defer ticker.Stop()
 		for {
@@ -369,7 +367,7 @@ func (s *StateSession) awaitSnapshot(ctx context.Context, conn *websocket.Conn, 
 		if json.Unmarshal(envelope.Result, &rawStates) != nil {
 			return nil, nil, StatusUnavailable
 		}
-		candidate, err := newStateCandidate(rawStates)
+		candidate, err := newStateCandidateContext(ctx, rawStates, maxStatePayloadBytes)
 		if err != nil {
 			return nil, nil, StatusUnavailable
 		}
@@ -597,4 +595,18 @@ func (s *StateSession) markDisconnected(status Status) {
 		s.logger.Info("Home Assistant state session status changed", "status", status)
 	}
 	s.signal()
+}
+
+// Replay checks cancellation between bounded events and never publishes a
+// partially reconciled candidate.
+func replayCandidate(ctx context.Context, candidate *stateCandidate, events []stateEvent) error {
+	for _, event := range events {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
+		if err := applyEvent(candidate, event); err != nil {
+			return err
+		}
+	}
+	return ctx.Err()
 }

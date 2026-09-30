@@ -89,3 +89,15 @@ queued payload, each capped at 256 events/8 MiB, including initial/reset views.
 Oversized initial views fail explicitly; slow-consumer overflow, cancellation and
 source shutdown are distinct terminal outcomes. This adds no module interface,
 network surface, persistence or HA action authority.
+
+## Measured developer-host limits and shutdown
+
+[R04 measurements](agent/performance.md) cover synthetic reads/copies/deltas,
+contention, heap amplification and cancellation; they are provisional worker
+results, not appliance readiness. The whole process now shares one nine-second
+shutdown deadline across HTTP shutdown and session/notification joins, inside
+the ten-second Supervisor grant. HTTP retains its concurrent eight-second limit.
+On deadline expiry Runtime exits nonzero so remaining goroutines cannot keep the
+process alive. Decode/replay checks cancellation between bounded operations and
+the ping worker is joined. Individual JSON decode/serialization and copies are
+still synchronous; scheduler and target-hardware behavior must be measured.

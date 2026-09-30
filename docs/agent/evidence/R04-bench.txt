@@ -1,0 +1,18 @@
+goos: linux
+goarch: amd64
+pkg: github.com/housefold/runtime/internal/ha
+cpu: INTEL(R) XEON(R) PLATINUM 8573C
+BenchmarkPrivateState/small/Snapshot-5         	      10	     84079 ns/op	     21381 payload-B	   84856 B/op	     604 allocs/op
+BenchmarkPrivateState/small/Read-5             	      10	      2749 ns/op	     712 B/op	       6 allocs/op
+BenchmarkPrivateState/small/Delta-5            	      10	     30332 ns/op	    5852 B/op	     100 allocs/op
+BenchmarkPrivateState/small/UpdateWithReader-5 	      10	    106055 ns/op	    205048 max-update-ns	   88267 B/op	     696 allocs/op
+BenchmarkPrivateState/large/Snapshot-5         	      10	   5759119 ns/op	   3487781 payload-B	 4478452 B/op	   30018 allocs/op
+BenchmarkPrivateState/large/Read-5             	      10	      2387 ns/op	     712 B/op	       6 allocs/op
+BenchmarkPrivateState/large/Delta-5            	      10	     56051 ns/op	   11032 B/op	     101 allocs/op
+BenchmarkPrivateState/large/UpdateWithReader-5 	      10	   6501465 ns/op	   9339740 max-update-ns	 4478463 B/op	   30122 allocs/op
+BenchmarkPrivateState/near_limit/Snapshot-5    	      10	  24427628 ns/op	  60585781 payload-B	15063344 B/op	   96066 allocs/op
+BenchmarkPrivateState/near_limit/Read-5        	      10	      2102 ns/op	     712 B/op	       6 allocs/op
+BenchmarkPrivateState/near_limit/Delta-5       	      10	     67260 ns/op	   47844 B/op	     103 allocs/op
+BenchmarkPrivateState/near_limit/UpdateWithReader-5         	      10	  19262400 ns/op	  27322515 max-update-ns	15080444 B/op	   96173 allocs/op
+PASS
+ok  	github.com/housefold/runtime/internal/ha	1.598s

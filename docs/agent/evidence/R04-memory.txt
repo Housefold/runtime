@@ -1,0 +1,6 @@
+=== RUN   TestSyntheticMemoryAndNearLimitCopyCancellation
+    state_benchmark_test.go:117: payload=60585781 resident-cache-heap=83481992 retained-cache+candidate+copy-heap=182017048 amplification=3.00x
+    state_benchmark_test.go:150: session exit while near-limit copy held read gate: 17.543296ms
+--- PASS: TestSyntheticMemoryAndNearLimitCopyCancellation (0.43s)
+PASS
+ok  	github.com/housefold/runtime/internal/ha	0.444s

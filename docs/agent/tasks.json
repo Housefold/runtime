@@ -98,9 +98,9 @@
         "R04"
       ],
       "kind": "implementation",
-      "status": "todo",
+      "status": "done",
       "approval_required": null,
-      "evidence": null,
+      "evidence": "docs/agent/evidence/R06.md",
       "blocker": null,
       "acceptance": [
         "Provide synthetic setup and expected outcomes for startup without Bridge/modules/cloud, deny/recover, Core restart/resync, burst/overflow, ingress/watchdog and shutdown.",

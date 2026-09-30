@@ -8,6 +8,7 @@ fi
 command -v go >/dev/null || { echo "BLOCKED: Go 1.26+ required" >&2; exit 2; }
 command -v gofmt >/dev/null || { echo "BLOCKED: gofmt required" >&2; exit 2; }
 python3 scripts/agent_tasks.py list >/dev/null
+python3 -m unittest discover -s scripts -p "*_test.py"
 git diff --check
 go version
 go env GOOS GOARCH CGO_ENABLED

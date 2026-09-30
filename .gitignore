@@ -11,3 +11,6 @@
 /out/
 *.test
 *.prof
+
+# Python verification cache
+__pycache__/

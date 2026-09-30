@@ -132,9 +132,9 @@
         "R02"
       ],
       "kind": "proposal",
-      "status": "todo",
+      "status": "done",
       "approval_required": null,
-      "evidence": null,
+      "evidence": "docs/agent/evidence/D01.md",
       "blocker": null,
       "acceptance": [
         "Define version/compatibility negotiation, transport options, scoped state/events, readiness/staleness, deadlines/backpressure and disconnect recovery.",

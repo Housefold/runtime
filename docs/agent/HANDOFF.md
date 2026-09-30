@@ -1,3 +1,6 @@
 # Handoff
 
-Entering R07 HEAD: 6bf8547. R07 is blocked; evidence/R07.md records absent test access/VM facilities and restart condition. Continue independent D01 proposal. R06 runbook is ready for an authorized disposable HAOS target. No public implementation, pushes or releases approved.
+Completed D01: docs: propose scoped consumer and HA action contracts. Entering HEAD: b8f356a33f1bfd3831c02bd7a6e23f0294d2df15.
+Acceptance, checks, limitations and review are in evidence/D01.md.
+Next: D02. Use PATH=/workspace/scratch/go/bin:$PATH for Go verification.
+Public/action/trust/Bridge proposals require explicit recorded acceptance before gated implementation. No pushing/releases authorized.

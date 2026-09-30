@@ -111,3 +111,10 @@ wait remain in internal/ha/lifecycle.go. There is currently no REST diagnostic
 entrypoint. The accepted permission to add an optional read-only diagnostic does
 not give REST authority over WebSocket readiness or freshness. Historical VM
 probe evidence continues to describe the old probe, not current ingestion.
+
+## Proposed public boundaries
+
+[ADR-007](adr/007-public-consumer-and-action-contracts.md) proposes public scoped
+consumers and explicit HA action authority, compatibility, bounded delivery and
+unknown outcomes. It is **Proposed**; no public/module transport or HA actions
+are implemented or authorized by its presence or D01 task completion.

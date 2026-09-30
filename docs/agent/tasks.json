@@ -150,9 +150,9 @@
         "D01"
       ],
       "kind": "proposal",
-      "status": "todo",
+      "status": "done",
       "approval_required": null,
-      "evidence": null,
+      "evidence": "docs/agent/evidence/D02.md",
       "blocker": null,
       "acceptance": [
         "Threat model child access to environment/files/network; separate processes and non-root alone do not enforce grants.",

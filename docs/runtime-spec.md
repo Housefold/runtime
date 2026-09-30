@@ -118,3 +118,9 @@ probe evidence continues to describe the old probe, not current ingestion.
 consumers and explicit HA action authority, compatibility, bounded delivery and
 unknown outcomes. It is **Proposed**; no public/module transport or HA actions
 are implemented or authorized by its presence or D01 task completion.
+
+[ADR-008](adr/008-module-containment-trust-and-activation.md) proposes fail-closed
+containment prerequisites, provenance/source approval, staged health/quarantine
+and sequential fenced activation/rollback. It is **Proposed**. No launcher,
+installation store, resource privilege, module execution or update authority is
+added; actual HAOS containment feasibility remains unverified.

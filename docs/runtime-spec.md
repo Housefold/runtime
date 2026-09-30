@@ -124,3 +124,9 @@ containment prerequisites, provenance/source approval, staged health/quarantine
 and sequential fenced activation/rollback. It is **Proposed**. No launcher,
 installation store, resource privilege, module execution or update authority is
 added; actual HAOS containment feasibility remains unverified.
+
+[ADR-009](adr/009-optional-bridge-compatibility-and-fallback.md) proposes optional
+Bridge negotiation/enrichment, versioned capabilities and atomic single-source
+switch/reset/fallback. It is **Proposed**. Python integration belongs to a separate
+repository. Standard HA state ingestion remains the implemented/default path;
+no Bridge dependency, transport, installation or source preference is enabled.

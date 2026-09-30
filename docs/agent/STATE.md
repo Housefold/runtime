@@ -1,9 +1,9 @@
 # Current state
 
-- Source HEAD entering completed slice: cb5b836e819c20624fc1f89fc51a4756b9fbce43.
+- Source HEAD entering completed slice: 2c63e364b26f54b796726fffd17a6001ba7fe5ef.
 - Go 1.26.8 available at /workspace/scratch/go/bin; source checks recorded per task.
 - Docker image and HAOS/appliance checks remain separate; see evidence.
-- Active task: none. Next: D03.
+- Active task: none. Next: packaging follow-up; R07 blocked; G01/G02 gated.
 - Authority: private foundation and proposed designs; approval fields unchanged.
 
 - R01: done
@@ -15,6 +15,6 @@
 - R07: blocked
 - D01: done
 - D02: done
-- D03: todo
+- D03: done
 - G01: gated
 - G02: gated

@@ -169,9 +169,9 @@
         "R02"
       ],
       "kind": "proposal",
-      "status": "todo",
+      "status": "done",
       "approval_required": null,
-      "evidence": null,
+      "evidence": "docs/agent/evidence/D03.md",
       "blocker": null,
       "acceptance": [
         "Define cross-container transport/topology options, authentication, version/capability negotiation, discovery enrichment and heartbeat/reconnect.",

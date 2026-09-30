@@ -101,3 +101,13 @@ On deadline expiry Runtime exits nonzero so remaining goroutines cannot keep the
 process alive. Decode/replay checks cancellation between bounded operations and
 the ping worker is joined. Individual JSON decode/serialization and copies are
 still synchronous; scheduler and target-hardware behavior must be measured.
+
+## Diagnostic ownership
+
+R05 traced all one-shot Probe and Monitor callers: only their own obsolete tests
+used them; main has used StateSession since state ingestion. Their implementation
+and dedicated tests are removed. Shared status, retry constants and cancellation
+wait remain in internal/ha/lifecycle.go. There is currently no REST diagnostic
+entrypoint. The accepted permission to add an optional read-only diagnostic does
+not give REST authority over WebSocket readiness or freshness. Historical VM
+probe evidence continues to describe the old probe, not current ingestion.

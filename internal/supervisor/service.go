@@ -29,7 +29,7 @@ type HAStatus struct {
 	LastSuccessful time.Time
 }
 
-// StatusStore keeps the latest probe result in memory for the local status
+// StatusStore keeps the latest session metadata in memory for the local status
 // page. No persistence or household state is involved.
 type StatusStore struct {
 	mu     sync.RWMutex

@@ -81,9 +81,9 @@
         "R01"
       ],
       "kind": "implementation",
-      "status": "todo",
+      "status": "done",
       "approval_required": null,
-      "evidence": null,
+      "evidence": "docs/agent/evidence/R05.md",
       "blocker": null,
       "acceptance": [
         "Trace all probe/monitor callers and document intended diagnostic use or remove proven dead code with focused tests.",

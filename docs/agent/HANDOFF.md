@@ -1,20 +1,11 @@
 # Handoff
 
-Foundation/packaging completed at f6d7d164388e23deb55303fba62303a4b9b15d9c; local commits on main, no pushes/releases.
-Read STATE.md, tasks.json and per-task evidence; `agent_tasks.py next` reports no ready task.
+The stakeholder review accepted ADR-007/008/009 and replaced the old G01/G02 epics with a small executable implementation queue.
 
-Verified private consumer behavior, ordering/ownership/backpressure/accounting,
-reconciliation model and fuzz smoke, cancellation, nine-second whole process
-shutdown and both HAOS images. Exact final command/results in evidence/R08.md;
-measurements and limits in performance.md. Synthetic helper/runbook in HAOS-VALIDATION.md.
+Start with python3 scripts/agent_tasks.py next. Work one task at a time, prove fault behavior, write evidence, update STATE/HANDOFF and commit each cohesive slice. Continue through all ready tasks without waiting for routine implementation approval.
 
-Next independent work requires an authorized clean HAOS test target: follow
-R07 restart condition, resume its ledger entry and execute R06 matrix; record
-exact HAOS/Core/Supervisor/architecture/hardware and distinguish VM/appliance.
+Key invariants: Runtime is the sole HA boundary; official modules are trusted Runtime-managed processes using private inherited IPC; no per-entity grant engine; zero-downtime readiness-before-cutover; new work routes only to the active generation while old work drains; no automatic module rollback; Runtime owns durable timeline/admission; state handover is optional and version-negotiated; unknown HA actions are never blindly retried; retry exhaustion quarantines the selected version.
 
-Review ADR-007 (public consumers/actions), ADR-008 (containment/trust/activation),
-and ADR-009 (optional Bridge). They are Proposed. Only explicit maintainer
-acceptance with references can unlock G01/G02; split accepted epics before coding.
-G01's containment feasibility is not demonstrated by this worker or images.
-No modules, HA actions, new public/control endpoints, unattended installation,
-Bridge dependency or remote access implemented. GATES.md records guardrails.
+Bridge is preferred when proven compatible but remains optional. Do not implement Bridge-selected ordered state (B03) until the Python side supplies the required sequencing/barrier evidence. Do not claim HAOS lifecycle readiness (V02) without an authorized HAOS target.
+
+No push, deployment, release, real-home action, production module download or third-party module execution is authorized.

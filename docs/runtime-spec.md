@@ -209,3 +209,20 @@ owned child is stopped/joined. Callers drive Drain with explicit time. On Runtim
 restart no generation is ready until a new boot-bound handshake; stale sessions
 cannot issue work/actions. Post-rename persistence uncertainty fences admission.
 This is an internal tested coordinator, not production module enablement.
+
+## Generation state and handover (M05)
+
+Generation stores use module-hashed paths and independent generation directories,
+private atomic state files, 64 safe keys, 1 MiB per value and 8 MiB aggregate.
+Scoped store handles never expose another generation's write target. This protects
+Runtime's ownership paths; trusted processes are not hostile filesystem sandboxes.
+Module schemas remain opaque.
+
+Negotiated handover sends at most 512 KiB with source version/schema metadata.
+Warm transfer may occur while v1 serves work. Compatible final transfer freezes
+the source, adopts the consistent final state and cuts over under the admission
+barrier, then resumes/releases the source. The final context is capped at 250 ms;
+IPC peers honor that deadline. Filesystem syscall stalls still need hardware
+measurement. Incompatible state requires an explicitly permitted clean start;
+required-state refusal or final adoption failure keeps v1 active. Protocol support
+alone never establishes version/state compatibility.

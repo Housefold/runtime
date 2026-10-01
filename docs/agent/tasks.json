@@ -314,9 +314,9 @@
         "M04"
       ],
       "kind": "implementation",
-      "status": "todo",
+      "status": "done",
       "approval_required": null,
-      "evidence": null,
+      "evidence": "docs/agent/evidence/M05.md",
       "blocker": null,
       "acceptance": [
         "Allocate isolated writable state storage per module generation; preparing candidate cannot mutate active generation state.",

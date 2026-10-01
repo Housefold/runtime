@@ -178,6 +178,9 @@ func (r *Router) Ready(id Identity, accepting bool, child Child) error {
 func (r *Router) Cutover(id Identity, now time.Time) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
+	return r.cutoverLocked(id, now)
+}
+func (r *Router) cutoverLocked(id Identity, now time.Time) error {
 	if !r.matches(id) || !r.ready[id.Generation] {
 		return ErrFenced
 	}

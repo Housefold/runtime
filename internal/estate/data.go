@@ -21,6 +21,7 @@ import (
 
 	"github.com/housefold/runtime/internal/action"
 	"github.com/housefold/runtime/internal/catalog"
+	"github.com/housefold/runtime/internal/discovery"
 	"github.com/housefold/runtime/internal/durable"
 	"github.com/housefold/runtime/internal/execution"
 	"github.com/housefold/runtime/internal/ha"
@@ -83,6 +84,9 @@ type Config struct {
 	OnRecovery   func()
 	StoreFactory func(string) durable.Store
 	Catalog      *catalog.Client
+	Discovery    interface {
+		DiscoverySnapshot() (discovery.Snapshot, bool)
+	}
 }
 type Engine struct {
 	op              sync.Mutex
@@ -103,6 +107,9 @@ type Engine struct {
 	storageDegraded bool
 	ownedStores     map[string]durable.Store
 	catalogDone     chan struct{}
+	bindings        *discovery.Generator
+	bindingSource   []byte
+	bindingFresh    bool
 }
 
 func New(config Config) *Engine {
@@ -201,6 +208,7 @@ func (e *Engine) initialize(now time.Time) error {
 	var meta struct {
 		Version     int
 		Initialized bool
+		Bindings    bool
 	}
 	if fresh {
 		entries, err := os.ReadDir(e.config.Root)
@@ -216,6 +224,9 @@ func (e *Engine) initialize(now time.Time) error {
 		return ErrRecovery
 	}
 	required := []string{"inventory", "execution", "router", "timeline", "actions"}
+	if meta.Bindings {
+		required = append(required, "bindings")
+	}
 	if meta.Initialized {
 		for _, name := range required {
 			if _, err = e.file(name).Load(); err != nil {
@@ -278,6 +289,9 @@ func (e *Engine) initialize(now time.Time) error {
 		transport = offlineActions{}
 	}
 	if e.actions, err = action.Open(e.owned("actions"), e.router, transport); err != nil {
+		return err
+	}
+	if e.bindings, err = discovery.OpenGenerator(e.owned("bindings")); err != nil {
 		return err
 	}
 	// Roll forward inventory only when the durable cutover already selected the
@@ -366,6 +380,7 @@ func (e *Engine) initialize(now time.Time) error {
 		return err
 	}
 	meta.Initialized = true
+	meta.Bindings = true
 	raw, _ = json.Marshal(meta)
 	if err = marker.Save(raw); err != nil {
 		return err

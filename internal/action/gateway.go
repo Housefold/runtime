@@ -1,5 +1,5 @@
 // Package action fences module action admission and durably retains uncertainty.
-// There is deliberately no production HA transport in this package.
+// Production HA transport is composed by Runtime outside this package.
 package action
 
 import (
@@ -56,6 +56,9 @@ type Record struct {
 }
 type Transport interface {
 	Call(context.Context, Request) (Outcome, error)
+}
+type AttributedTransport interface {
+	CallAttributed(context.Context, module.Identity, Request) (Outcome, error)
 }
 type data struct {
 	Version int
@@ -161,6 +164,7 @@ func valid(r Request) bool {
 	trimmed := bytes.TrimSpace(r.Data)
 	return len(trimmed) > 0 && trimmed[0] == '{'
 }
+func ValidRequest(request Request) bool { return valid(request) }
 func (g *Gateway) Submit(ctx context.Context, id module.Identity, request Request) (Record, error) {
 	notSent := Record{Identity: id, ID: request.ID, Work: request.Work, Outcome: NotSent}
 	if !valid(request) {
@@ -210,7 +214,13 @@ func (g *Gateway) Submit(ctx context.Context, id module.Identity, request Reques
 	// Once the durable unknown marker exists, invocation may reach HA. No
 	// automatic retries are performed, including timeout and Runtime recovery.
 	request.Data = append(json.RawMessage(nil), request.Data...)
-	outcome, callErr := g.transport.Call(ctx, request)
+	var outcome Outcome
+	var callErr error
+	if attributed, ok := g.transport.(AttributedTransport); ok {
+		outcome, callErr = attributed.CallAttributed(ctx, id, request)
+	} else {
+		outcome, callErr = g.transport.Call(ctx, request)
+	}
 	if outcome == NotSent {
 		record.Outcome = NotSent
 	} else if callErr == nil && (outcome == Accepted || outcome == Rejected) {

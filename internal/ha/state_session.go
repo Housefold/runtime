@@ -143,8 +143,16 @@ func (s *StateSession) runConnection(parent context.Context, token string) Statu
 	defer cancel()
 	s.setPhase(PhaseConnecting)
 	client := &http.Client{CheckRedirect: func(_ *http.Request, _ []*http.Request) error { return http.ErrUseLastResponse }}
+	transport := http.DefaultTransport.(*http.Transport).Clone()
+	transport.Proxy = nil // This credential-bearing boundary is always local HA.
+	transport.MaxConnsPerHost = 1
+	client.Transport = transport
+	defer transport.CloseIdleConnections()
 	conn, response, err := websocket.Dial(syncCtx, s.url, &websocket.DialOptions{HTTPClient: client})
 	if err != nil {
+		if response != nil && response.Body != nil {
+			_ = response.Body.Close()
+		}
 		if response != nil && (response.StatusCode == 401 || response.StatusCode == 403) {
 			return StatusDenied
 		}

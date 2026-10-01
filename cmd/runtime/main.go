@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/signal"
 	"runtime"
+	"sync"
 	"syscall"
 	"time"
 
@@ -17,6 +18,7 @@ import (
 	"github.com/housefold/runtime/internal/durable"
 	"github.com/housefold/runtime/internal/estate"
 	"github.com/housefold/runtime/internal/ha"
+	"github.com/housefold/runtime/internal/hacontrol"
 	"github.com/housefold/runtime/internal/supervisor"
 )
 
@@ -54,17 +56,23 @@ func run(ctx context.Context, address string, logger *slog.Logger, recovery ...b
 	}
 	required := len(recovery) > 0 && recovery[0]
 	return runListener(ctx, listener, os.Getenv("SUPERVISOR_TOKEN"), logger, func() stateSession { return ha.NewStateSession(logger) }, runtimeComposition{RecoveryRequired: required, NewEstate: func(source stateSession, status *supervisor.StatusStore) backgroundService {
+		native := hacontrol.NewNative(os.Getenv("SUPERVISOR_TOKEN"), source.(*ha.StateSession))
 		if required {
-			return nil
+			native.SetSignals(func() hacontrol.OperationalSnapshot {
+				return hacontrol.OperationalSnapshot{Runtime: "recovery_required", Catalog: "unconfigured"}
+			})
+			return native
 		}
 		arch := "amd64"
 		if runtime.GOARCH == "arm64" {
 			arch = "aarch64"
 		}
 		client := catalog.New(durable.NewFile("/data/housefold/catalog.json"), arch)
-		owner := estate.New(estate.Config{Root: "/data/housefold", Source: source.(*ha.StateSession), Logger: logger, OnRecovery: status.SetRecoveryRequired, Authority: catalog.OfficialAuthority(), Catalog: client})
+		owner := estate.New(estate.Config{Root: "/data/housefold", Source: source.(*ha.StateSession), Logger: logger, OnRecovery: status.SetRecoveryRequired, Authority: catalog.OfficialAuthority(), Catalog: client, Actions: native, Discovery: native})
 		status.SetEstate(owner)
-		return owner
+		native.SetDiscoverySink(owner.PublishDiscovery)
+		native.SetSignals(owner.OperationalSnapshot)
+		return joinedServices{owner, native}
 	}})
 }
 
@@ -170,4 +178,16 @@ func runListener(ctx context.Context, listener net.Listener, token string, logge
 		return err
 	}
 	return nil
+}
+
+// Each dependency owner survives estate recovery and joins on process shutdown.
+type joinedServices []backgroundService
+
+func (services joinedServices) Run(ctx context.Context) {
+	var workers sync.WaitGroup
+	for _, service := range services {
+		workers.Add(1)
+		go func(owner backgroundService) { defer workers.Done(); owner.Run(ctx) }(service)
+	}
+	workers.Wait()
 }

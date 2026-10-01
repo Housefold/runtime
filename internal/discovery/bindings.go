@@ -36,7 +36,12 @@ type Generator struct {
 func OpenGenerator(store durable.Store) (*Generator, error) {
 	raw, err := store.Load()
 	m := Manifest{Version: 1, Bindings: map[string]Binding{}}
-	if !errors.Is(err, os.ErrNotExist) {
+	if errors.Is(err, os.ErrNotExist) {
+		initial, _ := json.Marshal(m)
+		if err = store.Save(initial); err != nil {
+			return nil, err
+		}
+	} else {
 		if err != nil {
 			return nil, err
 		}

@@ -12,6 +12,7 @@ import (
 	"github.com/housefold/runtime/internal/durable"
 	"github.com/housefold/runtime/internal/execution"
 	"github.com/housefold/runtime/internal/module"
+	"github.com/housefold/runtime/internal/state"
 	"github.com/housefold/runtime/internal/timeline"
 )
 
@@ -39,6 +40,7 @@ type unit struct {
 	joined                         bool
 	schedules                      map[string]timeline.Schedule
 	canceled                       map[string]time.Time
+	permissions                    map[string]bool
 }
 
 func (u *unit) Stop(ctx context.Context) error {
@@ -75,11 +77,18 @@ func (u *unit) reply(frame module.Frame, value any, err error) error {
 	if err != nil {
 		code = "unavailable"
 	}
-	return u.send(u.ctx, "result", frame.ID, struct {
+	err = u.send(u.ctx, "result", frame.ID, struct {
 		Success bool   `json:"success"`
 		Data    any    `json:"data,omitempty"`
 		Error   string `json:"error,omitempty"`
 	}{err == nil, value, code})
+	if errors.Is(err, module.ErrProtocol) {
+		return u.send(u.ctx, "result", frame.ID, struct {
+			Success bool   `json:"success"`
+			Error   string `json:"error"`
+		}{false, "too_large"})
+	}
+	return err
 }
 func (e *Engine) startUnit(ctx context.Context, id module.Identity, b Bundle) (*unit, error) {
 	stores := map[string]*module.StateStore{}
@@ -101,6 +110,10 @@ func (e *Engine) startUnit(ctx context.Context, id module.Identity, b Bundle) (*
 		return nil, err
 	}
 	u := &unit{engine: e, process: p, identity: id, stores: stores, ctx: childCtx, cancel: cancel, readDone: make(chan struct{}), workersDone: make(chan struct{}), ready: make(chan struct{}), rpcGate: make(chan struct{}, 1), actions: make(chan struct{}, 2), phase: module.Preparing, schedules: map[string]timeline.Schedule{}, canceled: map[string]time.Time{}}
+	u.permissions = map[string]bool{}
+	for _, capability := range b.declaration().Capabilities {
+		u.permissions[capability] = true
+	}
 	e.mu.Lock()
 	e.units[id.Generation] = u
 	e.mu.Unlock()
@@ -112,7 +125,7 @@ func (e *Engine) startUnit(ctx context.Context, id module.Identity, b Bundle) (*
 		c()
 		return u, err
 	}
-	supported := module.Hello{Major: module.Major, Capabilities: []string{"health", "state", "storage", "execution", "actions", "handover"}, Required: []string{"health"}}
+	supported := module.Hello{Major: module.Major, Capabilities: []string{"health", "state", "discovery", "storage", "execution", "actions", "handover"}, Required: []string{"health"}}
 	negotiate, cancelNegotiation := context.WithTimeout(ctx, module.IOTimeout)
 	u.negotiated, err = p.Session.Negotiate(negotiate, supported)
 	cancelNegotiation()
@@ -238,6 +251,12 @@ func (u *unit) read() {
 			u.lastHealth = now
 			u.mu.Unlock()
 		case "subscribe_state":
+			if !u.permissions["ha.observe"] || !u.supports("state") {
+				if u.reply(f, nil, module.ErrFenced) != nil {
+					return
+				}
+				continue
+			}
 			u.mu.Lock()
 			already := u.streaming
 			u.streaming = true
@@ -346,7 +365,41 @@ func (u *unit) read() {
 			if u.reply(f, nil, err) != nil {
 				return
 			}
+		case "discovery_request", "bindings_request":
+			if !u.permissions["ha.discovery"] || !u.supports("discovery") {
+				if u.reply(f, nil, module.ErrFenced) != nil {
+					return
+				}
+				continue
+			}
+			if f.Type == "bindings_request" {
+				source, fresh := u.engine.Bindings()
+				if u.reply(f, struct {
+					Source []byte `json:"source"`
+					Fresh  bool   `json:"fresh"`
+				}{source, fresh}, nil) != nil {
+					return
+				}
+				continue
+			}
+			if source := u.engine.config.Discovery; source != nil {
+				snapshot, fresh := source.DiscoverySnapshot()
+				if u.reply(f, struct {
+					Snapshot any  `json:"snapshot"`
+					Fresh    bool `json:"fresh"`
+				}{snapshot, fresh}, nil) != nil {
+					return
+				}
+			} else if u.reply(f, nil, ErrOperation) != nil {
+				return
+			}
 		case "action_request":
+			if !u.permissions["ha.actions"] || !u.supports("actions") {
+				if u.send(u.ctx, "action_result", f.ID, action.Record{Identity: u.identity, ID: f.ID, Outcome: action.NotSent}) != nil {
+					return
+				}
+				continue
+			}
 			select {
 			case u.actions <- struct{}{}:
 			default:
@@ -462,6 +515,9 @@ func (u *unit) streamState() {
 				}
 				if err = u.process.Session.SendEvent(u.ctx, event); err != nil {
 					sub.Close()
+					if errors.Is(err, module.ErrProtocol) || errors.Is(err, state.ErrInitialTooLarge) {
+						break
+					}
 					return
 				}
 			}

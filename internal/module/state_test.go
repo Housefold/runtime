@@ -112,3 +112,31 @@ func TestStreamTerminal(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestUnavailableDuringPartialResetPreservesStaleReplica(t *testing.T) {
+	replica := &Replica{}
+	frame, _ := FrameOf("reset_begin", ResetBoundary{Position: state.Position{Generation: 1}, Fresh: true})
+	if err := replica.Apply(frame); err != nil {
+		t.Fatal(err)
+	}
+	frame, _ = FrameOf("reset_entity", state.Entity{EntityID: "sensor.synthetic", State: "retained"})
+	if err := replica.Apply(frame); err != nil {
+		t.Fatal(err)
+	}
+	frame, _ = FrameOf("reset_end", ResetBoundary{Position: state.Position{Generation: 1}, Fresh: true})
+	if err := replica.Apply(frame); err != nil {
+		t.Fatal(err)
+	}
+	frame, _ = FrameOf("reset_begin", ResetBoundary{Position: state.Position{Generation: 2}, Fresh: true})
+	if err := replica.Apply(frame); err != nil {
+		t.Fatal(err)
+	}
+	frame, _ = FrameOf("state_unavailable", map[string]string{"reason": "resync_required"})
+	if err := replica.Apply(frame); err != nil {
+		t.Fatal(err)
+	}
+	snapshot := replica.Snapshot()
+	if snapshot.Generation != 1 || snapshot.Fresh || snapshot.States["sensor.synthetic"].State != "retained" || replica.staging != nil {
+		t.Fatal("partial or fresh unavailable replica", snapshot)
+	}
+}

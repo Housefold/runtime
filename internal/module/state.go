@@ -101,6 +101,9 @@ func (r *Replica) Apply(f Frame) error {
 		return fail()
 	}
 	switch f.Type {
+	case "state_unavailable":
+		r.Disconnected()
+		return nil
 	case "reset_begin":
 		var b ResetBoundary
 		if r.staging != nil || json.Unmarshal(f.Body, &b) != nil {

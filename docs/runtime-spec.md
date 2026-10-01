@@ -240,12 +240,12 @@ store, requiring normal readiness/cutover. It never revives a retired process.
 A selected-version crash interrupts running work, retains pending work and fences
 readiness. Up to three automatic same-version restart attempts use one/two/four
 second backoff. Failed restart candidates also consume the finite budget. Pending
-work can rebind to a prepared replacement before its cutover, with durable IDs
-unchanged. Exhaustion persists terminal QUARANTINED; no automatic rollback/restart
+work rebinds only after durable replacement selection, with durable IDs unchanged;
+a failed follow-up commit fences authority and requires recovery. Exhaustion persists terminal QUARANTINED; no automatic rollback/restart
 or new admission occurs. Explicit OperatorRecover resets the selected version's
 budget while still requiring a new epoch and readiness. Other modules continue.
-Callers drive restart attempts with explicit time; no production recovery loop or
-artifact deletion is enabled by these libraries.
+The production estate drives these attempts from its reconciliation loop. Physical
+artifact/state deletion is governed by the separate V1P08 storage policy.
 
 ## Internal action gateway (A01)
 
@@ -262,8 +262,9 @@ with five-second context deadlines; transports must honor contexts. At retained
 capacity new requests fail not_sent; records are not silently evicted. Persisted
 metadata contains hashes/IDs/outcomes, not HA request payloads. A failed response
 commit leaves uncertainty. Observation matches/not-observed annotate evidence
-without rewriting submission outcomes or asserting causality. Tests use fake HA
-only; cmd/runtime has no production action wiring.
+without rewriting submission outcomes or asserting causality. The production adapter below supplies the fixed local HA transport. Synthetic
+fixtures verify the failure boundary; the mandatory disposable-HAOS gate must
+prove the actual supported HA versions and permissions.
 
 ## Offline official package verification (P01)
 
@@ -331,11 +332,11 @@ collectable before joining. Failed joins remain retriable while the active modul
 selection remains independent. Bridge negotiation loss marks only retained
 discovery stale. See [final review evidence](agent/evidence/FINAL-REVIEW.md).
 
-The cmd/runtime foundation still operates without modules or Bridge. New libraries
-are exercised through synthetic fixtures/injected boundaries; this queue does not
-claim a production installer, restart loop, real HA action adapter, native discovery
-collector, cron expression parser or complete public SDK. HAOS/appliance gates
-R07/V02 validation and Python production compatibility remain separate evidence.
+The historical foundation operated without module/Bridge composition. Its injected
+library fixtures did not establish a production product. Current estate and native
+HA composition are described below; remote official catalog provisioning remains
+blocked. Mandatory v1 HAOS/appliance and Python ordered-source compatibility
+proof remain separate from library/container results.
 The resumed historical harness records image checks and historical stakeholder waivers explicitly. Those waivers do not satisfy any Runtime v1 productization gate.
 
 
@@ -420,3 +421,46 @@ repository creation and Actions secrets access (evidence/V1P05.md). Production
 reports `unconfigured` and authorizes no install until a real pinned Housefold
 public key/source is established. Synthetic fixtures are not an official catalog.
 This is an external blocker, not completion or a release waiver.
+
+## Production native HA operations (V1P06)
+
+Runtime's `hacontrol.Native` supplies the fenced action gateway through the fixed
+local Supervisor Core API proxy. Credentials stay only in Runtime; this local
+transport ignores environment proxies and follows no redirects. Requests have a
+five-second deadline. Validation/cancellation before connection is `not_sent`,
+explicit success is `accepted`, known HA denial/validation responses are
+`rejected_by_ha`, and ambiguous disconnect/timeout/server failures remain
+`unknown`. Durable unknown records are never resent after retry/reboot.
+
+Attribution includes module/version/boot/generation/request and optional execution.
+Bounded local `housefold_action` events expose only this metadata and outcome,
+never the action body or token. Event pressure drops observability events rather
+than delaying actions and exposes a drop counter. The IPC broker requires signed
+`ha.actions`, `ha.observe` or `ha.discovery` declarations and corresponding
+negotiated protocol capabilities for those HA access paths.
+
+A separate Runtime-owned authenticated command socket collects entity/device/area
+registries; native REST collects service schemas. Command wire IDs are owned by
+Runtime and replies validated before caller-ID translation. Failed/timed-out
+exchanges close the socket; one bounded exchange prevents competing readers.
+Registry denial, missing and unsupported outcomes remain explicit. Stable registry
+IDs (or provider platform/domain/unique IDs) retain identity across rename; absent
+provider identities remain explicitly weak. Unknown domains/attributes/selectors
+keep generic access. Descriptors copy names/types only; current household values
+are not discovery or durable history. Stable binding symbols use a bounded durable
+manifest, with an explicit additive pre-release migration marker.
+
+Discovery refreshes independently every thirty seconds, with bounded sections and
+1-MiB normalized snapshot limits. Oversized/bad collection retains stale previous
+facts instead of publishing a successful empty. Module discovery/bindings are
+private IPC; oversized replies return an explicit error without killing a module.
+
+Native HA receives `sensor.housefold_runtime` and up to 32 stable
+`sensor.housefold_module_<identity-sha256>` diagnostic states plus schema-1
+`housefold_status` events. Attributes describe only Housefold operational state.
+Recovery, storage degradation and quarantine produce keyed persistent
+notifications linking the operator to the admin panel. State publication reconciles
+changes and fresh HA generations; it creates no administrative buttons/services.
+This adapter survives estate integrity failure and joins separately at shutdown.
+Native HA/module capability loss does not independently fail the Runtime watchdog.
+Real HAOS protocol/permissions/lifecycle proof remains mandatory V1P14.

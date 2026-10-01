@@ -52,7 +52,7 @@ func signed(key ed25519.PrivateKey, data any) packageverify.Signed {
 }
 func bundle(t *testing.T, key ed25519.PrivateKey, id, version, mode string, deps ...packageverify.Dependency) (Bundle, []byte) {
 	raw := fixtureBinary(t, mode)
-	m := packageverify.Manifest{Schema: 1, Identity: id, Version: version, Arch: architecture(), RuntimeMajor: 1, ProtocolMajor: 1, ArtifactDigest: packageverify.Digest(raw), Dependencies: deps, AllowClean: true, HandoverRequired: true}
+	m := packageverify.Manifest{Schema: 1, Identity: id, Version: version, Arch: architecture(), RuntimeMajor: 1, ProtocolMajor: 1, ArtifactDigest: packageverify.Digest(raw), Capabilities: []string{"ha.observe"}, Dependencies: deps, AllowClean: true, HandoverRequired: true}
 	manifest := signed(key, m)
 	now := time.Now().UTC()
 	c := packageverify.Catalog{Schema: 1, KeyID: "synthetic", Sequence: 1, Expires: now.Add(time.Hour), Entries: []packageverify.Entry{{Identity: id, Version: version, Arch: m.Arch, ArtifactDigest: m.ArtifactDigest, ManifestDigest: packageverify.Digest(manifest.Data)}}}

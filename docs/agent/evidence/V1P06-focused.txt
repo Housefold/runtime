@@ -1,0 +1,3 @@
+ok  	github.com/housefold/runtime/internal/estate	3.728s
+ok  	github.com/housefold/runtime/internal/hacontrol	1.115s
+ok  	github.com/housefold/runtime/internal/action	(cached)

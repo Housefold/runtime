@@ -1,6 +1,6 @@
 # Runtime specification
 
-**Status:** Runtime and HA foundation with accepted module/action/trust/Bridge decisions in ADR-007/008/009. Implementation evidence is tracked in docs/agent/tasks.json.
+**Status:** Runtime v1 productization in progress. [PRODUCTIZATION.md](agent/PRODUCTIZATION.md) is the accepted delivery contract; [ADR-010](adr/010-runtime-v1-product-composition.md) reconciles it with the foundation. Implementation evidence is tracked in docs/agent/tasks.json. No Runtime v1 release has passed the mandatory gates.
 
 This specification narrows the platform docs to the Runtime repository. It records what an implementation agent may rely on and what must be resolved before work crosses a security or compatibility boundary.
 
@@ -17,9 +17,9 @@ Housefold Runtime is the stable, local supervisor and control plane for Housefol
 | Optional Go modules | Trusted official separate processes with private inherited IPC under accepted ADR-007/008; implemented internal foundations remain separate from production installation/activation. |
 | Operating principle | Essential, latency-sensitive behavior remains local when the VPS, internet, cloud AI, or an optional module is unavailable. |
 | HA ownership | HA remains authoritative for device integrations, raw entity state, and service execution. Runtime keeps a private, memory-only state view and rebuilds it after disconnects. See [ADR-003](adr/003-ha-state-cache-and-reconnection.md). |
-| Management | Runtime exposes a read-only status page through authenticated HA ingress; Supervisor app controls/logs and the HAOS host console provide recovery. The full PWA is optional. See [ADR-005](adr/005-local-operator-status.md). |
+| Management | The v1 contract requires an HA-admin-only BIOS through ingress, including recovery during subsystem degradation. Current HEAD still implements the earlier read-only status page. ADR-010 supersedes ADR-005 for v1. Supervisor/host-console recovery remains independent. |
 
-## First implementation boundary
+## Historical foundation boundary
 
 The first implementation should establish the smallest dependable Runtime foundation:
 
@@ -42,7 +42,7 @@ Implementations may use small internal packages, but must not prematurely freeze
 - A clean HAOS 18.3 generic AArch64 VM test stopped and restarted Core while Runtime stayed healthy; its connection status moved from connected to unavailable and back without an app restart. This does not verify the new state-sync path. See ADR-004 for the VM verification limits.
 - The optional Bridge, VPS, internet, and cloud are not startup dependencies.
 
-## Acceptance outcomes
+## Historical foundation acceptance outcomes
 
 The HAOS Runtime foundation should demonstrate that:
 
@@ -55,10 +55,10 @@ Module failure isolation, last-healthy-version preservation, and single-active-a
 
 Latency, memory, disk, reconnect, and recovery thresholds must be measured and added here before claiming target-hardware readiness.
 
-## Decisions still requiring an ADR or explicit review
+## Remaining implementation and validation requirements
 
 - Appliance-hardware behavior, LAN discovery and USB-radio passthrough; the clean HAOS 18.3 generic AArch64 VM smoke verified internal watchdog reachability, app recovery, and auto-start, but not appliance hardware.
-- HA WebSocket guarantees beyond the observed snapshot-plus-buffer reconciliation, event-gap detection, supported-version behavior, and appliance performance remain verification limits in [ADR-003](adr/003-ha-state-cache-and-reconnection.md). No HA action permission is included.
+- HA WebSocket guarantees beyond the observed snapshot-plus-buffer reconciliation, event-gap detection, supported-version behavior, and appliance performance remain verification limits in [ADR-003](adr/003-ha-state-cache-and-reconnection.md). ADR-007 and PRODUCTIZATION.md authorize fenced actions; production transport and supported-version evidence remain required.
 - HA ingress user experience and source filtering on appliance hardware; see [ADR-005](adr/005-local-operator-status.md). The accepted page is not a recovery surface when HA Core UI is unavailable; use the HAOS host console.
 - Measured HA REST/WebSocket rate limits, state reconciliation, event ordering, and stale-state behavior; the accepted cache/data boundary is recorded in [ADR-003](adr/003-ha-state-cache-and-reconnection.md).
 - Production wiring and HAOS validation of the accepted module protocol, readiness, timeouts and backpressure (ADR-007/008).
@@ -68,7 +68,7 @@ Latency, memory, disk, reconnect, and recovery thresholds must be measured and a
 - Persistence, diagnostic retention, household privacy, and remote/VPS access boundaries.
 - Measured resource and latency budgets for the target HAOS hardware.
 
-Accepted ADR-007/008/009 authorize the internal implementation slices described below. Remaining environment and cross-repository gates do not authorize production installation, third-party execution, extra control endpoints or real-home actions.
+Accepted ADR-007/008/009 authorize the internal implementation slices described below. PRODUCTIZATION.md authorizes production wiring, official installation/distribution and disposable validation. It does not authorize third-party execution, independent LAN management or real-home actions.
 
 ## Non-goals for the foundation
 
@@ -334,7 +334,7 @@ are exercised through synthetic fixtures/injected boundaries; this queue does no
 claim a production installer, restart loop, real HA action adapter, native discovery
 collector, cron expression parser or complete public SDK. HAOS/appliance gates
 R07/V02 validation and Python production compatibility remain separate evidence.
-The resumed harness records image checks and stakeholder-waived criteria explicitly.
+The resumed historical harness records image checks and historical stakeholder waivers explicitly. Those waivers do not satisfy any Runtime v1 productization gate.
 
 
 ## Atomic source ownership (B03)
@@ -354,3 +354,7 @@ Python barrier correctness, automatically install Bridge or activate an unproven
 server. Version-pinned cross-repository and HAOS integration evidence is required
 before production activation. Synthetic library tests prove local ownership and
 failure behavior under the stated injected transport/resync contracts.
+
+## Runtime v1 composition
+
+[Production composition audit](agent/COMPOSITION.md) maps actual source to every productization task. ADR-010 defines startup/recovery ownership and degraded control-plane behavior. Historical foundation statements above and below describe implementation slices, not Runtime v1 completion. No live HAOS system is an authorized test target.

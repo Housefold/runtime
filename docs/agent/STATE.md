@@ -1,9 +1,9 @@
 # Current state
 
-The ADR implementation harness completed on 2026-10-01 and its evidence remains under docs/agent/evidence. The active work is now the Runtime v1 productization harness defined by PRODUCTIZATION.md and tasks.json.
+Runtime v1 productization is IN PROGRESS, not release-ready. Entering main was df3ebbe3d7dd11e4edd6832526dd88cdad6f54de. V1P01 reconciled source with the accepted contract: see COMPOSITION.md, ADR-010 and evidence/V1P01.md. Historical implementation/waiver evidence is preserved but satisfies none of the new mandatory release gates.
 
-Stakeholder goal: deliver a Runtime release that can be installed and run on a live HAOS instance without manual intervention after it first passes the exact-artifact disposable-HAOS gate. Decisions 1–52 from the productization review are captured in PRODUCTIZATION.md.
+Actual composition still runs native HA ingestion plus coarse ingress status. Module/action/discovery/catalog/Bridge libraries are private foundations requiring production integration. BIOS must become server-side HA-admin-only. All wiring gaps and owning tasks are mapped in COMPOSITION.md.
 
-Current production gap at baseline: cmd/runtime primarily composes the native HA foundation while proven private libraries exist for module IPC/state, durable timeline/execution modes, launcher/cutover/handover, retention/rollback/quarantine, fenced actions, package verification, discovery bindings and optional Bridge/source management. The active queue must wire these into the real product, add BIOS/catalog/distribution/HA integrations, then pass security, soak and HAOS release gates.
+V1P01 verification passed Go 1.26.8 ordinary/race tests, vet, builds, both cross-compiles and 9 Python checks. Use PATH=/workspace/toolchain/go/bin:$PATH in this worker; /usr/bin/go is unrelated. Docker local daemon is available; GitHub runtime admin/push access confirmed read-only. No distribution artifact published and no live HAOS touched.
 
-No productization release criterion may be waived by the agent. The stakeholder's live HAOS instance is out of scope for this autonomous run.
+Continue first ready task via the ledger. No autonomous waivers exist. Security, soak and exact-artifact disposable HAOS acceptance remain mandatory.

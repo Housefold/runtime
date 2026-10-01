@@ -4,6 +4,8 @@
 - **Date:** 2026-09-27
 - **Owners:** Housefold maintainers
 
+> Runtime v1 extension: [ADR-010](010-runtime-v1-product-composition.md) and [PRODUCTIZATION.md](../agent/PRODUCTIZATION.md) supersede the foundation-only restrictions where they authorize production modules, fenced actions, discovery and admin-only BIOS. The original decision and evidence remain historical; no historical waiver satisfies a v1 release gate.
+
 ## Context
 
 Runtime needs an in-memory Home Assistant state view that can recover after a WebSocket disconnect without exposing partially synchronized data. The Core API proxy credential authorizes more than state reads, so this decision narrows Runtime behavior; it does not narrow the credential itself. Runtime has no approved persistence, module data contract, or HA action authority.

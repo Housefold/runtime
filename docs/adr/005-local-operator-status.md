@@ -4,6 +4,8 @@
 - **Date:** 2026-09-27
 - **Owners:** Housefold maintainers
 
+> Runtime v1 extension: [ADR-010](010-runtime-v1-product-composition.md) and [PRODUCTIZATION.md](../agent/PRODUCTIZATION.md) supersede the foundation-only restrictions where they authorize production modules, fenced actions, discovery and admin-only BIOS. The original decision and evidence remain historical; no historical waiver satisfies a v1 release gate.
+
 ## Context
 
 Supervisor owns app start, stop, restart, and logs. Runtime exposes an internal `/healthz` watchdog check and a read-only ingress status page. The page must separate Runtime process health from HA WebSocket connection and state readiness without exposing household state or the Supervisor-provided Core API credential.

@@ -1,4 +1,11 @@
-# Queue completion and production validation
+# Runtime v1 mandatory gates
+
+PRODUCTIZATION.md and tasks.json are authoritative. V1P12 independently reviews security; V1P13 measures bounded performance/resilience and resource trends; V1P14 installs the exact candidate from the actual Housefold App repository on clean disposable supported HAOS. V1P15 publishes that validated artifact and closes the ledger. All are pending.
+
+No autonomous waivers exist. Docker, synthetic library checks and earlier HAOS side-container runs are supplementary evidence only. Missing acceptance evidence stays BLOCKED; independent ready tasks continue. The live household is excluded.
+
+## Historical earlier harness (not release acceptance)
+
 
 ADR-007/008/009 were explicitly accepted on 2026-10-01. The later stakeholder
 instruction to ignore blockers authorized B03 implementation and explicit

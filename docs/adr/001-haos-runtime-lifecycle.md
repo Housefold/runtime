@@ -4,6 +4,8 @@
 - **Date:** 2026-09-25
 - **Owners:** Housefold maintainers
 
+> Runtime v1 extension: [ADR-010](010-runtime-v1-product-composition.md) and [PRODUCTIZATION.md](../agent/PRODUCTIZATION.md) supersede the foundation-only restrictions where they authorize production modules, fenced actions, discovery and admin-only BIOS. The original decision and evidence remain historical; no historical waiver satisfies a v1 release gate.
+
 ## Context
 
 The Runtime is a required local component deployed as a Home Assistant OS app (formerly called an add-on). It must start without the optional Bridge or feature modules, remain manageable when Home Assistant Core is unavailable, and leave a recovery path that does not depend on the Runtime process, VPS, internet, or PWA.

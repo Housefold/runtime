@@ -1,0 +1,34 @@
+.........
+----------------------------------------------------------------------
+Ran 9 tests in 2.760s
+
+OK
+go version go1.26.8 linux/amd64
+linux
+amd64
+1
+ok  	github.com/housefold/runtime/cmd/runtime	9.021s
+ok  	github.com/housefold/runtime/internal/action	0.006s
+ok  	github.com/housefold/runtime/internal/bridge	0.008s
+ok  	github.com/housefold/runtime/internal/discovery	0.014s
+ok  	github.com/housefold/runtime/internal/durable	0.003s
+ok  	github.com/housefold/runtime/internal/execution	0.616s
+ok  	github.com/housefold/runtime/internal/ha	0.852s
+ok  	github.com/housefold/runtime/internal/module	0.241s
+ok  	github.com/housefold/runtime/internal/packageverify	0.015s
+?   	github.com/housefold/runtime/internal/state	[no test files]
+ok  	github.com/housefold/runtime/internal/supervisor	0.007s
+ok  	github.com/housefold/runtime/internal/timeline	0.031s
+ok  	github.com/housefold/runtime/cmd/runtime	10.028s
+ok  	github.com/housefold/runtime/internal/action	1.024s
+ok  	github.com/housefold/runtime/internal/bridge	1.052s
+ok  	github.com/housefold/runtime/internal/discovery	1.036s
+ok  	github.com/housefold/runtime/internal/durable	1.014s
+ok  	github.com/housefold/runtime/internal/execution	5.771s
+ok  	github.com/housefold/runtime/internal/ha	6.849s
+ok  	github.com/housefold/runtime/internal/module	4.623s
+ok  	github.com/housefold/runtime/internal/packageverify	1.064s
+?   	github.com/housefold/runtime/internal/state	[no test files]
+ok  	github.com/housefold/runtime/internal/supervisor	1.021s
+ok  	github.com/housefold/runtime/internal/timeline	1.099s
+PASS: requested checks completed; HAOS/hardware validation is separate

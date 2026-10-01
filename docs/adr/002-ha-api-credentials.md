@@ -4,6 +4,8 @@
 - **Date:** 2026-09-25
 - **Owners:** Housefold maintainers
 
+> Runtime v1 extension: [ADR-010](010-runtime-v1-product-composition.md) and [PRODUCTIZATION.md](../agent/PRODUCTIZATION.md) supersede the foundation-only restrictions where they authorize production modules, fenced actions, discovery and admin-only BIOS. The original decision and evidence remain historical; no historical waiver satisfies a v1 release gate.
+
 ## Context
 
 The Runtime must establish REST and WebSocket connectivity to Home Assistant Core, report connection and permission status, and later reconcile HA-owned state after reconnects. The accepted HAOS app decision keeps the Runtime protected and denies Supervisor API access by default. The Runtime must not persist or log a credential, and modules must not receive it.

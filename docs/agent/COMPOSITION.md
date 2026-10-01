@@ -1,0 +1,36 @@
+# Production wiring audit
+
+Entering HEAD: df3ebbe3d7dd11e4edd6832526dd88cdad6f54de (current main, 2026-10-01).
+Housefold/docs HEAD: ba93c0d1630806a83669baf3016b29a6cf5b3ae1; vision/architecture/domain sources differ from checked-in copies only by a final blank line.
+
+This is an audit of source and tests at HEAD, not acceptance inferred from historical evidence. cmd/runtime imports only ha and supervisor. Its factory creates StateSession; it starts health/status HTTP, native state Run and a coarse Changes consumer. No module, durable, action, discovery, catalog or Bridge library is composed. `internal/supervisor` currently owns HTTP/status, not children. Historical library claims below are developer-tested mechanisms, not installed product behavior.
+
+| Production area / task | Actual source and existing tests | Required integration / missing behavior |
+| --- | --- | --- |
+| Composition V1P01 | cmd/runtime/main.go, main_test.go; independent HTTP/session loops with shared nine-second shutdown | ADR-010 owners/startup/recovery; this source audit; remove stale scope/waiver guidance |
+| App V1P02 | config.yaml, Dockerfile, go.yml; amd64/aarch64, system/auto/watchdog, Core proxy, scratch UID10001, unpublished port | panel_admin true, writable private /data on first start, TLS CA for remote catalog, version/source labels and reproducible packaging, real Supervisor lifecycle proof later |
+| BIOS V1P03 | supervisor/service.go tests ingress IP/method/privacy; allows all ingress users and has no mutations | server-side verified admin identity, CSRF/replay-safe bounded mutations, full lifecycle/resource/storage/recovery UI, degraded operation |
+| Protocol/state V1P04 | module/protocol.go and state.go tests framing/negotiation/reset/delta/slow consumers; ha subscriptions cap at four | estate-wide state fanout without shared competing consumer, bounded module request dispatch, health/readiness/UI health and supervision |
+| Durable execution V1P04/V1P09 | durable/file.go, execution/execution.go, timeline/timeline.go; fsync/checksum/corruption, deterministic replay/admission/claim tests | cross-store recovery validation, actual schedule/trigger/complete/cancel protocol; new admission after recovery only; consistent backup |
+| Launch V1P04/V1P08 | module/process_linux.go tests credential/FD isolation, kill/join, descendants and RSS observation; child stdout discarded | verified installed selection, desired state/dependencies, bounded logs via IPC, resource requests/limits/ceilings, host-pressure policy; sampled RSS is not hard enforcement |
+| Cutover V1P04/V1P05 | module/router.go tests prepare/ready/cutover/dispatch/drain and concurrent admission | production serialized lifecycle coordinator, recover interrupted candidates, child/worker ownership and heartbeat loop; persisted desired inventory |
+| Storage/handover V1P04/V1P09 | module/storage.go and handover.go tests independent generation state and bounded freeze/import | persistent/cache/temp quotas and lifecycle, IPC storage brokerage and single reader request/reply coordination for handover, backup hooks |
+| Retention/recovery V1P04/V1P05 | module/recovery.go tests previous-generation manual rollback, same-version backoff/quarantine, failed joins | timer-driven restart/rebind/drain/GC, durable disabled/removal state, quarantine restored on boot; prevent unlimited retained generation accumulation |
+| Official catalog V1P05 | packageverify/verify.go tests Ed25519 offline metadata/artifact/compatibility validation only; capabilities are sole disclosures | real pinned authority/catalog endpoint, cached sequence/expiry, bounded HTTPS download, transactional install/update/remove and dependency/resource/priority/network declarations; no archives executed unverified |
+| Actions V1P06 | action/gateway.go tests durable unknown before call, dedup, stale generation, limit/cancel/fault handling with fake HA | bounded authenticated native HA transport, exact accepted/rejected/not_sent/unknown mapping with no ambiguous retry, generation/execution attribution |
+| Discovery V1P06 | discovery/model.go bindings.go projection.go; stable/weak identities, schema typing, generic access, private durable symbol tests | native registry/services collector with missing/redacted/unsupported distinctions, production binding persistence and module projection |
+| Signals V1P06 | no production operational HA entities/events/notifications | bounded stable diagnostics without admin controls, actionable persistent notifications, dedup/backoff under HA loss |
+| Logs/audit V1P07 | JSON Runtime coarse logs; no module log or durable audit owner | native stdout stream with bound attribution/rate/frame, default secret/state-safe diagnostic export, bounded admin audit and identity |
+| Pressure V1P08 | sampled direct-child RSS only; module/generation/IPC/state limits exist | explicit CPU/memory/disk/FD/thread estate budgets, usage, priority eviction/recovery of Housefold only, deterministic safe GC and disk-write fencing |
+| Backup/recovery V1P09 | atomic individual stores and library recovery tests | consistent recoverable estate snapshot using normal HA App mechanism, tamper/path validation, partial-init/cross-store recovery, explicit targeted reset/factory reset |
+| Optional Bridge V1P10 | bridge/client.go discovery.go ordered.go + ha/source.go tests injected transports and ownership | real separate authenticated Core adapter, status/guidance/automatic detection/discovery fallback; ordered state stays disabled without pinned Python barrier proof |
+| Distribution V1P11 | workflow builds unpushed images; root App metadata; no repository.yaml, remote catalog, release digest manifest or distribution pipeline | actual Housefold App repository/catalog hosting, pinned source builds and signed module releases, traceable reproducibility, loosely coupled version compatibility |
+| Gates V1P12–V1P15 | historical evidence only; old Python task tests still require unsupported waive command | independent adversarial product review, measured representative soak, exact-artifact real-repository clean-HAOS matrix, then publish same candidate; no waivers |
+
+## Ownership and failure domains
+
+ADR-010 defines the target composition. BIOS/health start independently of optional transports. One estate owner serializes desired-state transactions, install/cutover/remove/reset/backup and durable recovery. Runtime-owned errors are explicit recovery/storage states; dependency/module errors degrade that subsystem. Router remains the one new-work/action authority. Sessions have one reader; any handover RPC must not compete with the normal module receive loop. All child and worker handles remain owned until joined. Housefold-only pressure policy never calls HA/Supervisor to manage other Apps. No module gets the adapter token.
+
+## Contradictions reconciled
+
+ADR-001/002/003/005 foundation restrictions are superseded only within the accepted v1 scope by ADR-010. Spec labels distinguish implemented foundation from target behavior. GATES/DECISIONS retain historical evidence but no longer imply waiver-based v1 completion. HAOS runbook now requires actual repository installation and admin denial. The ledger's obsolete waiver tests are replaced with no-waiver/dependency/evidence/blocked behavior checks. Historical evidence files remain unchanged.

@@ -39,7 +39,13 @@
       "id": "V1P03",
       "title": "Implement admin-only BIOS management and recovery plane",
       "depends_on": [
-        "V1P02"
+        "V1P02",
+        "V1P04",
+        "V1P05",
+        "V1P06",
+        "V1P08",
+        "V1P09",
+        "V1P10"
       ],
       "kind": "implementation",
       "status": "todo",

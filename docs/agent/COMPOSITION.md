@@ -34,3 +34,7 @@ ADR-010 defines the target composition. BIOS/health start independently of optio
 ## Contradictions reconciled
 
 ADR-001/002/003/005 foundation restrictions are superseded only within the accepted v1 scope by ADR-010. Spec labels distinguish implemented foundation from target behavior. GATES/DECISIONS retain historical evidence but no longer imply waiver-based v1 completion. HAOS runbook now requires actual repository installation and admin denial. The ledger's obsolete waiver tests are replaced with no-waiver/dependency/evidence/blocked behavior checks. Historical evidence files remain unchanged.
+
+## BIOS dependency reconciliation after V1P02
+
+V1P03 acceptance requires full working module/catalog/resource/storage/recovery/Bridge controls. Added dependencies on V1P04/05/06/08/09/10 (in addition to V1P02) before claiming it. This changes only execution ordering, preserves every acceptance criterion and avoids completing BIOS against stubs. V1P07 still follows BIOS for log/audit integration; all mandatory gates remain unchanged. No dependency cycle is introduced.

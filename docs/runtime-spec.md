@@ -133,3 +133,16 @@ closes the connection; reconnect needs a new session. Launcher-owned identity,
 version, boot and generation cannot be overridden by peer payloads. This slice
 has no process launch, production wiring, action authority or network listener.
 These provisional developer bounds require HAOS measurement.
+
+## Canonical module state (M02)
+
+State IPC uses structured entity identity/state/timestamps and open JSON
+attributes from `internal/state`. A reset is `reset_begin`, sorted
+`reset_entity` frames, then matching `reset_end`; only the end publishes the
+candidate. Staging/current canonical payload is bounded by 8 MiB and 10,000
+entities, each frame by M01. Larger views/entities fail explicitly. Ordered
+`state_event` deltas preserve generation/revision/freshness, with no grant
+filtering. Replica rejects gaps, duplicate reset IDs and deltas before complete
+reset. Disconnect marks retained data stale and requires a new reset. Existing
+HA subscription bounds protect ingestion; transport writes never run under its
+cache lock. Slow consumers terminate visibly. No HA event history is persisted.

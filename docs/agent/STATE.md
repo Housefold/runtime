@@ -9,3 +9,5 @@
 - Agent should run python3 scripts/agent_tasks.py next and work independently through ready tasks, recording evidence per task.
 
 - M01 completed: Added bounded private JSON sessions, capability negotiation and launcher-owned identity; reconciled stale spec proposal text. Evidence: [record](evidence/M01.md).
+
+- M02 completed: Added canonical chunked reset and ordered state delta projection with atomic bounded replicas. Evidence: [record](evidence/M02.md).

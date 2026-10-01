@@ -163,3 +163,20 @@ recovered occurrences and never reconstructs unobserved HA events or stores HA
 state. An overflow or failed durable save preserves the old published watermark;
 operators must drain pending work before advancing. Time is supplied explicitly
 for deterministic tests. No scheduler is enabled in production by this library.
+
+## Execution modes (T02)
+
+All trigger sources feed durable `execution.Manager.Admit` with an occurrence ID
+and logical time, including cron adapters and delayed timeline occurrences.
+Timeline acknowledgment follows durable admission; retry after a crash returns
+the same record. Cron expression parsing belongs to trigger adapters.
+Single drops overlapping triggers; queued runs one with a FIFO queue; parallel
+runs up to declared concurrency; restart cancels pending work and requests
+cancellation of running work, starting the replacement only after cancellation
+acknowledgment. Cancellation is cooperative; a process owner must bound hangs.
+Queue maximum is 64, parallel maximum 32, definitions 128, records 4,096. TTL is
+at most seven days. Expired pending work never starts. Records use monotonic
+sequence ordering. Persistence failure publishes nothing. On restart previously
+running/canceling work becomes interrupted (never automatically reexecuted),
+while pending IDs remain eligible through ResumePending. Pruning terminal records
+advances a durable logical-time floor; older occurrences cannot be readmitted.

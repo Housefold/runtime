@@ -259,9 +259,9 @@
         "T01"
       ],
       "kind": "implementation",
-      "status": "todo",
+      "status": "done",
       "approval_required": null,
-      "evidence": null,
+      "evidence": "docs/agent/evidence/T02.md",
       "blocker": null,
       "acceptance": [
         "Implement bounded single, restart, queued and parallel admission semantics with execution IDs and explicit pending/running/terminal state.",

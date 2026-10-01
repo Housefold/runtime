@@ -385,6 +385,8 @@ func (e *Engine) collectStorage(pressure bool) (result error) {
 		}
 	}
 	e.mu.Unlock()
+	e.io.Lock()
+	defer e.io.Unlock()
 	remove := []string{}
 	var used uint64
 	rootEntries, err := readEntries(e.config.Root, 64)

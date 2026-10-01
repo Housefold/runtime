@@ -1,0 +1,2 @@
+ok  	github.com/housefold/runtime/internal/estate	5.211s
+ok  	github.com/housefold/runtime/cmd/runtime	(cached)

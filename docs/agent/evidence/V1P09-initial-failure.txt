@@ -1,0 +1,6 @@
+--- FAIL: TestColdBackupRestoresSelectedEstateAndPreservesUnknownActions (0.25s)
+    recovery_test.go:101: Runtime estate recovery required
+FAIL
+FAIL	github.com/housefold/runtime/internal/estate	4.107s
+ok  	github.com/housefold/runtime/cmd/runtime	(cached)
+FAIL

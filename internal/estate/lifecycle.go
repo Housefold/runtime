@@ -51,6 +51,15 @@ func (e *Engine) Run(ctx context.Context) {
 func (e *Engine) Close() {
 	e.cancel()
 	e.mu.Lock()
+	healthy := e.phase == "running"
+	e.phase = "stopped"
+	e.mu.Unlock()
+	e.op.Lock()
+	defer e.op.Unlock()
+	e.mu.Lock()
+	healthy = healthy && e.phase == "stopped"
+	e.mu.Unlock()
+	e.mu.Lock()
 	units := make([]*unit, 0, len(e.units))
 	for _, u := range e.units {
 		units = append(units, u)
@@ -61,12 +70,22 @@ func (e *Engine) Close() {
 	ctx, cancel := context.WithTimeout(context.Background(), module.JoinTimeout)
 	defer cancel()
 	for _, u := range units {
-		_ = u.Stop(ctx)
+		if err := u.Stop(ctx); err != nil && !childStopped(err) {
+			healthy = false
+		}
 	}
 	if catalogDone != nil {
 		select {
 		case <-catalogDone:
 		case <-ctx.Done():
+			healthy = false
+		}
+	}
+	if healthy {
+		checkpointCtx, c := context.WithTimeout(context.Background(), 3*time.Second)
+		defer c()
+		if err := e.writeCheckpoint(checkpointCtx); err != nil {
+			e.config.Logger.Error("cold snapshot checkpoint unavailable")
 		}
 	}
 }

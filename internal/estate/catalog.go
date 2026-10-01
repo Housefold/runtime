@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/housefold/runtime/internal/catalog"
+	"github.com/housefold/runtime/internal/durable"
 	"github.com/housefold/runtime/internal/packageverify"
 )
 
@@ -59,4 +60,25 @@ func (e *Engine) Install(ctx context.Context, id, version, reviewedDigest string
 	}
 	// Stage revalidates every byte and current desired dependencies after download.
 	return e.Stage(ctx, bundles, artifacts, now)
+}
+
+// ConfigureOfficialCatalog runs before Run. Sharing the estate I/O gate makes
+// stopped-estate checkpoints and accounting consistent with catalog refresh.
+func (e *Engine) ConfigureOfficialCatalog(arch string) {
+	e.config.Catalog = catalog.New(catalogStore{e, e.file("catalog")}, arch)
+}
+
+type catalogStore struct {
+	engine *Engine
+	store  durable.Store
+}
+
+func (s catalogStore) Load() ([]byte, error) { return s.store.Load() }
+func (s catalogStore) Save(raw []byte) error {
+	s.engine.io.RLock()
+	defer s.engine.io.RUnlock()
+	if err := s.engine.checkSpace(uint64(len(raw)) * 2); err != nil {
+		return err
+	}
+	return s.store.Save(raw)
 }

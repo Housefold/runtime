@@ -16,7 +16,6 @@ import (
 
 	"github.com/housefold/runtime/internal/bootstrap"
 	"github.com/housefold/runtime/internal/catalog"
-	"github.com/housefold/runtime/internal/durable"
 	"github.com/housefold/runtime/internal/estate"
 	"github.com/housefold/runtime/internal/ha"
 	"github.com/housefold/runtime/internal/hacontrol"
@@ -69,8 +68,8 @@ func run(ctx context.Context, address string, logger *slog.Logger, recovery ...b
 		if runtime.GOARCH == "arm64" {
 			arch = "aarch64"
 		}
-		client := catalog.New(durable.NewFile("/data/housefold/catalog.json"), arch)
-		owner := estate.New(estate.Config{Root: "/data/housefold", Trampoline: "/module-launcher", Source: source.(*ha.StateSession), Logger: logger, OnRecovery: status.SetRecoveryRequired, Authority: catalog.OfficialAuthority(), Catalog: client, Actions: native, Discovery: native})
+		owner := estate.New(estate.Config{Root: "/data/housefold", Trampoline: "/module-launcher", Source: source.(*ha.StateSession), Logger: logger, OnRecovery: status.SetRecoveryRequired, Authority: catalog.OfficialAuthority(), Actions: native, Discovery: native})
+		owner.ConfigureOfficialCatalog(arch)
 		status.SetEstate(owner)
 		native.SetDiscoverySink(owner.PublishDiscovery)
 		native.SetSignals(owner.OperationalSnapshot)

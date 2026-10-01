@@ -496,10 +496,12 @@ func (u *unit) storage(f module.Frame) error {
 		if frozen || len(request.Value) > 512<<10 {
 			err = module.ErrFenced
 		} else {
+			u.engine.io.RLock()
 			err = u.engine.checkSpace(uint64(len(request.Value))*3 + 24<<20)
 			if err == nil {
 				err = store.Write(request.Key, request.Value)
 			}
+			u.engine.io.RUnlock()
 		}
 	} else {
 		value, err = store.Read(request.Key)

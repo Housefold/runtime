@@ -152,9 +152,9 @@
         "V1P08"
       ],
       "kind": "implementation",
-      "status": "todo",
+      "status": "done",
       "approval_required": null,
-      "evidence": null,
+      "evidence": "docs/agent/evidence/V1P09.md",
       "blocker": null,
       "acceptance": [
         "Make HA App backup/restore capture a consistent recoverable Runtime + managed-module estate using normal HA mechanisms.",

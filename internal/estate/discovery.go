@@ -8,6 +8,8 @@ import (
 )
 
 func (e *Engine) PublishDiscovery(snapshot discovery.Snapshot) error {
+	e.op.Lock()
+	defer e.op.Unlock()
 	if !e.available() {
 		return ErrRecovery
 	}

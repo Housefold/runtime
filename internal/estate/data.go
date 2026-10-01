@@ -100,6 +100,7 @@ type Config struct {
 }
 type Engine struct {
 	op              sync.Mutex
+	io              sync.RWMutex
 	mu              sync.Mutex
 	config          Config
 	phase           string
@@ -152,6 +153,8 @@ type ownedStore struct {
 
 func (s ownedStore) Load() ([]byte, error) { return s.store.Load() }
 func (s ownedStore) Save(raw []byte) error {
+	s.engine.io.RLock()
+	defer s.engine.io.RUnlock()
 	s.engine.mu.Lock()
 	blocked := s.engine.storageDegraded
 	s.engine.mu.Unlock()
@@ -215,6 +218,14 @@ func (e *Engine) initialize(now time.Time) error {
 		return ErrRecovery
 	}
 	if err := safeDir(e.config.Root); err != nil {
+		return err
+	}
+	if _, err := os.Lstat(filepath.Join(e.config.Root, "reset-intent.json")); err == nil {
+		return ErrRecovery
+	} else if !os.IsNotExist(err) {
+		return err
+	}
+	if err := e.consumeCheckpoint(); err != nil {
 		return err
 	}
 	marker := e.file("estate")

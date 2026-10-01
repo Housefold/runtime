@@ -512,3 +512,41 @@ its protected set. Removal/disable keeps selected and retained data. Linked,
 unknown or unaccountable entries fail closed; no selected durable store is
 silently reset to gain space. Detailed HAOS OOM/pressure/shutdown behavior remains
 mandatory security/soak/acceptance evidence, not established by these tests.
+
+## Cold backup, restore and explicit resets (V1P09)
+
+Supervisor cold backup stops Runtime before archiving the normal App /data
+volume, including its complete managed-module estate. Shutdown immediately
+fences estate availability, cancels children/catalog, serializes with lifecycle
+and joins owned workers. A shared I/O gate prevents module, coordination and
+production catalog writes during cleanup/snapshot scanning. All authoritative
+writes already sync/rename/sync the containing directory. A joined healthy
+shutdown additionally records a bounded digest checkpoint of the stopped tree
+within a three-second budget; inability to produce this supplemental checkpoint
+is logged and does not rewrite durable state. The mandatory HAOS gate must
+verify the real Supervisor stop/archive/restore behavior and shutdown budget.
+
+On normal restore to the fixed private /data/housefold path, any checkpoint is
+verified before recovery writes, then removed and directory-synced before new
+operation. Missing/extra/changed/linked checkpoint contents fail recovery closed.
+Without a checkpoint (for example power loss), the existing full checksummed
+store, signed artifact and cross-reference validation remains mandatory. Boot
+interrupts prior running work, preserves unknown actions and disabled/quarantine
+intent, and recreates selected modules with new boot/generation authority.
+Schedule replay remains inside declared bounded horizons and deterministic IDs;
+no household HA event history is reconstructed. Durable state paths use the
+fixed App data path, not arbitrary relocation/import locations.
+
+Cleanup uses reference-safe V1P08 GC. Targeted module volatile reset stops and
+joins that module's owned generations before clearing only cache/temp, preserves
+persistent/current/previous state and action uncertainty, and lets the desired
+selected version recover with a fresh generation. It does not clear quarantine.
+Factory reset requires the exact destructive confirmation at the admin caller,
+cancels/fences/joins the estate, validates bounded owned paths, writes explicit
+reset intent, removes Runtime-owned contents and requires normal Supervisor
+restart for a fresh install. It may discard corrupt owned files only because this
+operation was explicitly confirmed. Links within the owned root are unlinked
+without following them; a linked root is never traversed. Interrupted intent
+causes recovery-required and never resumes deletion automatically. Smaller
+cleanup and reset operations are separate from factory reset and removal.
+The HA-admin BIOS exposes these operations only in V1P03; there is no new LAN API.

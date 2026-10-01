@@ -66,6 +66,16 @@ class TaskLedgerTest(unittest.TestCase):
         self.assertEqual(self.run_cli('resume', 'FIRST').returncode, 0)
         self.assertEqual(self.run_cli('start', 'FIRST').returncode, 0)
 
+    def test_blocker_evidence_is_validated_and_retained(self):
+        for path in ['docs/agent/tasks.json', '../escape.md', 'docs/agent/evidence/missing.md']:
+            self.assertNotEqual(self.run_cli('block', 'FIRST', '--reason', 'External capability denied', '--evidence', path).returncode, 0)
+            self.assertEqual(self.current()[0]['status'], 'todo')
+        self.assertEqual(self.run_cli('block', 'FIRST', '--reason', 'Exact API denial', '--evidence', 'docs/agent/evidence/result.md').returncode, 0)
+        self.assertEqual(self.current()[0]['evidence'], 'docs/agent/evidence/result.md')
+        self.assertEqual(self.run_cli('block', 'FIRST', '--reason', 'Rechecked denial').returncode, 0)
+        self.assertEqual(self.current()[0]['evidence'], 'docs/agent/evidence/result.md')
+        self.assertNotEqual(self.run_cli('done', 'FIRST', '--evidence', 'docs/agent/evidence/result.md').returncode, 0)
+
     def test_approval_is_not_inferred(self):
         self.rows[0]['approval_required'] = 'explicit external gate'
         self.save()

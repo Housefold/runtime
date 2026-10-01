@@ -38,3 +38,13 @@ ADR-001/002/003/005 foundation restrictions are superseded only within the accep
 ## BIOS dependency reconciliation after V1P02
 
 V1P03 acceptance requires full working module/catalog/resource/storage/recovery/Bridge controls. Added dependencies on V1P04/05/06/08/09/10 (in addition to V1P02) before claiming it. This changes only execution ordering, preserves every acceptance criterion and avoids completing BIOS against stubs. V1P07 still follows BIOS for log/audit integration; all mandatory gates remain unchanged. No dependency cycle is introduced.
+
+## Final run reconciliation
+
+The entering-HEAD gap table above is historical. Current production source at
+ed0be3f wires V1P02/04/06/08/09/10 and the V1P05 backend; STATE/HANDOFF and each
+V1P evidence record describe actual owners and verification. Official catalog
+trust/source remains unconfigured, full HA-admin BIOS/log/audit/distribution
+remain pending, and no v1 release gate or HAOS acceptance has passed. Independent
+ready tasks are exhausted. See evidence/BLOCKED.md for the external blocker and
+exact remaining criteria; none is waived.

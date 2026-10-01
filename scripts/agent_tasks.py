@@ -20,6 +20,10 @@ def main():
         if any(d not in ids for d in r["depends_on"]): p.error("unknown dependency")
     def ready(r):
         return r["status"]=="todo" and not r["approval_required"] and all(ids[d]["status"]=="done" for d in r["depends_on"])
+    def checked_evidence(path):
+        ev=(ROOT/path).resolve(); er=(ROOT/"docs/agent/evidence").resolve()
+        if not ev.is_relative_to(er) or not ev.is_file() or ev.stat().st_size==0 or ev.name=="TEMPLATE.md": p.error("nonempty task evidence under docs/agent/evidence required")
+        return str(ev.relative_to(ROOT))
     active=[r for r in rows if r["status"]=="in_progress"]
     blocked=[r for r in rows if r["status"]=="blocked"]
     if a.command=="list":
@@ -38,12 +42,11 @@ def main():
         r["status"]="in_progress"
     elif a.command=="done":
         if r["status"]!="in_progress" or not a.evidence: p.error("active task and --evidence required")
-        ev=(ROOT/a.evidence).resolve(); er=(ROOT/"docs/agent/evidence").resolve()
-        if not ev.is_relative_to(er) or not ev.is_file() or ev.stat().st_size==0 or ev.name=="TEMPLATE.md": p.error("nonempty task evidence under docs/agent/evidence required")
-        r.update(status="done",evidence=str(ev.relative_to(ROOT)),blocker=None)
+        r.update(status="done",evidence=checked_evidence(a.evidence),blocker=None)
     elif a.command=="block":
-        if r["status"] not in ("todo","in_progress") or not a.reason: p.error("pending/active task and --reason required")
-        r.update(status="blocked",blocker=a.reason)
+        if r["status"] not in ("todo","in_progress","blocked") or not a.reason: p.error("pending/active task and --reason required")
+        evidence=checked_evidence(a.evidence) if a.evidence else r["evidence"]
+        r.update(status="blocked",blocker=a.reason,evidence=evidence)
     elif a.command=="resume":
         if r["status"]!="blocked" or r["approval_required"]: p.error("only ungated blocked tasks may resume")
         r.update(status="todo",blocker=None)

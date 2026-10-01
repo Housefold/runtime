@@ -1,21 +1,52 @@
-# Handoff
+# Handoff — external BLOCKED state
 
-V1P01, V1P02 and V1P04 are complete. Evidence identifies entering/final source, commands, native child failure/concurrency coverage and local development image IDs. Continue `python3 scripts/agent_tasks.py next`; one active task at a time. PRODUCTIZATION/tasks are authoritative; no release gate has passed.
+Read AGENTS/START_PROMPT/PRODUCTIZATION/WORKFLOW/STATE/tasks/spec/accepted ADRs.
+All independent ready work is committed; next reports V1P05 BLOCKED. Runtime v1
+is incomplete. No live HAOS was touched; no release/artifact was published.
+See evidence/BLOCKED.md for exact denials and remaining work. No waivers exist.
 
-cmd/runtime now composes internal/estate with native HA and ingress. Estate owns inventory, verification/launch, IPC/health/storage, timeline/execution/actions, atomic dependency cutover, state handover, drain/retention/rollback/restart/quarantine and conservative offline recovery. Catalog transport/official authority still needs V1P05; actions intentionally report NotSent until V1P06 native adapter wiring. Resource/GC, backups/resets and Bridge remain their explicit tasks. BIOS completion follows these dependencies and must enforce admin authorization server-side, never panel visibility alone.
+Provision actual official catalog signing custody/hosting or an equivalent
+maintainable signed source and pinned authority. Current integration cannot
+create Housefold/modules or access runtime Actions signing secrets/configuration.
+Do not replace real provenance with fixture keys. Resume V1P05 through the ledger,
+then full BIOS/admin controls (03), diagnostics/audit (07), real distribution (11),
+independent security (12), representative measured soak (13), exact artifact
+through actual App repository on clean supported disposable HAOS (14), and only
+then publication/closure (15). Ordinary development checks satisfy no HAOS gate.
 
-Preserve fresh boot/generation authority, exactly one new-work owner, explicit unknown action outcomes, bounded ownership and conservative non-destructive recovery. Only explicit reset may discard state. Keep Runtime health separate from dependency failure and hold child references until joined. Inventory publication must own its copy. Recover interrupted selection by version plus digest, not executable digest alone.
+Production composition: cmd/runtime starts unpublished HTTP/native state and
+independent estate/native control owners. Estate owns verified ELF inventory,
+desired lifecycle/dependency transactions, isolated storage, private IPC, health,
+one generation admitting new work, timeline/execution/action uncertainty,
+handover/drain/retention/manual rollback and same-version restart/quarantine.
+Native control owns fixed local REST actions/signals and separate registry/Bridge
+Core sockets; credentials never enter child environments or diagnostic payloads.
+Estate recovery cancels modules but keeps control/ingress reporting available.
 
-Toolchain: PATH=/workspace/toolchain/go/bin:$PATH. Image builds need HOUSEFOLD_BUILD_CA=/etc/ssl/certs/ca-certificates.crt on this worker. Digest-pinned official ECR Go builder avoids Docker Hub rate limiting. Docker/GitHub read access works; runtime repo has admin/push permission. Push/publish only as accepted infra/distribution tasks and gates require.
+Preserve inventory copy ownership and version+digest interrupted selection checks.
+Durable missing/corrupt/uncertain state never gets silently initialized or removed.
+Unknown actions never retry. Launcher must retain fd4 and LockOSThread through
+thread-local guards/native exec. Reserve child PID until group signaling; join
+descendants before releasing slots. Resource limits include sampled group usage,
+FD/UID fork ceilings, Housefold-only priority pauses and hysteresis/fresh recovery.
+Provisional thresholds require measured soak. GC snapshots references before the
+exclusive I/O gate; preserve selected/previous/pending/execution/unjoined state.
 
-Use disposable environments and synthetic data/actions only. Never access the live HAOS household. V1P12 independent adversarial security, V1P13 measured soak and V1P14 exact candidate through actual Housefold App repository on clean supported HAOS remain mandatory.
+Cold backup uses normal Supervisor stop/archive/restart. Shutdown fences/join
+ownership before optional bounded tree checkpoint; verify/consume checkpoint
+before boot writes at the same /data/housefold path. IO gate covers coordination,
+module writes and production catalog. ClearVolatile affects only cache/temp after
+module join. Confirmed FactoryReset is separate, requires normal App restart;
+interrupted intent never auto-resumes deletion. Bridge active means compatible
+discovery enrichment only; orderedBridgeEnabled=false has no runtime override
+without pinned Python snapshot/sequence evidence. The native state owner remains
+production authority. Current peer-only status page is not completed HA-admin
+BIOS; implement actual server-side admin authorization before release.
 
-V1P05 is BLOCKED, with partial production catalog client committed and tests passing. See evidence/V1P05.md for exact denied capabilities and resume requirements. Current GitHub integration can read workflows and reports repo admin, but cannot create repositories or access Actions secrets; no official signing key/source exists. Do not mark this task done using local signed fixtures. Continue independent ready queue tasks. Catalog backend is composed; client cache/download never changes desired state before explicit reviewed estate staging.
-
-V1P06 is complete (evidence/V1P06.md). hacontrol.Native owns local REST actions/signals and a separate bounded command socket for registries; StateSession retains state/freshness authority. Native control lives outside estate cancellation so it can report integrity recovery. Required signed HA access capabilities plus negotiated IPC are enforced. Stable bindings are owned by the estate with a migration marker; unknown actions remain durable/non-retried. Next ready work is V1P08, followed by independent recovery/Bridge tasks; official catalog infrastructure stays blocked.
-
-V1P08 is complete. Production must supply /module-launcher; limits are never interpreted as unlimited. Keep LockOSThread through prctl/seccomp/nice and exec, and retain fd4 ownership until exec. Hold the direct child PID through group signaling and join descendants before releasing slots. GC protects inventory/router/execution/unjoined references and scans before deleting; low space fences writes, never resets durable state. Resource ceilings require V1P13 measured justification. Continue V1P09 backup/reset/reboot recovery and V1P10 optional Bridge; external official catalog custody/hosting remains blocked.
-
-V1P09 is complete. Keep coordination snapshots before the exclusive I/O gate to avoid a manager/write-lock cycle. Close fences availability before waiting on lifecycle, and joins children/catalog before stopped-tree checkpoint. Checkpoint is consumed before any boot writes; normal HA restores use the same fixed private path. ClearVolatile stops/joins only that module and preserves selected/retained durable state and uncertainty. FactoryReset requires exact destructive confirmation, writes intent, never auto-resumes interrupted deletion and returns ErrRestartRequired; server-side admin controls remain V1P03. Continue V1P10, then exhaust ready work and preserve external blockers. No real HAOS gate has passed.
-
-V1P10 is complete. Bridge negotiation/discovery has a separate owned Core socket and bounded worker, native generic facts remain available and strong-identity conflict cannot mutate native data. “Active” means selected compatible discovery enrichment only. orderedBridgeEnabled remains false with no runtime override until pinned Python evidence; do not confuse advertised capability with validated production state authority. Status/setup stays informational and user-controlled. Run the ledger next; V1P05 infrastructure is the remaining external blocker and no dependent criterion can be waived.
+Toolchain Go1.26.8: PATH=/workspace/toolchain/go/bin:$PATH. Image worker proxy CA:
+HOUSEFOLD_BUILD_CA=/etc/ssl/certs/ca-certificates.crt. Pinned official ECR builder
+avoids Docker Hub rate limiting. Run focused checks plus agent_verify; --images
+for packaging. Final production source ed0be3f; final documentation/ledger commit
+records this blocker and verification. Every implementation slice has exact
+logs/evidence and a cohesive commit. Changes are local commits based on main;
+no remote deployment/push/publication was performed.

@@ -84,8 +84,8 @@
       "kind": "implementation",
       "status": "blocked",
       "approval_required": null,
-      "evidence": null,
-      "blocker": "Official source/signing custody cannot be provisioned: GitHub integration denies createRepository and existing runtime Actions secrets API (403); endpoint 404. Exact evidence and secure resume requirements: docs/agent/evidence/V1P05.md. Continue independent ready work.",
+      "evidence": "docs/agent/evidence/V1P05.md",
+      "blocker": "Official signed catalog/source cannot be provisioned with current GitHub integration: repository create and signing-secret/Actions administration denied; endpoint absent. All independent ready work complete. Exact evidence and resume requirements: docs/agent/evidence/BLOCKED.md.",
       "acceptance": [
         "Implement one remotely maintained signed official Housefold catalog with verified cached metadata and no custom/unsigned repositories.",
         "Implement production download/stage/verify/install/update/remove flows, dependency planning and familiar HA-App-like lifecycle UX through BIOS.",

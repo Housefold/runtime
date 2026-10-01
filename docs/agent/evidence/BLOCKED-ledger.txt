@@ -1,0 +1,15 @@
+V1P01 done Reconcile productization contract and production composition
+V1P02 done Ship normal HA App packaging and zero-config startup
+V1P03 todo Implement admin-only BIOS management and recovery plane
+V1P04 done Wire production module supervisor and storage
+V1P05 blocked Implement Supervisor-like official module catalog lifecycle
+V1P06 done Wire production HA actions, discovery and operational signals
+V1P07 todo Integrate logs, diagnostics and administrative audit
+V1P08 done Implement resource, pressure and storage policy
+V1P09 done Complete backup, restore, reset and reboot recovery
+V1P10 done Complete optional Bridge production integration
+V1P11 todo Build real Housefold distribution infrastructure
+V1P12 todo Run independent adversarial security gate
+V1P13 todo Run bounded performance and resilience soak
+V1P14 todo Pass exact-artifact disposable HAOS acceptance
+V1P15 todo Publish validated v1 candidate and close productization harness

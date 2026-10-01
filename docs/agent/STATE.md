@@ -1,19 +1,41 @@
-# Current state
+# Current state — BLOCKED
 
-Runtime v1 is IN PROGRESS, not release-ready. V1P01 reconciled current source/contracts, V1P02 ships zero-config normal App packaging, and V1P04 now composes the production module estate alongside native HA and ingress. See COMPOSITION.md, ADR-010 and evidence/V1P01.md, V1P02.md, V1P04.md.
+Runtime v1 is **incomplete and not release-ready**. Started from current main
+at df3ebbe3d7dd11e4edd6832526dd88cdad6f54de. All independent ready work is committed;
+there is no active task. `python3 scripts/agent_tasks.py next` reports V1P05 BLOCKED.
 
-V1P04 complete verification --images PASS: ordinary/race tests, vet/build, dual architecture cross-build/images and supplementary disposable packaging checks. Real synthetic native children exercise install, handover, dependencies, schedules, execution/cancellation, rollback, restart/quarantine, offline recovery, preservation and failures. A snapshot/inventory alias found by the full race suite was fixed and retained as evidence.
+Completed implementation tasks: V1P01 contract/composition reconciliation,
+V1P02 zero-config App packaging, V1P04 production module estate, V1P06 native
+HA actions/discovery/signals, V1P08 resources/pressure/storage, V1P09 cold
+backup/recovery/resets and V1P10 optional Bridge/native fallback. Each has focused,
+ordinary/race/repository/image development evidence under evidence/V1P*.md.
+V1P05 catalog backend/cache/verification/download/staging is implemented, but
+production trust remains unconfigured: no official published signed catalog or
+provisioned Housefold signing key. No synthetic key is trusted in production.
 
-Runtime owns checksummed desired inventory, router/timeline/execution/action state, verified artifacts and four bounded storage scopes. Corruption/uncertain writes enter recovery-required with ingress preserved; module/HA loss stays separate. No functional module is preinstalled. Catalog/action/discovery/resource/backup/Bridge services and full authenticated BIOS still need their queue tasks. V1P03 dependencies now require those working services before BIOS completion. Nothing published, no live HAOS touched, no v1 release gate passed.
+External blocker: current GitHub integration denies Housefold repository creation
+and signing-secret access (403), despite reported runtime admin/push permission.
+Existing runtime Actions configuration is also denied (403); Pages is absent
+(404). Original and final recheck evidence/resume requirements are in
+[evidence/BLOCKED.md](evidence/BLOCKED.md) and evidence/V1P05.md. Readable workflow/
+OIDC metadata does not supply an actual catalog signing authority or source.
 
-Use PATH=/workspace/toolchain/go/bin:$PATH and HOUSEFOLD_BUILD_CA=/etc/ssl/certs/ca-certificates.crt for image verification here. Continue first ready ledger task. Security, measured soak and exact-artifact real-repository disposable HAOS acceptance remain mandatory; historical waivers satisfy no v1 criterion.
+Remaining criteria: V1P05 official signed source and lifecycle UX; V1P03 full
+server-authenticated HA-admin BIOS; V1P07 diagnostics/audit/log integration;
+V1P11 real App/catalog distribution; V1P12 independent adversarial security;
+V1P13 supported measured soak; V1P14 exact artifact through the real repository
+on clean supported disposable HAOS; V1P15 publish that validated candidate.
+Current ingress status is peer-restricted/read-only, not completed admin BIOS.
+Ordered Bridge state stays disabled without pinned Python proof.
 
-V1P05 BLOCKED: catalog transport/cache/review/download/estate integration is implemented and repository --images verification passes, but the official remote source and signing authority cannot be provisioned. GitHub integration denied Housefold/modules creation and existing runtime Actions secrets access; intended catalog endpoint is absent. See evidence/V1P05.md and exact API logs. Production stays explicitly unconfigured with no synthetic trust key. Continue independent ready V1P06/V1P08 work; dependent BIOS/distribution/release criteria remain unmet.
+**No v1 release gate passed, no validated release artifact exists, nothing was
+published, and no live Home Assistant/HAOS household was accessed.** Docker,
+native-process and loopback tests are supplementary development evidence only.
+No acceptance criterion or gate was weakened/waived.
 
-V1P06 complete: production fenced native HA actions, registry/services discovery, stable bindings, diagnostic sensor/events and actionable notifications are composed. Native control survives estate recovery; credential/proxy/redirect boundaries and unknown-action retention are tested. All repository --images checks pass; real HAOS proof remains V1P14. Continue first ready task (resource/storage policy); V1P05 external blocker remains unchanged.
-
-V1P08 complete: signed resource requests/limits and priority, guarded packaged launcher, owned-group usage and sustained restart/quarantine, bounded HTTP connections, Housefold-only priority pressure pauses/recovery, space fencing/accounting/safe GC are wired. Evidence/V1P08.md records deterministic/native-child tests, the thread-local seccomp migration regression and fix, and complete --images verification. Ceilings remain provisional pending mandatory soak; no HAOS resource proof or release readiness claimed. Continue V1P09 then V1P10 while V1P05 remains externally blocked.
-
-V1P09 complete: normal cold App backup now fences/joins estate ownership, shares an I/O gate with module/coordination/catalog writes and optionally checkpoints the stopped tree. Restore verifies checkpoint before writes plus existing signed/checksummed cross-reference recovery; schedules stay bounded, running work interrupts and unknown actions persist. Explicit targeted volatile cleanup and confirmed factory reset preserve separate semantics; interrupted reset never auto-deletes. Focused race and whole --images verifier pass (evidence/V1P09.md). Normal /data/housefold restore and real Supervisor archive behavior still require V1P14; continue V1P10. V1P05 remains BLOCKED.
-
-V1P10 complete: optional Bridge hello/discovery now uses its own authenticated local Core socket with automatic bounded negotiation/invalidation and compatible discovery enrichment/native fallback. Ingress/HA diagnostics show lifecycle status and user-controlled guidance. Production ordered state stays disabled with explicit missing version-pinned Python proof; Housefold currently has no Bridge repo. Focused race/full --images verification passes (evidence/V1P10.md). The queue has no independent ready task after this; V1P05 official source/signing custody blocks BIOS/distribution and every release gate. Runtime v1 remains incomplete.
+Resume by provisioning maintainable official Housefold signing custody plus
+hosting (or an equivalent actual signed source with its pinned public authority),
+then `python3 scripts/agent_tasks.py resume V1P05` and `next/start`, complete its
+actual remote-source checks and proceed through remaining dependencies/gates.
+Use PATH=/workspace/toolchain/go/bin:$PATH and, on this worker only,
+HOUSEFOLD_BUILD_CA=/etc/ssl/certs/ca-certificates.crt for image verification.

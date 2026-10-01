@@ -22,3 +22,13 @@ Run focused tests and `bash scripts/agent_verify.sh`; use `--images` for packagi
 Release gates V1P12–V1P14 are mandatory. V1P12 must be adversarial and independent in method/context from implementation review. V1P13 must detect trend/leak behavior rather than a single happy-path benchmark. V1P14 must install the exact candidate via the actual Housefold HA App repository on clean disposable HAOS.
 
 Evidence records entering/final HEAD, exact commands/results, acceptance mapping, failures/fixes, limitations and artifact identifiers/digests. Update STATE/HANDOFF after every task.
+
+## Authorized catalog scheduling bypass
+
+The stakeholder explicitly authorized continuing the rest of the harness while
+V1P05 remains externally blocked. V1P03 and V1P11 may implement their independent
+BIOS and distribution work against the existing verified catalog backend; neither
+requires provisioning the official signer before implementation can begin.
+Catalog unavailability must be explicit in BIOS. This changes scheduling only:
+V1P05 acceptance is unchanged, signed hosting remains a V1P11 criterion, and
+security/soak/HAOS/publication dependencies and gates remain mandatory.

@@ -41,7 +41,6 @@
       "depends_on": [
         "V1P02",
         "V1P04",
-        "V1P05",
         "V1P06",
         "V1P08",
         "V1P09",
@@ -183,8 +182,7 @@
       "id": "V1P11",
       "title": "Build real Housefold distribution infrastructure",
       "depends_on": [
-        "V1P02",
-        "V1P05"
+        "V1P02"
       ],
       "kind": "implementation",
       "status": "todo",

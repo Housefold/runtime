@@ -1,18 +1,8 @@
-# Handoff — external BLOCKED state
+# Handoff — stakeholder-authorized independent continuation
 
-Read AGENTS/START_PROMPT/PRODUCTIZATION/WORKFLOW/STATE/tasks/spec/accepted ADRs.
-All independent ready work is committed; next reports V1P05 BLOCKED. Runtime v1
-is incomplete. No live HAOS was touched; no release/artifact was published.
-See evidence/BLOCKED.md for exact denials and remaining work. No waivers exist.
-
-Provision actual official catalog signing custody/hosting or an equivalent
-maintainable signed source and pinned authority. Current integration cannot
-create Housefold/modules or access runtime Actions signing secrets/configuration.
-Do not replace real provenance with fixture keys. Resume V1P05 through the ledger,
-then full BIOS/admin controls (03), diagnostics/audit (07), real distribution (11),
-independent security (12), representative measured soak (13), exact artifact
-through actual App repository on clean supported disposable HAOS (14), and only
-then publication/closure (15). Ordinary development checks satisfy no HAOS gate.
+V1P05 remains blocked; stakeholder authorized proceeding with independent BIOS
+and distribution work. See evidence/CATALOG-BYPASS.md. Begin V1P03, then V1P07,
+and prepare V1P11. Preserve all remaining final release dependencies and criteria.
 
 Production composition: cmd/runtime starts unpublished HTTP/native state and
 independent estate/native control owners. Estate owns verified ELF inventory,

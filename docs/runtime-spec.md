@@ -226,3 +226,21 @@ IPC peers honor that deadline. Filesystem syscall stalls still need hardware
 measurement. Incompatible state requires an explicitly permitted clean start;
 required-state refusal or final adoption failure keeps v1 active. Protocol support
 alone never establishes version/state compatibility.
+
+## Retention and recovery (M06)
+
+Selections retain current and immediately previous successful artifact/state
+references. Obsolete retired generations become collectable after another
+successful activation; selected/previous/draining references stay protected.
+Manual rollback creates a new prepared epoch and copies retained state into a new
+store, requiring normal readiness/cutover. It never revives a retired process.
+
+A selected-version crash interrupts running work, retains pending work and fences
+readiness. Up to three automatic same-version restart attempts use one/two/four
+second backoff. Failed restart candidates also consume the finite budget. Pending
+work can rebind to a prepared replacement before its cutover, with durable IDs
+unchanged. Exhaustion persists terminal QUARANTINED; no automatic rollback/restart
+or new admission occurs. Explicit OperatorRecover resets the selected version's
+budget while still requiring a new epoch and readiness. Other modules continue.
+Callers drive restart attempts with explicit time; no production recovery loop or
+artifact deletion is enabled by these libraries.

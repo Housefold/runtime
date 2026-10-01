@@ -332,9 +332,9 @@
         "M05"
       ],
       "kind": "implementation",
-      "status": "todo",
+      "status": "done",
       "approval_required": null,
-      "evidence": null,
+      "evidence": "docs/agent/evidence/M06.md",
       "blocker": null,
       "acceptance": [
         "Retain current plus immediately previous successful artifact/state generation; older retired generation becomes deletable after next successful activation.",

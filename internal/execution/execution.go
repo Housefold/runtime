@@ -395,3 +395,27 @@ func (m *Manager) ClaimNext(module string, generation uint64) (Record, bool, err
 	}
 	return selected, true, nil
 }
+func (m *Manager) PauseGeneration(module string, generation uint64) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	d := copyData(m.data)
+	for id, r := range d.Records {
+		if r.Module == module && r.Generation == generation && (r.Phase == Running || r.Phase == Canceling) {
+			r.Phase = Interrupted
+			d.Records[id] = r
+		}
+	}
+	return m.commit(d)
+}
+func (m *Manager) RebindPending(module string, old, new uint64) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	d := copyData(m.data)
+	for id, r := range d.Records {
+		if r.Module == module && r.Generation == old && r.Phase == Pending {
+			r.Generation = new
+			d.Records[id] = r
+		}
+	}
+	return m.commit(d)
+}

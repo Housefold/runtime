@@ -21,3 +21,5 @@
 - M04 completed: Added durable ready-before-cutover generation routing, once-only dispatch claims, boot fencing and bounded drain/child retirement. Evidence: [record](evidence/M04.md).
 
 - M05 completed: Added isolated bounded generation state stores and optional version/schema-aware warm/final IPC handover. Evidence: [record](evidence/M05.md).
+
+- M06 completed: Added artifact/state retention references, fresh-epoch manual rollback, finite selected-version backoff and persisted terminal quarantine. Evidence: [record](evidence/M06.md).

@@ -20,9 +20,10 @@ const MaxStateKeys = 64
 var stateKey = regexp.MustCompile(`^[a-zA-Z0-9_-]{1,64}$`)
 
 type StateStore struct {
-	mu   sync.Mutex
-	file *durable.File
-	path string
+	identity Identity
+	mu       sync.Mutex
+	file     *durable.File
+	path     string
 }
 
 func AllocateState(root string, id Identity) (*StateStore, error) {
@@ -47,7 +48,7 @@ func AllocateState(root string, id Identity) (*StateStore, error) {
 	if err = os.MkdirAll(path, 0700); err != nil {
 		return nil, err
 	}
-	s := &StateStore{file: durable.NewFile(filepath.Join(path, "state.json")), path: path}
+	s := &StateStore{identity: id, file: durable.NewFile(filepath.Join(path, "state.json")), path: path}
 	if _, err = s.file.Load(); errors.Is(err, os.ErrNotExist) {
 		if err = s.file.Save([]byte(`{}`)); err != nil {
 			return nil, err

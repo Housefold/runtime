@@ -1,0 +1,192 @@
+package module
+
+import (
+	"context"
+	"encoding/json"
+	"regexp"
+	"time"
+)
+
+const MaxRestarts = 3
+
+var artifactDigest = regexp.MustCompile(`^[a-f0-9]{64}$`)
+
+func (r *Router) BindReferences(id Identity, digest string, store *StateStore) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if !r.matches(id) || r.data.Generations[id.Generation].Phase != Preparing || !artifactDigest.MatchString(digest) || store == nil || store.identity.Module != id.Module || store.identity.Generation != id.Generation {
+		return ErrFenced
+	}
+	d := routerCopy(r.data)
+	g := d.Generations[id.Generation]
+	g.ArtifactDigest = digest
+	g.StatePath = store.path
+	d.Generations[g.Number] = g
+	return r.commit(d)
+}
+func cloneState(root string, from Generation, to Identity) (*StateStore, error) {
+	target, err := AllocateState(root, to)
+	if err != nil {
+		return nil, err
+	}
+	if from.StatePath == "" {
+		return target, nil
+	}
+	source, err := AllocateState(root, Identity{Module: from.Module, Generation: from.Number})
+	if err != nil {
+		return nil, err
+	}
+	if source.path != from.StatePath {
+		return nil, ErrFenced
+	}
+	source.mu.Lock()
+	data, err := source.read()
+	source.mu.Unlock()
+	if err != nil {
+		return nil, err
+	}
+	raw, err := json.Marshal(data)
+	if err != nil {
+		return nil, err
+	}
+	if err = target.file.Save(raw); err != nil {
+		return nil, err
+	}
+	return target, nil
+}
+func (r *Router) PrepareRollback(module, root string) (Identity, error) {
+	r.mu.Lock()
+	sel := r.data.Modules[module]
+	old, ok := r.data.Generations[sel.Previous]
+	if !ok || old.Phase != Retired {
+		r.mu.Unlock()
+		return Identity{}, ErrFenced
+	}
+	id, err := r.prepareLocked(module, old.Version)
+	r.mu.Unlock()
+	if err != nil {
+		return id, err
+	}
+	store, err := cloneState(root, old, id)
+	if err == nil && old.ArtifactDigest != "" {
+		err = r.BindReferences(id, old.ArtifactDigest, store)
+	}
+	if err != nil {
+		_ = r.FailCandidate(id)
+	}
+	return id, err
+}
+
+// Collectable removes only obsolete retired coordination records and returns
+// their references to the owning staging layer. Selected/previous/draining
+// artifacts and state stay retained; filesystem deletion is explicit.
+func (r *Router) Collectable(module string) ([]Generation, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	sel := r.data.Modules[module]
+	d := routerCopy(r.data)
+	var out []Generation
+	for n, g := range d.Generations {
+		if g.Module == module && g.Phase == Retired && n != sel.Active && n != sel.Candidate && n != sel.Previous && r.exec.InFlight(module, n) == 0 {
+			out = append(out, g)
+			delete(d.Generations, n)
+		}
+	}
+	if len(out) == 0 {
+		return nil, nil
+	}
+	if err := r.commit(d); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+func (r *Router) Crash(id Identity, now time.Time) error {
+	r.mu.Lock()
+	if !r.matches(id) || r.data.Modules[id.Module].Active != id.Generation {
+		r.mu.Unlock()
+		return ErrFenced
+	}
+	g := r.data.Generations[id.Generation]
+	if g.Crashed {
+		r.mu.Unlock()
+		return nil
+	}
+	if err := r.exec.PauseGeneration(id.Module, id.Generation); err != nil {
+		r.mu.Unlock()
+		return err
+	}
+	d := routerCopy(r.data)
+	sel := d.Modules[id.Module]
+	sel.Failures++
+	g.Crashed = true
+	if sel.Failures > MaxRestarts {
+		g.Phase = Quarantined
+		sel.NextRestart = time.Time{}
+	} else {
+		sel.NextRestart = now.Add(time.Second * time.Duration(1<<uint(sel.Failures-1)))
+	}
+	d.Modules[id.Module] = sel
+	d.Generations[g.Number] = g
+	err := r.commit(d)
+	child := r.children[g.Number]
+	if err == nil {
+		delete(r.ready, g.Number)
+		delete(r.children, g.Number)
+	}
+	r.mu.Unlock()
+	if err == nil && child != nil {
+		ctx, cancel := context.WithTimeout(context.Background(), JoinTimeout)
+		defer cancel()
+		_ = child.Stop(ctx)
+	}
+	return err
+}
+func (r *Router) RestartCandidate(module, root string, now time.Time) (Identity, error) {
+	r.mu.Lock()
+	sel := r.data.Modules[module]
+	old := r.data.Generations[sel.Active]
+	if !old.Crashed || old.Phase != Active || sel.Failures > MaxRestarts || sel.NextRestart.IsZero() || now.Before(sel.NextRestart) {
+		r.mu.Unlock()
+		return Identity{}, ErrFenced
+	}
+	id, err := r.prepareLocked(module, old.Version)
+	if err == nil {
+		d := routerCopy(r.data)
+		g := d.Generations[id.Generation]
+		g.Replaces = old.Number
+		d.Generations[g.Number] = g
+		err = r.commit(d)
+	}
+	r.mu.Unlock()
+	if err != nil {
+		return id, err
+	}
+	store, err := cloneState(root, old, id)
+	if err == nil && old.ArtifactDigest != "" {
+		err = r.BindReferences(id, old.ArtifactDigest, store)
+	}
+	if err != nil {
+		_ = r.FailCandidateAt(id, now)
+	}
+	return id, err
+}
+
+// OperatorRecover resets the selected version's budget, not its readiness or
+// epoch. The next restart still prepares a new generation and must cut over.
+func (r *Router) OperatorRecover(module string, now time.Time) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	sel := r.data.Modules[module]
+	g := r.data.Generations[sel.Active]
+	if g.Phase != Quarantined {
+		return ErrFenced
+	}
+	d := routerCopy(r.data)
+	sel.Failures = 0
+	sel.NextRestart = now
+	g.Phase = Active
+	g.Crashed = true
+	d.Modules[module] = sel
+	d.Generations[g.Number] = g
+	return r.commit(d)
+}

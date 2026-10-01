@@ -29,16 +29,22 @@ const (
 )
 
 type Generation struct {
-	Number     uint64
-	Module     string
-	Version    string
-	Phase      Lifecycle
-	DrainUntil time.Time
+	ArtifactDigest string
+	StatePath      string
+	Crashed        bool
+	Replaces       uint64
+	Number         uint64
+	Module         string
+	Version        string
+	Phase          Lifecycle
+	DrainUntil     time.Time
 }
 type Selection struct {
-	Active    uint64
-	Candidate uint64
-	Previous  uint64
+	Failures    int
+	NextRestart time.Time
+	Active      uint64
+	Candidate   uint64
+	Previous    uint64
 }
 type RouterData struct {
 	Version     int
@@ -133,6 +139,9 @@ func (r *Router) matches(id Identity) bool {
 func (r *Router) Prepare(module, version string) (Identity, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
+	return r.prepareLocked(module, version)
+}
+func (r *Router) prepareLocked(module, version string) (Identity, error) {
 	if module == "" || version == "" || len(module) > 128 || len(version) > 128 || r.poisoned {
 		return Identity{}, ErrFenced
 	}
@@ -166,7 +175,7 @@ func (r *Router) Ready(id Identity, accepting bool, child Child) error {
 		return ErrFenced
 	}
 	g := r.data.Generations[id.Generation]
-	if g.Phase != Preparing && g.Phase != Active {
+	if g.Crashed || (g.Phase != Preparing && g.Phase != Active) {
 		return ErrFenced
 	}
 	r.ready[id.Generation] = true
@@ -190,6 +199,11 @@ func (r *Router) cutoverLocked(id Identity, now time.Time) error {
 	}
 	d := routerCopy(r.data)
 	g := d.Generations[id.Generation]
+	if g.Replaces != 0 {
+		if err := r.exec.RebindPending(id.Module, g.Replaces, g.Number); err != nil {
+			return err
+		}
+	}
 	if sel.Active != 0 {
 		old := d.Generations[sel.Active]
 		old.Phase = Draining
@@ -219,6 +233,9 @@ func (r *Router) Admit(definition string, o timeline.Occurrence, now time.Time) 
 	return r.exec.AdmitGeneration(definition, o, now, g.Number)
 }
 func (r *Router) FailCandidate(id Identity) error {
+	return r.FailCandidateAt(id, time.Now())
+}
+func (r *Router) FailCandidateAt(id Identity, now time.Time) error {
 	r.mu.Lock()
 	if !r.matches(id) || r.data.Modules[id.Module].Candidate != id.Generation {
 		r.mu.Unlock()
@@ -227,6 +244,17 @@ func (r *Router) FailCandidate(id Identity) error {
 	d := routerCopy(r.data)
 	sel := d.Modules[id.Module]
 	sel.Candidate = 0
+	if d.Generations[id.Generation].Replaces != 0 {
+		sel.Failures++
+		active := d.Generations[sel.Active]
+		if sel.Failures > MaxRestarts {
+			active.Phase = Quarantined
+			sel.NextRestart = time.Time{}
+		} else {
+			sel.NextRestart = now.Add(time.Second * time.Duration(1<<uint(sel.Failures-1)))
+		}
+		d.Generations[active.Number] = active
+	}
 	d.Modules[id.Module] = sel
 	delete(d.Generations, id.Generation)
 	err := r.commit(d)

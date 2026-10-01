@@ -9,7 +9,7 @@ The stable Go supervisor and local control plane for Housefold. The Runtime star
 - Optional Go modules run as separate processes managed by the Runtime.
 - Essential local behavior must not depend on the VPS, internet, cloud AI, or optional modules.
 
-State is retained in memory only and never exposed in the status page or logs. The status page reports only coarse synchronization metadata. The public Home Assistant WebSocket API does not promise an atomic snapshot/event barrier or silent-gap detection; see [ADR-003](docs/adr/003-ha-state-cache-and-reconnection.md) for the exact freshness boundary. The module protocol, module permissions, and update trust remain open. See [the Runtime specification](docs/runtime-spec.md) and its linked ADRs for current decisions.
+State is retained in memory only and never exposed in the status page or logs. The status page reports only coarse synchronization metadata. The public Home Assistant WebSocket API does not promise an atomic snapshot/event barrier or silent-gap detection; see [ADR-003](docs/adr/003-ha-state-cache-and-reconnection.md) for the exact freshness boundary. ADR-007/008/009 define the accepted module, action, trust, lifecycle and optional Bridge boundaries. The solo harness has implemented private, tested foundations for those boundaries; production module installation/activation and HAOS lifecycle acceptance remain gated. See [the Runtime specification](docs/runtime-spec.md) and its linked ADRs for current decisions.
 
 ## Development
 

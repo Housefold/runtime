@@ -69,9 +69,10 @@ type Data struct {
 	Records     map[string]Record
 }
 type Manager struct {
-	mu    sync.Mutex
-	store durable.Store
-	data  Data
+	poisoned bool
+	mu       sync.Mutex
+	store    durable.Store
+	data     Data
 }
 
 func terminal(p Phase) bool {
@@ -126,11 +127,17 @@ func copyData(d Data) Data {
 	return c
 }
 func (m *Manager) commit(d Data) error {
+	if m.poisoned {
+		return durable.ErrUncertain
+	}
 	raw, err := json.Marshal(d)
 	if err != nil {
 		return err
 	}
 	if err = m.store.Save(raw); err != nil {
+		if errors.Is(err, durable.ErrUncertain) {
+			m.poisoned = true
+		}
 		return err
 	}
 	m.data = d
@@ -204,6 +211,9 @@ func (m *Manager) Admit(defID string, o timeline.Occurrence, now time.Time) (Rec
 func (m *Manager) AdmitGeneration(defID string, o timeline.Occurrence, now time.Time, generation uint64) (Record, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
+	if m.poisoned {
+		return Record{}, durable.ErrUncertain
+	}
 	if existing, ok := m.data.Records[o.ID]; ok {
 		return existing, nil
 	}
@@ -370,7 +380,7 @@ func (m *Manager) Owns(id, module string, generation uint64) bool {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	r, ok := m.data.Records[id]
-	return ok && r.Module == module && r.Generation == generation && (r.Phase == Running || r.Phase == Canceling)
+	return !m.poisoned && ok && r.Module == module && r.Generation == generation && (r.Phase == Running || r.Phase == Canceling)
 }
 
 // ClaimNext durably claims delivery once. A failure after claim is interrupted
@@ -378,6 +388,9 @@ func (m *Manager) Owns(id, module string, generation uint64) bool {
 func (m *Manager) ClaimNext(module string, generation uint64) (Record, bool, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
+	if m.poisoned {
+		return Record{}, false, durable.ErrUncertain
+	}
 	var selected Record
 	for _, r := range m.data.Records {
 		if r.Module == module && r.Generation == generation && r.Phase == Running && !r.Dispatched && (selected.ID == "" || r.Sequence < selected.Sequence) {
@@ -419,3 +432,5 @@ func (m *Manager) RebindPending(module string, old, new uint64) error {
 	}
 	return m.commit(d)
 }
+
+func (m *Manager) Healthy() bool { m.mu.Lock(); defer m.mu.Unlock(); return !m.poisoned }

@@ -139,3 +139,48 @@ func TestDrainStopsOwnedChild(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+type failedJoin struct{ calls int }
+
+func (c *failedJoin) Stop(context.Context) error {
+	c.calls++
+	if c.calls == 1 {
+		return context.DeadlineExceeded
+	}
+	return nil
+}
+func TestFailedJoinKeepsOwnedDrainingGeneration(t *testing.T) {
+	r, _, _, now, v1 := routerFixture(t)
+	child := &failedJoin{}
+	r.Ready(v1, true, child)
+	v2, _ := r.Prepare(v1.Module, "2")
+	r.Ready(v2, true, nil)
+	r.Cutover(v2, now)
+	if err := r.Drain(now); err != context.DeadlineExceeded {
+		t.Fatal(err)
+	}
+	if r.Snapshot().Generations[v1.Generation].Phase != Draining {
+		t.Fatal("retired before join")
+	}
+	if _, err := r.Prepare(v1.Module, "3"); err != ErrFenced {
+		t.Fatal("new upgrade while child unjoined")
+	}
+	if err := r.Drain(now); err != nil || r.Snapshot().Generations[v1.Generation].Phase != Retired || child.calls != 2 {
+		t.Fatal(err)
+	}
+}
+func TestFailedCandidateJoinRemainsTracked(t *testing.T) {
+	r, _, _, now, v1 := routerFixture(t)
+	v2, _ := r.Prepare(v1.Module, "2")
+	child := &failedJoin{}
+	r.Ready(v2, true, child)
+	if err := r.FailCandidateAt(v2, now); err != context.DeadlineExceeded {
+		t.Fatal(err)
+	}
+	if r.Snapshot().Modules[v1.Module].Active != v1.Generation || r.Snapshot().Generations[v2.Generation].Phase != Draining {
+		t.Fatal("lost selected or child")
+	}
+	if err := r.Drain(now); err != nil {
+		t.Fatal(err)
+	}
+}

@@ -162,3 +162,24 @@ func TestClaimExactlyOnce(t *testing.T) {
 		t.Fatal(count.Load())
 	}
 }
+
+type uncertainStore struct{ durable.Store }
+
+func (s uncertainStore) Save([]byte) error { return durable.ErrUncertain }
+func TestUncertainPersistenceFencesExistingAuthority(t *testing.T) {
+	m, _, now := setup(t, Parallel)
+	m.AdmitGeneration("automation", occurrence("work", now), now, 7)
+	m.store = uncertainStore{Store: m.store}
+	if err := m.Finish("work", false, now); err != durable.ErrUncertain {
+		t.Fatal(err)
+	}
+	if m.Healthy() || m.Owns("work", "synthetic", 7) {
+		t.Fatal("uncertain coordination retained authority")
+	}
+	if _, _, err := m.ClaimNext("synthetic", 7); err != durable.ErrUncertain {
+		t.Fatal(err)
+	}
+	if _, err := m.Admit("automation", occurrence("work", now), now); err != durable.ErrUncertain {
+		t.Fatal(err)
+	}
+}

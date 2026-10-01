@@ -3,6 +3,7 @@
 package action
 
 import (
+	"bytes"
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
@@ -157,7 +158,8 @@ func valid(r Request) bool {
 			depth--
 		}
 	}
-	return len(r.Data) > 0 && r.Data[0] == '{'
+	trimmed := bytes.TrimSpace(r.Data)
+	return len(trimmed) > 0 && trimmed[0] == '{'
 }
 func (g *Gateway) Submit(ctx context.Context, id module.Identity, request Request) (Record, error) {
 	notSent := Record{Identity: id, ID: request.ID, Work: request.Work, Outcome: NotSent}

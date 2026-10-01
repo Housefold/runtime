@@ -1,6 +1,7 @@
 package module
 
 import (
+	"context"
 	"github.com/housefold/runtime/internal/timeline"
 	"strings"
 	"testing"
@@ -139,5 +140,23 @@ func TestFailedRestartCandidatesExhaust(t *testing.T) {
 	}
 	if r.Ready(id, true, nil) != ErrFenced {
 		t.Fatal("crashed authority revived")
+	}
+}
+func TestCrashCannotRestartBeforeJoin(t *testing.T) {
+	r, _, _, now, id := routerFixture(t)
+	child := &failedJoin{}
+	r.Ready(id, true, child)
+	if err := r.Crash(id, now); err != context.DeadlineExceeded {
+		t.Fatal(err)
+	}
+	now = now.Add(time.Hour)
+	if _, err := r.RestartCandidate(id.Module, t.TempDir(), now); err != ErrFenced {
+		t.Fatal("restarted unjoined writer")
+	}
+	if err := r.Crash(id, now); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := r.RestartCandidate(id.Module, t.TempDir(), now); err != nil {
+		t.Fatal(err)
 	}
 }

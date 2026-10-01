@@ -6,7 +6,9 @@ import (
 	"context"
 	"net"
 	"os"
+	"os/exec"
 	"strings"
+	"syscall"
 	"testing"
 	"time"
 )
@@ -48,8 +50,19 @@ func TestSyntheticChild(t *testing.T) {
 	if s.Send(context.Background(), ready) != nil {
 		os.Exit(25)
 	}
-	if _, err = s.Receive(context.Background()); err != nil {
+	frame, err := s.Receive(context.Background())
+	if err != nil {
 		os.Exit(26)
+	}
+	if frame.Type == "spawn_and_exit" {
+		path, _ := os.Executable()
+		cmd := exec.Command(path, "-test.run=^TestSyntheticDescendant$")
+		cmd.Env = []string{"HOUSEFOLD_DESCENDANT=1"}
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		if cmd.Start() != nil {
+			os.Exit(27)
+		}
 	}
 	os.Exit(0)
 }
@@ -76,6 +89,10 @@ func TestChildIsolationCancelJoin(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer sentinel.Close()
+	_, _, errno := syscall.Syscall(syscall.SYS_FCNTL, sentinel.Fd(), syscall.F_SETFD, 0)
+	if errno != 0 {
+		t.Fatal(errno)
+	}
 	ctx, cancel := context.WithCancel(context.Background())
 	p := launchFixture(t, ctx, 0)
 	usage, err := p.Observe()
@@ -111,5 +128,26 @@ func TestChildPressureAndExit(t *testing.T) {
 	}
 	if err := p.Wait(ctx); err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestSyntheticDescendant(t *testing.T) {
+	if os.Getenv("HOUSEFOLD_DESCENDANT") != "1" {
+		return
+	}
+	timer := time.NewTimer(time.Hour)
+	defer timer.Stop()
+	<-timer.C
+}
+func TestDescendantOutputCannotHoldChildJoin(t *testing.T) {
+	p := launchFixture(t, context.Background(), 0)
+	ctx, cancel := context.WithTimeout(context.Background(), JoinTimeout)
+	defer cancel()
+	frame, _ := FrameOf("spawn_and_exit", struct{}{})
+	if err := p.Session.Send(ctx, frame); err != nil {
+		t.Fatal(err)
+	}
+	if err := p.Wait(ctx); err != nil {
+		t.Fatal("descendant prevented child join", err)
 	}
 }

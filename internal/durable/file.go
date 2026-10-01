@@ -40,6 +40,13 @@ type envelope struct {
 func (f *File) Load() ([]byte, error) {
 	f.mu.Lock()
 	defer f.mu.Unlock()
+	info, err := os.Lstat(f.path)
+	if err != nil {
+		return nil, err
+	}
+	if info.Mode()&os.ModeSymlink != 0 {
+		return nil, ErrCorrupt
+	}
 	file, err := os.Open(f.path)
 	if err != nil {
 		return nil, err
@@ -83,7 +90,11 @@ func (f *File) Save(data []byte) error {
 	}
 	data = compact.Bytes()
 	sum := sha256.Sum256(data)
-	raw, err := json.Marshal(envelope{Version: 1, Digest: hex.EncodeToString(sum[:]), Data: data})
+	var encoded bytes.Buffer
+	encoder := json.NewEncoder(&encoded)
+	encoder.SetEscapeHTML(false)
+	err := encoder.Encode(envelope{Version: 1, Digest: hex.EncodeToString(sum[:]), Data: data})
+	raw := bytes.TrimSpace(encoded.Bytes())
 	if err != nil {
 		return err
 	}
@@ -104,7 +115,13 @@ func (f *File) Save(data []byte) error {
 	if err = f.step("write"); err != nil {
 		return err
 	}
-	if _, err = tmp.Write(raw); err != nil {
+	if _, err = tmp.Write(raw[:len(raw)/2]); err != nil {
+		return err
+	}
+	if err = f.step("partial"); err != nil {
+		return err
+	}
+	if _, err = tmp.Write(raw[len(raw)/2:]); err != nil {
 		return err
 	}
 	if err = f.step("sync"); err != nil {

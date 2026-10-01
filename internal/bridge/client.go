@@ -134,6 +134,9 @@ func (c *Client) exchange(ctx context.Context, kind string, body any, limit int)
 	if ctx.Err() != nil {
 		return Response{}, ctx.Err()
 	}
+	if c.transport == nil {
+		return Response{}, ErrProtocol
+	}
 	c.nextID++
 	if c.nextID == 0 {
 		return Response{}, ErrProtocol
@@ -229,6 +232,9 @@ func (c *Client) Probe(ctx context.Context, now time.Time) (Result, error) {
 	}
 	c.mu.Lock()
 	c.result = cloneResult(result)
+	if _, ok := result.Capabilities["discovery"]; result.Status != Available || !ok {
+		c.discoveryFresh = false
+	}
 	c.mu.Unlock()
 	return result, err
 }

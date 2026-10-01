@@ -3,6 +3,8 @@ package module
 import (
 	"context"
 	"encoding/json"
+	"errors"
+	"os/exec"
 	"regexp"
 	"time"
 )
@@ -109,8 +111,9 @@ func (r *Router) Crash(id Identity, now time.Time) error {
 	g := r.data.Generations[id.Generation]
 	if g.Crashed {
 		r.mu.Unlock()
-		return nil
+		return r.stopOwned(id.Generation)
 	}
+	delete(r.ready, id.Generation)
 	if err := r.exec.PauseGeneration(id.Module, id.Generation); err != nil {
 		r.mu.Unlock()
 		return err
@@ -128,24 +131,21 @@ func (r *Router) Crash(id Identity, now time.Time) error {
 	d.Modules[id.Module] = sel
 	d.Generations[g.Number] = g
 	err := r.commit(d)
-	child := r.children[g.Number]
 	if err == nil {
 		delete(r.ready, g.Number)
-		delete(r.children, g.Number)
 	}
 	r.mu.Unlock()
-	if err == nil && child != nil {
-		ctx, cancel := context.WithTimeout(context.Background(), JoinTimeout)
-		defer cancel()
-		_ = child.Stop(ctx)
+	stopErr := r.stopOwned(id.Generation)
+	if err != nil {
+		return err
 	}
-	return err
+	return stopErr
 }
 func (r *Router) RestartCandidate(module, root string, now time.Time) (Identity, error) {
 	r.mu.Lock()
 	sel := r.data.Modules[module]
 	old := r.data.Generations[sel.Active]
-	if !old.Crashed || old.Phase != Active || sel.Failures > MaxRestarts || sel.NextRestart.IsZero() || now.Before(sel.NextRestart) {
+	if r.children[old.Number] != nil || !old.Crashed || old.Phase != Active || sel.Failures > MaxRestarts || sel.NextRestart.IsZero() || now.Before(sel.NextRestart) {
 		r.mu.Unlock()
 		return Identity{}, ErrFenced
 	}
@@ -189,4 +189,24 @@ func (r *Router) OperatorRecover(module string, now time.Time) error {
 	d.Modules[module] = sel
 	d.Generations[g.Number] = g
 	return r.commit(d)
+}
+
+func (r *Router) stopOwned(n uint64) error {
+	r.mu.Lock()
+	child := r.children[n]
+	r.mu.Unlock()
+	if child == nil {
+		return nil
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), JoinTimeout)
+	err := child.Stop(ctx)
+	cancel()
+	var exited *exec.ExitError
+	if err != nil && !errors.As(err, &exited) {
+		return err
+	}
+	r.mu.Lock()
+	delete(r.children, n)
+	r.mu.Unlock()
+	return nil
 }

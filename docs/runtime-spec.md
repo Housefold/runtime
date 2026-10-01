@@ -14,7 +14,7 @@ Housefold Runtime is the stable, local supervisor and control plane for Housefol
 |---|---|
 | First deployment form | Supervisor-managed Home Assistant OS app, auto-started with `system` startup ordering, protected mode and AppArmor enabled, no host port or extra host privileges. Supervisor owns process lifecycle and initial local recovery. See [ADR-001](adr/001-haos-runtime-lifecycle.md). |
 | HA connection | WebSocket state session through the Supervisor Core API proxy (`homeassistant_api: true`) is authoritative for operational HA status and freshness; REST is diagnostic only. General Supervisor API access stays disabled. The custom HA integration Bridge is optional and cannot be a boot or core-operation dependency. Reconnect uses the bounded schedule in [ADR-004](adr/004-ha-connection-checks.md). |
-| Optional Go modules | Separate processes supervised by Runtime. The control protocol and process containment model remain open. |
+| Optional Go modules | Trusted official separate processes with private inherited IPC under accepted ADR-007/008; implemented internal foundations remain separate from production installation/activation. |
 | Operating principle | Essential, latency-sensitive behavior remains local when the VPS, internet, cloud AI, or an optional module is unavailable. |
 | HA ownership | HA remains authoritative for device integrations, raw entity state, and service execution. Runtime keeps a private, memory-only state view and rebuilds it after disconnects. See [ADR-003](adr/003-ha-state-cache-and-reconnection.md). |
 | Management | Runtime exposes a read-only status page through authenticated HA ingress; Supervisor app controls/logs and the HAOS host console provide recovery. The full PWA is optional. See [ADR-005](adr/005-local-operator-status.md). |
@@ -61,14 +61,14 @@ Latency, memory, disk, reconnect, and recovery thresholds must be measured and a
 - HA WebSocket guarantees beyond the observed snapshot-plus-buffer reconciliation, event-gap detection, supported-version behavior, and appliance performance remain verification limits in [ADR-003](adr/003-ha-state-cache-and-reconnection.md). No HA action permission is included.
 - HA ingress user experience and source filtering on appliance hardware; see [ADR-005](adr/005-local-operator-status.md). The accepted page is not a recovery surface when HA Core UI is unavailable; use the HAOS host console.
 - Measured HA REST/WebSocket rate limits, state reconciliation, event ordering, and stale-state behavior; the accepted cache/data boundary is recorded in [ADR-003](adr/003-ha-state-cache-and-reconnection.md).
-- Runtime-to-module protocol, compatibility negotiation, health/readiness, timeouts, and backpressure.
-- Module process containment, resource limits, requested capabilities, and least-privilege enforcement.
-- Module package format, provenance/signatures, approved sources, installation approval, staged activation, rollback, and update policy.
-- Automation execution leases, timers/state ownership, and draining in-flight work during activation.
+- Production wiring and HAOS validation of the accepted module protocol, readiness, timeouts and backpressure (ADR-007/008).
+- Measured HAOS resource controls for trusted official modules. Third-party containment requires a new decision; official modules have no per-entity grant engine (ADR-008).
+- Production official signing authority/catalog freshness and explicit installation review wiring under ADR-008; offline verification is implemented.
+- Production integration and HAOS validation of durable timeline/admission, generation drain and negotiated state handover under ADR-008.
 - Persistence, diagnostic retention, household privacy, and remote/VPS access boundaries.
 - Measured resource and latency budgets for the target HAOS hardware.
 
-Until these are decided, agents may implement bounded local foundations that do not depend on them. They must stop before adding public contracts, executing modules, exposing control endpoints beyond loopback, or automating installation/update of module code.
+Accepted ADR-007/008/009 authorize the internal implementation slices described below. Remaining environment and cross-repository gates do not authorize production installation, third-party execution, extra control endpoints or real-home actions.
 
 ## Non-goals for the foundation
 
@@ -317,3 +317,21 @@ canonicalization. Module projection uses only `discovery_reset` canonical data;
 large single IPC projections fail explicitly. Wire/candidate/retained copies are
 bounded separately; serialized limits are not heap/RSS guarantees. Fixtures are
 synthetic and versioned; Python server/HAOS compatibility remains unverified.
+
+## Final solo review
+
+All 13 accepted implementation tasks M01/M02/T01/T02/M03–M06/A01/P01/G03/B01/B02
+are recorded done with developer Linux evidence. Supplementary regression review
+fences execution authority after uncertain commits, excludes inherited descriptors
+that lack CLOEXEC, rejects symlink state paths, tests raw JSON roundtrips and interrupted partial writes
+and preserves child ownership until successful joins. No live generation becomes
+collectable before joining. Failed joins remain retriable while the active module
+selection remains independent. Bridge negotiation loss marks only retained
+discovery stale. See [final review evidence](agent/evidence/FINAL-REVIEW.md).
+
+The cmd/runtime foundation still operates without modules or Bridge. New libraries
+are exercised through synthetic fixtures/injected boundaries; this queue does not
+claim a production installer, restart loop, real HA action adapter, native discovery
+collector, cron expression parser or complete public SDK. HAOS/appliance gates
+R07/V02 and Python ordered-state gate B03 remain blocked. No packaging changed;
+container image checks are not claimed for this code-only queue.

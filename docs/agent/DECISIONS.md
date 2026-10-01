@@ -1,3 +1,9 @@
+# Accepted decision reconciliation
+
+ADR-007, ADR-008 and ADR-009 were explicitly accepted on 2026-10-01. Their accepted forms and the current task queue supersede the historical proposal-only guidance below. The 13 ready implementation slices are now complete; environment gates remain in tasks.json.
+
+## Historical proposal harness
+
 # Decisions the solo agent must make reviewable
 
 Existing AGENTS.md says: “Do not invent public APIs, module protocols, permissions, credentials, update trust, or remote-access behavior. If the task depends on an unresolved decision, stop and write the question and options in a proposed ADR.” It also blocks module installation/trust/permissions/updates until their security design is approved.

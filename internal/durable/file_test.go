@@ -9,7 +9,7 @@ import (
 )
 
 func TestAtomicFaults(t *testing.T) {
-	for _, stage := range []string{"write", "sync", "rename", "dirsync"} {
+	for _, stage := range []string{"write", "partial", "sync", "rename", "dirsync"} {
 		t.Run(stage, func(t *testing.T) {
 			path := filepath.Join(t.TempDir(), "state")
 			f := NewFile(path)
@@ -67,5 +67,30 @@ func TestPrettyRoundTrip(t *testing.T) {
 	}
 	if _, err := f.Load(); err != nil {
 		t.Fatal(err)
+	}
+}
+func TestSymlinkStateRejected(t *testing.T) {
+	dir := t.TempDir()
+	target := filepath.Join(dir, "target")
+	file := NewFile(target)
+	file.Save([]byte(`{}`))
+	link := filepath.Join(dir, "link")
+	if err := os.Symlink(target, link); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := NewFile(link).Load(); err != ErrCorrupt {
+		t.Fatal("symlink followed", err)
+	}
+}
+func TestRawJSONRoundTrip(t *testing.T) {
+	for _, raw := range []string{`{"value":"<>&"}`, `{"value":"\u003c"}`, `{"value":"é"}`, `{"value":1e-3}`} {
+		f := NewFile(filepath.Join(t.TempDir(), "state"))
+		if err := f.Save([]byte(raw)); err != nil {
+			t.Fatal(err)
+		}
+		loaded, err := f.Load()
+		if err != nil || string(loaded) != raw {
+			t.Fatal(raw, string(loaded), err)
+		}
 	}
 }

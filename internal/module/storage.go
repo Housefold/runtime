@@ -35,6 +35,10 @@ func AllocateState(root string, id Identity) (*StateStore, error) {
 	if err := os.MkdirAll(moduleDir, 0700); err != nil {
 		return nil, err
 	}
+	info, err := os.Lstat(moduleDir)
+	if err != nil || !info.IsDir() || info.Mode()&os.ModeSymlink != 0 {
+		return nil, ErrFenced
+	}
 	entries, err := os.ReadDir(moduleDir)
 	if err != nil {
 		return nil, err
@@ -47,6 +51,10 @@ func AllocateState(root string, id Identity) (*StateStore, error) {
 	}
 	if err = os.MkdirAll(path, 0700); err != nil {
 		return nil, err
+	}
+	info, err = os.Lstat(path)
+	if err != nil || !info.IsDir() || info.Mode()&os.ModeSymlink != 0 {
+		return nil, ErrFenced
 	}
 	s := &StateStore{identity: id, file: durable.NewFile(filepath.Join(path, "state.json")), path: path}
 	if _, err = s.file.Load(); errors.Is(err, os.ErrNotExist) {

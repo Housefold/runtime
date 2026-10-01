@@ -149,3 +149,19 @@ func TestMultipartAndTotalBudget(t *testing.T) {
 		t.Fatal("total bound ignored")
 	}
 }
+func TestNegotiationLossMarksOnlyDiscoveryStale(t *testing.T) {
+	c, f := discoveryClient(t, []Page{discoveryFixture(t)})
+	if _, err := c.FetchDiscovery(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	f.exchange = func(ctx context.Context, cmd Command) ([]byte, error) {
+		return json.Marshal(Response{ID: cmd.ID, Type: "result", Success: false, Error: &CoreError{Code: "unknown_command"}})
+	}
+	if result, _ := c.Probe(context.Background(), time.Now().Add(time.Minute)); result.Status != Absent {
+		t.Fatal(result)
+	}
+	retained, fresh := c.LastDiscovery()
+	if fresh || len(retained.Entities) != 2 {
+		t.Fatal("retained discovery freshness after loss")
+	}
+}

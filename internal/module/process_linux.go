@@ -74,9 +74,21 @@ func LaunchLocal(ctx context.Context, spec LocalLaunch) (*Process, error) {
 	cmd.Env = []string{"HOUSEFOLD_IPC_FD=3"}
 	cmd.ExtraFiles = []*os.File{child}
 	cmd.Stdin = nil
-	cmd.Stdout = io.Discard
-	cmd.Stderr = io.Discard
+	output, err := os.OpenFile(os.DevNull, os.O_WRONLY, 0)
+	if err != nil {
+		conn.Close()
+		return nil, err
+	}
+	defer output.Close()
+	// File-backed discard avoids os/exec copier pipes that descendants could
+	// keep open after the direct child exits, preventing Wait from joining.
+	cmd.Stdout = output
+	cmd.Stderr = output
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+	if err = markDescriptors(); err != nil {
+		conn.Close()
+		return nil, err
+	}
 	if err = cmd.Start(); err != nil {
 		conn.Close()
 		return nil, err
@@ -163,4 +175,36 @@ func (p *Process) Observe() (Usage, error) {
 		return usage, errors.New("observed module RSS limit exceeded")
 	}
 	return usage, nil
+}
+
+// Go-created descriptors are CLOEXEC. Also close the inheritance gap for
+// preexisting descriptors opened by external libraries without that flag.
+// Parent handles remain usable; explicitly passed ExtraFiles are duplicated by
+// os/exec into the child's allowed descriptors. Runtime owns descriptor creation.
+func markDescriptors() error {
+	entries, err := os.ReadDir("/proc/self/fd")
+	if err != nil {
+		return err
+	}
+	if len(entries) > 1024 {
+		return errors.New("parent descriptor bound exceeded")
+	}
+	for _, entry := range entries {
+		fd, err := strconv.Atoi(entry.Name())
+		if err != nil || fd < 3 {
+			continue
+		}
+		flags, _, errno := syscall.Syscall(syscall.SYS_FCNTL, uintptr(fd), syscall.F_GETFD, 0)
+		if errno == syscall.EBADF {
+			continue
+		}
+		if errno != 0 {
+			return errno
+		}
+		_, _, errno = syscall.Syscall(syscall.SYS_FCNTL, uintptr(fd), syscall.F_SETFD, flags|syscall.FD_CLOEXEC)
+		if errno != 0 && errno != syscall.EBADF {
+			return errno
+		}
+	}
+	return nil
 }

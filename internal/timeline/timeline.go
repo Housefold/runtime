@@ -49,6 +49,9 @@ func Open(store durable.Store, initial time.Time) (*Timeline, error) {
 	raw, err := store.Load()
 	var data Data
 	if errors.Is(err, os.ErrNotExist) {
+		if initial.IsZero() {
+			return nil, ErrLimit
+		}
 		data = Data{Version: 1, Watermark: initial.UTC(), Horizon: DefaultHorizon, Schedules: map[string]Schedule{}, Pending: map[string]Occurrence{}}
 		raw, _ = json.Marshal(data)
 		if err = store.Save(raw); err != nil {

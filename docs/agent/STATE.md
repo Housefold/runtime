@@ -6,7 +6,7 @@
 - B03 is intentionally blocked until the separate Python Bridge proves ordered-state barrier/sequence semantics with version-pinned fixtures/evidence.
 - V02 is intentionally blocked until an authorized disposable HAOS target exists. Existing R07 remains a historical blocked ledger entry from the prior harness; V02 is the new module-lifecycle HAOS gate.
 - Production module downloads, third-party repositories, real-home action tests, Bridge installation and remote clients are outside the active queue.
-- Agent should run python3 scripts/agent_tasks.py next and work independently through ready tasks, recording evidence per task.
+- Final queue state: all 13 implementation tasks added by the accepted queue are done. `python3 scripts/agent_tasks.py next` reports no ready task. R07/B03/V02 remain blocked with unchanged concrete restart conditions.
 
 - M01 completed: Added bounded private JSON sessions, capability negotiation and launcher-owned identity; reconciled stale spec proposal text. Evidence: [record](evidence/M01.md).
 
@@ -33,3 +33,5 @@
 - B01 completed: Added optional separate Core-style Bridge negotiation with bounded schemas/fixtures and explicit availability/backoff. Evidence: [record](evidence/B01.md).
 
 - B02 completed: Added bounded chunked Bridge discovery into canonical provider identities, relationships, schemas and per-collection visibility statuses. Evidence: [record](evidence/B02.md).
+
+- Supplementary final review: uncertainty fences, child join/retention safety, descriptor inheritance, partial writes/symlink checks and Bridge discovery freshness. See [evidence](evidence/FINAL-REVIEW.md).

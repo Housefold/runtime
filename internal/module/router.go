@@ -8,6 +8,8 @@ import (
 	"github.com/housefold/runtime/internal/execution"
 	"github.com/housefold/runtime/internal/timeline"
 	"os"
+	"os/exec"
+	"sort"
 	"sync"
 	"time"
 )
@@ -65,7 +67,7 @@ type Router struct {
 }
 
 func OpenRouter(store durable.Store, exec *execution.Manager, boot string) (*Router, error) {
-	if boot == "" {
+	if boot == "" || exec == nil {
 		return nil, ErrFenced
 	}
 	raw, err := store.Load()
@@ -134,7 +136,7 @@ func (r *Router) identity(g Generation) Identity {
 }
 func (r *Router) matches(id Identity) bool {
 	g, ok := r.data.Generations[id.Generation]
-	return ok && r.identity(g) == id && !r.poisoned
+	return ok && r.identity(g) == id && !r.poisoned && r.exec.Healthy()
 }
 func (r *Router) Prepare(module, version string) (Identity, error) {
 	r.mu.Lock()
@@ -142,7 +144,7 @@ func (r *Router) Prepare(module, version string) (Identity, error) {
 	return r.prepareLocked(module, version)
 }
 func (r *Router) prepareLocked(module, version string) (Identity, error) {
-	if module == "" || version == "" || len(module) > 128 || len(version) > 128 || r.poisoned {
+	if module == "" || version == "" || len(module) > 128 || len(version) > 128 || r.poisoned || !r.exec.Healthy() {
 		return Identity{}, ErrFenced
 	}
 	sel, ok := r.data.Modules[module]
@@ -175,7 +177,7 @@ func (r *Router) Ready(id Identity, accepting bool, child Child) error {
 		return ErrFenced
 	}
 	g := r.data.Generations[id.Generation]
-	if g.Crashed || (g.Phase != Preparing && g.Phase != Active) {
+	if g.Crashed || (g.Phase != Preparing && g.Phase != Active) || (g.Phase == Active && r.data.Modules[id.Module].Active != id.Generation) || (g.Phase == Preparing && r.data.Modules[id.Module].Candidate != id.Generation) {
 		return ErrFenced
 	}
 	r.ready[id.Generation] = true
@@ -222,7 +224,7 @@ func (r *Router) Admit(definition string, o timeline.Occurrence, now time.Time) 
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	def, ok := r.exec.Snapshot().Definitions[definition]
-	if !ok || r.poisoned {
+	if !ok || r.poisoned || !r.exec.Healthy() {
 		return execution.Record{}, ErrFenced
 	}
 	sel := r.data.Modules[def.Module]
@@ -256,28 +258,40 @@ func (r *Router) FailCandidateAt(id Identity, now time.Time) error {
 		d.Generations[active.Number] = active
 	}
 	d.Modules[id.Module] = sel
-	delete(d.Generations, id.Generation)
+	failed := d.Generations[id.Generation]
+	failed.Phase = Draining
+	failed.DrainUntil = now
+	d.Generations[id.Generation] = failed
 	err := r.commit(d)
-	child := r.children[id.Generation]
 	if err == nil {
 		delete(r.ready, id.Generation)
-		delete(r.children, id.Generation)
 	}
 	r.mu.Unlock()
-	if err == nil && child != nil {
-		_ = child.Stop(context.Background())
+	if err == nil {
+		return r.Drain(now)
 	}
 	return err
 }
 func (r *Router) Drain(now time.Time) error {
 	r.mu.Lock()
-	var children []Child
+	var numbers []uint64
 	for n, g := range r.data.Generations {
+		if g.Phase == Draining {
+			numbers = append(numbers, n)
+		}
+	}
+	r.mu.Unlock()
+	sort.Slice(numbers, func(i, j int) bool { return numbers[i] < numbers[j] })
+	for _, n := range numbers {
+		r.mu.Lock()
+		g := r.data.Generations[n]
 		if g.Phase != Draining {
+			r.mu.Unlock()
 			continue
 		}
 		if r.exec.InFlight(g.Module, n) > 0 {
 			if now.Before(g.DrainUntil) {
+				r.mu.Unlock()
 				continue
 			}
 			if err := r.exec.InterruptGeneration(g.Module, n); err != nil {
@@ -285,25 +299,35 @@ func (r *Router) Drain(now time.Time) error {
 				return err
 			}
 		}
+		delete(r.ready, n)
+		child := r.children[n]
+		r.mu.Unlock()
+		// Keep DRAINING references until child join succeeds; a failed join may be
+		// retried and must never make live state/artifacts collectable.
+		if child != nil {
+			ctx, cancel := context.WithTimeout(context.Background(), JoinTimeout)
+			err := child.Stop(ctx)
+			cancel()
+			var exited *exec.ExitError
+			if err != nil && !errors.As(err, &exited) {
+				return err
+			}
+		}
+		r.mu.Lock()
 		d := routerCopy(r.data)
+		g = d.Generations[n]
+		if g.Phase != Draining {
+			r.mu.Unlock()
+			continue
+		}
 		g.Phase = Retired
 		d.Generations[n] = g
-		if err := r.commit(d); err != nil {
-			r.mu.Unlock()
-			return err
-		}
-		delete(r.ready, n)
-		if child := r.children[n]; child != nil {
-			children = append(children, child)
+		err := r.commit(d)
+		if err == nil {
 			delete(r.children, n)
 		}
-	}
-	r.mu.Unlock()
-	for _, child := range children {
-		ctx, cancel := context.WithTimeout(context.Background(), JoinTimeout)
-		err := child.Stop(ctx)
-		cancel()
-		if err != nil && errors.Is(err, context.DeadlineExceeded) {
+		r.mu.Unlock()
+		if err != nil {
 			return err
 		}
 	}
@@ -319,7 +343,7 @@ func (r *Router) WithAuthority(id Identity, work string, f func() error) error {
 		return ErrFenced
 	}
 	g := r.data.Generations[id.Generation]
-	if g.Phase != Active && g.Phase != Draining {
+	if (g.Phase != Active && g.Phase != Draining) || g.Crashed || (g.Phase == Active && r.data.Modules[id.Module].Active != id.Generation) {
 		return ErrFenced
 	}
 	if work == "" {
@@ -339,7 +363,7 @@ func (r *Router) Dispatch(ctx context.Context, session *Session) (bool, error) {
 		return false, ErrFenced
 	}
 	g := r.data.Generations[id.Generation]
-	if g.Phase != Active && g.Phase != Draining {
+	if (g.Phase != Active && g.Phase != Draining) || g.Crashed || (g.Phase == Active && r.data.Modules[id.Module].Active != id.Generation) {
 		r.mu.Unlock()
 		return false, ErrFenced
 	}

@@ -1,7 +1,31 @@
 # Handoff
 
-Latest completed task: B02. Added bounded chunked Bridge discovery into canonical provider identities, relationships, schemas and per-collection visibility statuses.
+All 13 ready implementation tasks are done: M01, M02, T01, T02, M03, M04,
+M05, M06, A01, P01, G03, B01 and B02. `python3 scripts/agent_tasks.py next`
+reports no ready task. Each task has a local cohesive commit and evidence.
+[Final review](evidence/FINAL-REVIEW.md) records supplementary safety regression
+checks. No changes have been pushed.
 
-Synthetic fixture/client evidence only; no Python implementation, selected Bridge state or HAOS compatibility claim.
+Implemented private libraries cover bounded IPC/canonical state, durable timeline
+and execution modes, synthetic process launch, ready-before-cutover routing,
+state handover, retention/manual rollback/quarantine, fake-transport fenced actions,
+offline official package verification, discovery bindings and optional Bridge
+negotiation/enrichment. Production wiring is deliberately absent from cmd/runtime;
+its local HA foundation remains independent of modules and Bridge. Limits are
+provisional developer bounds, not HAOS/appliance resource guarantees.
 
-Run `python3 scripts/agent_tasks.py next` and continue independently. See STATE and per-task evidence for exact checks. Accepted ADR-007/008/009 govern implementation. No push, deployment, release, real-home actions or production downloads are authorized. R07/V02 require authorized HAOS targets; B03 requires Python ordered-state evidence.
+Remaining gates:
+
+- R07: authorized clean HAOS/appliance target for existing ingestion validation.
+- V02: authorized disposable HAOS target for module lifecycle/resource tests.
+- B03: version-pinned Python ordered-state complete snapshot barrier and contiguous
+  sequence evidence, before selecting Bridge state.
+
+Accepted ADR-007/008/009 remain authoritative. Official modules are trusted;
+no per-entity grant engine or mandatory nested sandbox was added. Uncertain actions
+are never automatically retried. Exactly one generation admits new work; selected
+version retry exhaustion is terminal quarantine, with no automatic rollback.
+
+No push, deployment, release, real-home action, production module download,
+Bridge installation or third-party execution is authorized. Resume only when a
+blocked gate's concrete restart condition is supplied or a new task is assigned.

@@ -51,6 +51,7 @@ type Definition struct {
 	TTL         time.Duration
 }
 type Record struct {
+	Dispatched bool
 	ID         string
 	Definition string
 	Module     string
@@ -341,4 +342,56 @@ func (m *Manager) AdmitTimeline(t *timeline.Timeline, definition func(string) st
 		}
 	}
 	return nil
+}
+func (m *Manager) InFlight(module string, generation uint64) int {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	n := 0
+	for _, r := range m.data.Records {
+		if r.Module == module && r.Generation == generation && !terminal(r.Phase) {
+			n++
+		}
+	}
+	return n
+}
+func (m *Manager) InterruptGeneration(module string, generation uint64) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	d := copyData(m.data)
+	for id, r := range d.Records {
+		if r.Module == module && r.Generation == generation && !terminal(r.Phase) {
+			r.Phase = Interrupted
+			d.Records[id] = r
+		}
+	}
+	return m.commit(d)
+}
+func (m *Manager) Owns(id, module string, generation uint64) bool {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	r, ok := m.data.Records[id]
+	return ok && r.Module == module && r.Generation == generation && (r.Phase == Running || r.Phase == Canceling)
+}
+
+// ClaimNext durably claims delivery once. A failure after claim is interrupted
+// work on restart, never a blind duplicate execution.
+func (m *Manager) ClaimNext(module string, generation uint64) (Record, bool, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	var selected Record
+	for _, r := range m.data.Records {
+		if r.Module == module && r.Generation == generation && r.Phase == Running && !r.Dispatched && (selected.ID == "" || r.Sequence < selected.Sequence) {
+			selected = r
+		}
+	}
+	if selected.ID == "" {
+		return Record{}, false, nil
+	}
+	d := copyData(m.data)
+	selected.Dispatched = true
+	d.Records[selected.ID] = selected
+	if err := m.commit(d); err != nil {
+		return Record{}, false, err
+	}
+	return selected, true, nil
 }

@@ -17,3 +17,5 @@
 - T02 completed: Added durable bounded execution modes, cooperative restart cancellation and common timeline admission. Evidence: [record](evidence/T02.md).
 
 - M03 completed: Added private inherited Linux IPC launcher with sanitized environment, process group ownership, bounded joins and sampled RSS enforcement. Evidence: [record](evidence/M03.md).
+
+- M04 completed: Added durable ready-before-cutover generation routing, once-only dispatch claims, boot fencing and bounded drain/child retirement. Evidence: [record](evidence/M04.md).

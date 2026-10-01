@@ -5,6 +5,8 @@ import (
 	"github.com/housefold/runtime/internal/durable"
 	"github.com/housefold/runtime/internal/timeline"
 	"path/filepath"
+	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -135,5 +137,28 @@ func TestTimelineCommonAdmission(t *testing.T) {
 	}
 	if err = m.AdmitTimeline(tl, func(string) string { return "automation" }, now.Add(time.Minute)); err != nil || len(m.Snapshot().Records) != 2 {
 		t.Fatal(err)
+	}
+}
+func TestClaimExactlyOnce(t *testing.T) {
+	m, _, now := setup(t, Parallel)
+	m.AdmitGeneration("automation", occurrence("work", now), now, 7)
+	var wg sync.WaitGroup
+	var count atomic.Int32
+	for i := 0; i < 32; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			_, ok, err := m.ClaimNext("synthetic", 7)
+			if err != nil {
+				t.Error(err)
+			}
+			if ok {
+				count.Add(1)
+			}
+		}()
+	}
+	wg.Wait()
+	if count.Load() != 1 {
+		t.Fatal(count.Load())
 	}
 }

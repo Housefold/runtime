@@ -192,3 +192,20 @@ exceeding its configured observed RSS limit. This is sampled observation, not
 kernel memory enforcement or an HAOS sandbox claim. Synthetic test executables
 prove credential/descriptor isolation, negotiation, cancel/kill/join and pressure.
 Production selection/install/launch is not wired into cmd/runtime.
+
+## Generation routing (M04)
+
+The durable router keeps one selected active generation and one preparing
+candidate per module (32 modules/128 retained generation records maximum).
+Only a launcher-bound ready-and-accepting acknowledgment permits atomic cutover.
+Admission and cutover share a mutex; execution tokens persist their assigned
+generation. Durable dispatch claims each running token once before sending.
+Transport failure after a claim may interrupt work, and recovery does not
+blindly reexecute it. Preparation failure leaves the old selection intact;
+post-cutover failure never selects an older generation automatically.
+
+Old admitted work may drain for five seconds, then becomes interrupted and its
+owned child is stopped/joined. Callers drive Drain with explicit time. On Runtime
+restart no generation is ready until a new boot-bound handshake; stale sessions
+cannot issue work/actions. Post-rename persistence uncertainty fences admission.
+This is an internal tested coordinator, not production module enablement.

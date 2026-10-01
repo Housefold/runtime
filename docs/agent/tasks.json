@@ -296,9 +296,9 @@
         "T02"
       ],
       "kind": "implementation",
-      "status": "todo",
+      "status": "done",
       "approval_required": null,
-      "evidence": null,
+      "evidence": "docs/agent/evidence/M04.md",
       "blocker": null,
       "acceptance": [
         "Keep v1 active while v2 prepares; v2 cannot receive new work until explicit ready-and-accepting acknowledgement.",

@@ -204,9 +204,9 @@
         "D02"
       ],
       "kind": "implementation",
-      "status": "todo",
+      "status": "done",
       "approval_required": null,
-      "evidence": null,
+      "evidence": "docs/agent/evidence/M01.md",
       "blocker": null,
       "acceptance": [
         "Implement a versioned bounded module codec/session over an injected full-duplex connection; production launcher transport may follow in M03.",

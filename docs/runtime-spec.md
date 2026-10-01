@@ -1,6 +1,6 @@
 # Runtime specification
 
-**Status:** Runtime and HA state-ingestion baseline; module protocol and security details remain open.
+**Status:** Runtime and HA foundation with accepted module/action/trust/Bridge decisions in ADR-007/008/009. Implementation evidence is tracked in docs/agent/tasks.json.
 
 This specification narrows the platform docs to the Runtime repository. It records what an implementation agent may rely on and what must be resolved before work crosses a security or compatibility boundary.
 
@@ -112,21 +112,24 @@ entrypoint. The accepted permission to add an optional read-only diagnostic does
 not give REST authority over WebSocket readiness or freshness. Historical VM
 probe evidence continues to describe the old probe, not current ingestion.
 
-## Proposed public boundaries
+## Accepted module and Bridge boundaries
 
-[ADR-007](adr/007-public-consumer-and-action-contracts.md) proposes public scoped
-consumers and explicit HA action authority, compatibility, bounded delivery and
-unknown outcomes. It is **Proposed**; no public/module transport or HA actions
-are implemented or authorized by its presence or D01 task completion.
+ADR-007, ADR-008 and ADR-009 were accepted on 2026-10-01 and supersede older
+proposal language above. Official modules use private inherited IPC and receive
+canonical HA data without per-entity grants; Runtime remains the sole HA boundary.
+Only one generation admits new work; old admitted work may drain. Unknown actions
+are never blindly retried. There is no automatic module rollback. Bridge remains
+optional and selected ordered state awaits Python barrier/sequence evidence.
 
-[ADR-008](adr/008-module-containment-trust-and-activation.md) proposes fail-closed
-containment prerequisites, provenance/source approval, staged health/quarantine
-and sequential fenced activation/rollback. It is **Proposed**. No launcher,
-installation store, resource privilege, module execution or update authority is
-added; actual HAOS containment feasibility remains unverified.
+## Private module protocol (M01)
 
-[ADR-009](adr/009-optional-bridge-compatibility-and-fallback.md) proposes optional
-Bridge negotiation/enrichment, versioned capabilities and atomic single-source
-switch/reset/fallback. It is **Proposed**. Python integration belongs to a separate
-repository. Standard HA state ingestion remains the implemented/default path;
-no Bridge dependency, transport, installation or source preference is enabled.
+`internal/module` uses a four-byte big-endian length followed by JSON. Protocol
+major 1 negotiates optional minor/capabilities and rejects missing required
+capabilities. Frames are at most 1 MiB, depth 32, with 64-byte type and 128-byte
+request ID bounds; hello lists each contain at most 32 entries of 64 bytes.
+There is one synchronous read and write per session, no transport queue, a
+five-second IO deadline and context cancellation. Any partial write/read failure
+closes the connection; reconnect needs a new session. Launcher-owned identity,
+version, boot and generation cannot be overridden by peer payloads. This slice
+has no process launch, production wiring, action authority or network listener.
+These provisional developer bounds require HAOS measurement.

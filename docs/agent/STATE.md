@@ -7,3 +7,5 @@
 - V02 is intentionally blocked until an authorized disposable HAOS target exists. Existing R07 remains a historical blocked ledger entry from the prior harness; V02 is the new module-lifecycle HAOS gate.
 - Production module downloads, third-party repositories, real-home action tests, Bridge installation and remote clients are outside the active queue.
 - Agent should run python3 scripts/agent_tasks.py next and work independently through ready tasks, recording evidence per task.
+
+- M01 completed: Added bounded private JSON sessions, capability negotiation and launcher-owned identity; reconciled stale spec proposal text. Evidence: [record](evidence/M01.md).

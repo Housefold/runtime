@@ -27,3 +27,14 @@ Evidence under docs/agent/evidence must record exact commands/results, entering/
 Update STATE.md and HANDOFF.md after each task and make a small local commit when identity is available. Do not push, deploy, release, force-reset or operate the real home unless explicitly directed.
 
 Stop only when no ready task remains. A blocked environment task does not block independent ready work.
+
+
+## Explicit environment waivers
+
+The 2026-10-01 stakeholder instruction to ignore blockers authorizes terminal
+`waived` dispositions for unexecutable environment criteria in this run. Run
+available checks first and record exact PASS/FAIL/unexecuted criteria separately.
+`agent_tasks.py waive ID --reason ... --evidence ...` requires an active ungated
+environment task, explicit reason and nonempty evidence. A waiver is not PASS and
+does not satisfy implementation dependencies. Do not use it for implementation
+work or to manufacture maintainer acceptance.

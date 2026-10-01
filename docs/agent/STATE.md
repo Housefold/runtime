@@ -51,3 +51,9 @@ R07/V02 are being resumed against this synthetic-only guest; any unexecuted
 criteria will be explicitly waived under stakeholder direction, never marked PASS.
 The earlier “final queue state” and blockers above describe the previous stopping
 point and are superseded by this resumed section.
+
+
+R07 resumed: actual HAOS kernel state/runtime tests PASS and both image layers
+inspected. Full supported-Core/Supervisor/appliance matrix is explicitly waived
+under stakeholder instruction after concrete install/network attempts. See
+[R07 resumed evidence](evidence/R07-RESUMED.md). No production readiness claim.

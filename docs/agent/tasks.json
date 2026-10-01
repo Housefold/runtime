@@ -115,15 +115,16 @@
         "R06"
       ],
       "kind": "environment",
-      "status": "blocked",
+      "status": "waived",
       "approval_required": null,
-      "evidence": "docs/agent/evidence/R07.md",
-      "blocker": "No authorized clean HAOS/appliance target or test access. Attach one with exact HAOS/Core/Supervisor versions and run docs/agent/HAOS-VALIDATION.md; Docker/fake transport is insufficient.",
+      "evidence": "docs/agent/evidence/R07-RESUMED.md",
+      "blocker": null,
       "acceptance": [
         "Run R06 on an available authorized clean HAOS test environment and record exact versions/architecture.",
         "Validate current ingestion, ingress filter and restart/recovery; record appliance-specific evidence separately.",
         "If no test environment is available, mark blocked with concrete restart condition and continue proposals. Never substitute fake transport/image builds for HAOS acceptance."
-      ]
+      ],
+      "waiver": "Stakeholder explicitly authorized ignoring blockers on 2026-10-01. Available actual HAOS kernel and image checks passed; supported-Core/Supervisor ingress, soak and physical appliance criteria remain unexecuted and are waived, not PASS."
     },
     {
       "id": "D01",

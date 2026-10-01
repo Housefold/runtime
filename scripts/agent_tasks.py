@@ -11,7 +11,7 @@ LEDGER = ROOT / "docs/agent/tasks.json"
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument("command", choices=["next", "list", "start", "done", "block", "resume"])
+    p.add_argument("command", choices=["next", "list", "start", "done", "block", "resume", "waive"])
     p.add_argument("id", nargs="?")
     p.add_argument("--evidence")
     p.add_argument("--reason")
@@ -43,7 +43,9 @@ def main():
         if active or not ready(row):
             p.error("task is not ready or another task is active")
         row["status"] = "in_progress"
-    elif a.command == "done":
+    elif a.command in ("done", "waive"):
+        if a.command == "waive" and (not a.reason or row["kind"] not in ("environment", "environment_gate") or row["approval_required"]):
+            p.error("environment task, explicit waiver reason and no approval gate required")
         if row["status"] != "in_progress" or not a.evidence:
             p.error("active task and --evidence required")
         evidence = (ROOT / a.evidence).resolve()
@@ -52,7 +54,9 @@ def main():
             p.error("evidence must be a nonempty file under docs/agent/evidence")
         if evidence.name == "TEMPLATE.md":
             p.error("copy and fill the evidence template for this task")
-        row.update(status="done", evidence=str(evidence.relative_to(ROOT)), blocker=None)
+        row.update(status="done" if a.command == "done" else "waived", evidence=str(evidence.relative_to(ROOT)), blocker=None)
+        if a.command == "waive":
+            row["waiver"] = a.reason
     elif a.command == "block":
         if row["status"] not in ("todo", "in_progress") or not a.reason:
             p.error("pending/active task and --reason required")

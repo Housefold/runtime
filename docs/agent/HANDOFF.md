@@ -36,3 +36,8 @@ source switching and ordered-state fixtures/client; production selection remains
 unwired pending Python compatibility evidence. Full image harness passed. The
 new disposable HAOS 18.3/Supervisor 2026.09.2 guest is being used for R07/V02;
 the prior instruction to wait for supplied targets no longer governs this run.
+
+
+R07 now has a terminal environment waiver with actual HAOS kernel test evidence,
+verified image inspection and concrete Supervisor/Core installation diagnostics.
+See [resumed record](evidence/R07-RESUMED.md); unexecuted matrix is not PASS.

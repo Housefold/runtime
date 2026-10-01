@@ -1,0 +1,26 @@
+[
+  {
+    "tag": "housefold-runtime:agent-amd64",
+    "id": "sha256:18a75f0e38509e5e6070c34503ce5f18fd3a1db5fe57a6f7fd2105463db32af0",
+    "architecture": "amd64",
+    "user": "10001:10001",
+    "files": [
+      "housefold-runtime"
+    ],
+    "binary_sha256": "66560e5cce91a2323800849b1a17f279a94347ec043f5338f84ec71942a271e6",
+    "elf_machine": 62,
+    "static": true
+  },
+  {
+    "tag": "housefold-runtime:agent-arm64",
+    "id": "sha256:a3a8ab7da8481b0c5418b7c1d8764ebd0520e46a91a7e62a348c25a926794f0b",
+    "architecture": "arm64",
+    "user": "10001:10001",
+    "files": [
+      "housefold-runtime"
+    ],
+    "binary_sha256": "97c22a097f57eb1ae9e35eafb4e1827c94a4955141edf67ceb5be72c5e3ad6cb",
+    "elf_machine": 183,
+    "static": true
+  }
+]

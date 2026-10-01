@@ -146,3 +146,20 @@ filtering. Replica rejects gaps, duplicate reset IDs and deltas before complete
 reset. Disconnect marks retained data stale and requires a new reset. Existing
 HA subscription bounds protect ingestion; transport writes never run under its
 cache lock. Slow consumers terminate visibly. No HA event history is persisted.
+
+## Durable timeline (T01)
+
+`internal/durable` writes versioned SHA-256 checked JSON via private same-directory
+temporary file, file fsync, atomic rename and directory fsync. Writes after an
+uncertain post-rename failure are fenced until reopening. Corrupt/truncated or
+oversized files fail closed. One Runtime owner controls each path; this is not
+a multiprocess database. File payloads are capped at 16 MiB, mode 0600.
+
+`internal/timeline` persists up to 128 UTC anchored interval/one-shot schedules,
+4,096 pending occurrences, global watermark and recovery horizon. Default replay
+is one hour, per-schedule overrides have a seven-day maximum. Occurrence IDs are
+deterministic from schedule identity and original logical time. Replay marks
+recovered occurrences and never reconstructs unobserved HA events or stores HA
+state. An overflow or failed durable save preserves the old published watermark;
+operators must drain pending work before advancing. Time is supplied explicitly
+for deterministic tests. No scheduler is enabled in production by this library.

@@ -241,9 +241,9 @@
         "R04"
       ],
       "kind": "implementation",
-      "status": "todo",
+      "status": "done",
       "approval_required": null,
-      "evidence": null,
+      "evidence": "docs/agent/evidence/T01.md",
       "blocker": null,
       "acceptance": [
         "Implement crash-safe durable schedule/timeline metadata and a watermark sufficient to reconstruct deterministic Runtime-owned occurrences after restart.",

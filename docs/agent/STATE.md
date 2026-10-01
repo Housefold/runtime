@@ -11,3 +11,5 @@
 - M01 completed: Added bounded private JSON sessions, capability negotiation and launcher-owned identity; reconciled stale spec proposal text. Evidence: [record](evidence/M01.md).
 
 - M02 completed: Added canonical chunked reset and ordered state delta projection with atomic bounded replicas. Evidence: [record](evidence/M02.md).
+
+- T01 completed: Added checksummed atomic private storage and bounded durable schedule/watermark recovery. Evidence: [record](evidence/T01.md).

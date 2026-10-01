@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "baseline": "bd36bebf7bf922d5b19ea83428d4345758ef6ac5",
+  "baseline": "4fa37d484c385ccf3eecda95c77190f7e63e9d53",
   "tasks": [
     {
       "id": "R01",
@@ -180,39 +180,6 @@
       ]
     },
     {
-      "id": "G01",
-      "title": "Implement reviewed module/action foundation",
-      "depends_on": [
-        "D01",
-        "D02"
-      ],
-      "kind": "gated",
-      "status": "gated",
-      "approval_required": "Explicit maintainer acceptance of D01 and D02 with recorded references",
-      "evidence": null,
-      "blocker": "Await explicit maintainer acceptance of ADR-007 and ADR-008, recorded references and small executable task decomposition. Containment prerequisites must be proven before execution.",
-      "acceptance": [
-        "Split accepted designs into small executable tasks with fault tests before enabling epic.",
-        "Implement only accepted contracts/grants/containment; prove single-active action-capable version."
-      ]
-    },
-    {
-      "id": "G02",
-      "title": "Implement reviewed Runtime Bridge adapter",
-      "depends_on": [
-        "D03"
-      ],
-      "kind": "gated",
-      "status": "gated",
-      "approval_required": "Explicit maintainer acceptance of D03 with recorded reference",
-      "evidence": null,
-      "blocker": "Await explicit maintainer acceptance of ADR-009 and recorded reference, then small executable tasks coordinated with the separate Python integration repository.",
-      "acceptance": [
-        "Split accepted design into small tasks and coordinate separately owned Python integration.",
-        "Prove Runtime still boots/operates with Bridge absent, incompatible or failed."
-      ]
-    },
-    {
       "id": "R08",
       "title": "Complete packaging verification with mounted builder CA trust",
       "depends_on": [
@@ -226,6 +193,287 @@
       "acceptance": [
         "Support optional BuildKit CA trust for managed-proxy image checks without disabling TLS or embedding the worker certificate in final images.",
         "Run the full verification script with both HAOS image architectures and inspect final scratch image permissions/contents; record registry recovery and distinguish builds from HAOS acceptance."
+      ]
+    },
+    {
+      "id": "M01",
+      "title": "Define and prove bounded inherited module protocol",
+      "depends_on": [
+        "R02",
+        "D01",
+        "D02"
+      ],
+      "kind": "implementation",
+      "status": "todo",
+      "approval_required": null,
+      "evidence": null,
+      "blocker": null,
+      "acceptance": [
+        "Implement a versioned bounded module codec/session over an injected full-duplex connection; production launcher transport may follow in M03.",
+        "Cover hello negotiation, incompatible major/required capability, malformed/oversized/deep frames, deadlines, cancellation and bounded writes with synthetic peers.",
+        "Represent module identity/version and boot/generation lifecycle server-side; no claimed peer identity grants authority and no HA/Supervisor credential crosses the boundary.",
+        "Do not implement downloads, production module execution, HA actions or Bridge."
+      ]
+    },
+    {
+      "id": "M02",
+      "title": "Expose canonical HA state protocol to managed modules",
+      "depends_on": [
+        "M01",
+        "R03"
+      ],
+      "kind": "implementation",
+      "status": "todo",
+      "approval_required": null,
+      "evidence": null,
+      "blocker": null,
+      "acceptance": [
+        "Define canonical generic entity/state payloads that preserve unknown HA domains/attributes while structuring known identity/state/freshness fields.",
+        "Expose complete reset then ordered deltas without per-entity grant filtering; source generation/freshness transitions are explicit and invisible changes do not invent semantics.",
+        "Bound reset staging, stream queues and transport memory; slow consumers cannot stall HA ingestion and disconnect requires a new complete reset.",
+        "Use deterministic race/model tests for reset versus live update/disconnect and deep ownership."
+      ]
+    },
+    {
+      "id": "T01",
+      "title": "Implement durable execution timeline and replay",
+      "depends_on": [
+        "R04"
+      ],
+      "kind": "implementation",
+      "status": "todo",
+      "approval_required": null,
+      "evidence": null,
+      "blocker": null,
+      "acceptance": [
+        "Implement crash-safe durable schedule/timeline metadata and a watermark sufficient to reconstruct deterministic Runtime-owned occurrences after restart.",
+        "Provide a global recovery horizon plus per-schedule override bounded by a Runtime maximum; replay retains original logical occurrence time and recovered metadata.",
+        "Do not fabricate HA events missed while offline and do not persist HA entity history.",
+        "Fault-test partial writes/corruption/disk-full behavior and deterministic restart/replay without wall-clock sleeps."
+      ]
+    },
+    {
+      "id": "T02",
+      "title": "Implement trigger admission and execution modes",
+      "depends_on": [
+        "T01"
+      ],
+      "kind": "implementation",
+      "status": "todo",
+      "approval_required": null,
+      "evidence": null,
+      "blocker": null,
+      "acceptance": [
+        "Implement bounded single, restart, queued and parallel admission semantics with execution IDs and explicit pending/running/terminal state.",
+        "Cron/delayed occurrences use the same admission path; define deterministic cancellation, concurrency, queue and expiry behavior in internal docs/tests.",
+        "Persist enough mode state for Runtime restart without duplicate admission.",
+        "Model-test event sequences and queue/concurrency boundaries."
+      ]
+    },
+    {
+      "id": "M03",
+      "title": "Implement trusted module process launcher",
+      "depends_on": [
+        "M01"
+      ],
+      "kind": "implementation",
+      "status": "todo",
+      "approval_required": null,
+      "evidence": null,
+      "blocker": null,
+      "acceptance": [
+        "Launch only explicit local synthetic fixtures in tests; create private inherited socketpair/descriptor IPC and close unrelated descriptors/environment secrets.",
+        "Track child generation/process ownership and prove cancel/kill/join behavior without making child failure Runtime failure.",
+        "Add practical resource observation/bounds available on developer Linux without claiming HAOS sandbox enforcement.",
+        "No network download, catalog install or production module artifact execution in this slice."
+      ]
+    },
+    {
+      "id": "M04",
+      "title": "Implement zero-downtime generation router",
+      "depends_on": [
+        "M03",
+        "T02"
+      ],
+      "kind": "implementation",
+      "status": "todo",
+      "approval_required": null,
+      "evidence": null,
+      "blocker": null,
+      "acceptance": [
+        "Keep v1 active while v2 prepares; v2 cannot receive new work until explicit ready-and-accepting acknowledgement.",
+        "Perform one atomic admission cutover: all new execution tokens route to v2 while v1 drains only pre-cutover work.",
+        "An occurrence racing cutover is delivered exactly once; no automatic fallback after cutover.",
+        "Candidate failure before cutover leaves v1 active; deterministic race/model tests prove no dual admission and bounded drain."
+      ]
+    },
+    {
+      "id": "M05",
+      "title": "Implement per-generation state and negotiated handover",
+      "depends_on": [
+        "M04"
+      ],
+      "kind": "implementation",
+      "status": "todo",
+      "approval_required": null,
+      "evidence": null,
+      "blocker": null,
+      "acceptance": [
+        "Allocate isolated writable state storage per module generation; preparing candidate cannot mutate active generation state.",
+        "Implement optional bounded opaque handover negotiation with source version/schema metadata; protocol support does not imply state compatibility.",
+        "Support initial warm-up transfer plus a short final consistent handover barrier before cutover when negotiated.",
+        "Test compatible migration, explicit incompatible clean start, required-state refusal, concurrent mutation and failed candidate without corrupting v1."
+      ]
+    },
+    {
+      "id": "M06",
+      "title": "Implement retention, manual rollback and quarantine",
+      "depends_on": [
+        "M05"
+      ],
+      "kind": "implementation",
+      "status": "todo",
+      "approval_required": null,
+      "evidence": null,
+      "blocker": null,
+      "acceptance": [
+        "Retain current plus immediately previous successful artifact/state generation; older retired generation becomes deletable after next successful activation.",
+        "Manual rollback is a new prepared generation/epoch using the same readiness/cutover rules; never resurrect stale process authority.",
+        "Restart only the selected active version with bounded exponential backoff and finite retry budget; terminal exhaustion enters QUARANTINED.",
+        "Quarantine performs no automatic restart/rollback and does not impair Runtime or unrelated modules; test crash storms and operator recovery hooks."
+      ]
+    },
+    {
+      "id": "A01",
+      "title": "Implement fenced HA action outcomes",
+      "depends_on": [
+        "M04",
+        "R03"
+      ],
+      "kind": "implementation",
+      "status": "todo",
+      "approval_required": null,
+      "evidence": null,
+      "blocker": null,
+      "acceptance": [
+        "Add an internal action gateway behind the canonical module protocol using only fake/injected HA action transport in tests.",
+        "Only active generation admits new actions; draining generation may finish only pre-cutover admitted work.",
+        "Represent not_sent, accepted, rejected_by_ha and unknown distinctly; optional observed result is evidence not causality.",
+        "Never blindly retry unknown; persist/recover uncertainty required across Runtime restart and test disconnect/timeout/cutover races.",
+        "No production real-home action acceptance test in this slice."
+      ]
+    },
+    {
+      "id": "P01",
+      "title": "Implement official package and manifest verification foundation",
+      "depends_on": [
+        "M03"
+      ],
+      "kind": "implementation",
+      "status": "todo",
+      "approval_required": null,
+      "evidence": null,
+      "blocker": null,
+      "acceptance": [
+        "Define source-neutral manifest/package metadata for official modules including identity/version/arch/protocol compatibility and declared capabilities.",
+        "Verify signed local test catalog/manifest/artifact fixtures and digests offline; reject tampering, wrong identity/version/arch and compatibility mismatch.",
+        "Expose install/update review data without treating declarations as fine-grained authorization.",
+        "Do not implement arbitrary repositories, unsigned bypass, production downloader or unattended installation."
+      ]
+    },
+    {
+      "id": "G03",
+      "title": "Prototype stable discovery bindings and generic escape hatch",
+      "depends_on": [
+        "M02"
+      ],
+      "kind": "implementation",
+      "status": "todo",
+      "approval_required": null,
+      "evidence": null,
+      "blocker": null,
+      "acceptance": [
+        "Define sanitized discovery snapshot model supporting stable provider identity where HA supplies it and explicit weak identity otherwise.",
+        "Prototype deterministic Go binding generation for known entities/services while preserving generic unknown-domain/service access.",
+        "Persist binding identity so HA entity/display rename does not silently rename/break an established Go symbol.",
+        "Use synthetic discovery only; do not commit real household identifiers or generated private-home files."
+      ]
+    },
+    {
+      "id": "B01",
+      "title": "Implement optional Bridge negotiation client",
+      "depends_on": [
+        "M02",
+        "D03"
+      ],
+      "kind": "implementation",
+      "status": "todo",
+      "approval_required": null,
+      "evidence": null,
+      "blocker": null,
+      "acceptance": [
+        "Implement Bridge hello/capability negotiation behind an injected Core WebSocket-style transport with shared fixture schemas suitable for the Python repository.",
+        "Absent, denied, incompatible, malformed or timed-out Bridge remains optional and cannot degrade native HA state/process health.",
+        "Represent absent/incompatible/available/temporarily-unavailable capability status without installing Bridge or broadening credentials.",
+        "Do not implement selected Bridge state source until server-side barrier/sequence evidence exists."
+      ]
+    },
+    {
+      "id": "B02",
+      "title": "Implement Bridge discovery normalization",
+      "depends_on": [
+        "B01",
+        "G03"
+      ],
+      "kind": "implementation",
+      "status": "todo",
+      "approval_required": null,
+      "evidence": null,
+      "blocker": null,
+      "acceptance": [
+        "Normalize richer Bridge registry/service discovery into the same canonical discovery model used by native HA.",
+        "Preserve missing, unsupported, permission-redacted and weak/stable identity distinctions; bound requests/chunks/total memory.",
+        "Bridge enrichment may improve generated bindings but modules never receive a Bridge-specific model.",
+        "Use synthetic/versioned fixtures; Python implementation remains separately owned."
+      ]
+    },
+    {
+      "id": "B03",
+      "title": "Implement Bridge-preferred atomic source switching",
+      "depends_on": [
+        "B01",
+        "M02"
+      ],
+      "kind": "environment_gate",
+      "status": "blocked",
+      "approval_required": null,
+      "evidence": null,
+      "blocker": "Requires version-pinned Python Bridge evidence/fixtures proving ordered-state complete snapshot barrier, bounded buffering and contiguous sequence semantics before Runtime may prefer Bridge state.",
+      "acceptance": [
+        "Prepare Bridge candidate while native source remains authoritative; atomically publish only a complete proven candidate as a new generation.",
+        "Fence old writer; late events cannot mutate selected generation; never merge native and Bridge streams.",
+        "Selected Bridge failure marks state stale and performs complete native resynchronization/fallback; later Bridge re-entry requires a fresh complete candidate.",
+        "Cross-repository compatibility and HAOS fault evidence are required before claiming production readiness."
+      ]
+    },
+    {
+      "id": "V02",
+      "title": "Validate managed module lifecycle on HAOS",
+      "depends_on": [
+        "M06",
+        "A01",
+        "P01"
+      ],
+      "kind": "environment",
+      "status": "blocked",
+      "approval_required": null,
+      "evidence": null,
+      "blocker": "Requires an authorized disposable HAOS target with exact HAOS/Core/Supervisor versions and test access. Synthetic/Linux evidence is insufficient.",
+      "acceptance": [
+        "Validate inherited IPC/process lifecycle, zero-downtime cutover/drain, restart/quarantine, storage persistence and Runtime shutdown on HAOS.",
+        "Measure resource behavior and verify module crash/pressure does not make Runtime unavailable within supported limits.",
+        "Use synthetic modules and fake/safe HA actions only; do not operate the real home.",
+        "Record VM versus appliance evidence separately."
       ]
     }
   ]

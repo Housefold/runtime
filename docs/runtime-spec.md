@@ -180,3 +180,15 @@ sequence ordering. Persistence failure publishes nothing. On restart previously
 running/canceling work becomes interrupted (never automatically reexecuted),
 while pending IDs remain eligible through ResumePending. Pruning terminal records
 advances a durable logical-time floor; older occurrences cannot be readmitted.
+
+## Local process boundary (M03)
+
+Linux `LaunchLocal` launches explicit local artifacts with one CLOEXEC socketpair,
+inherited IPC fd 3, empty parent environment and discarded stdout/stderr. The
+launcher binds module/version/boot/generation itself. At most 16 children can be
+owned at once; cancellation kills the process group and joins within a two-second
+caller budget. Linux proc observation is capped at 64 KiB and may kill a child
+exceeding its configured observed RSS limit. This is sampled observation, not
+kernel memory enforcement or an HAOS sandbox claim. Synthetic test executables
+prove credential/descriptor isolation, negotiation, cancel/kill/join and pressure.
+Production selection/install/launch is not wired into cmd/runtime.

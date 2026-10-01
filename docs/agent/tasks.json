@@ -277,9 +277,9 @@
         "M01"
       ],
       "kind": "implementation",
-      "status": "todo",
+      "status": "done",
       "approval_required": null,
-      "evidence": null,
+      "evidence": "docs/agent/evidence/M03.md",
       "blocker": null,
       "acceptance": [
         "Launch only explicit local synthetic fixtures in tests; create private inherited socketpair/descriptor IPC and close unrelated descriptors/environment secrets.",

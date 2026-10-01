@@ -1,7 +1,7 @@
 # Handoff
 
-Latest completed task: T02. Added durable bounded execution modes, cooperative restart cancellation and common timeline admission.
+Latest completed task: M03. Added private inherited Linux IPC launcher with sanitized environment, process group ownership, bounded joins and sampled RSS enforcement.
 
-Cron parsing remains a trigger adapter; running work becomes interrupted on Runtime failure; no production execution dispatcher yet.
+Linux evidence only; sampled limits are not hard kernel enforcement; no production artifacts launched and no HAOS claim.
 
 Run `python3 scripts/agent_tasks.py next` and continue independently. See STATE and per-task evidence for exact checks. Accepted ADR-007/008/009 govern implementation. No push, deployment, release, real-home actions or production downloads are authorized. R07/V02 require authorized HAOS targets; B03 requires Python ordered-state evidence.

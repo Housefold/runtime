@@ -407,9 +407,9 @@
         "D03"
       ],
       "kind": "implementation",
-      "status": "todo",
+      "status": "done",
       "approval_required": null,
-      "evidence": null,
+      "evidence": "docs/agent/evidence/B01.md",
       "blocker": null,
       "acceptance": [
         "Implement Bridge hello/capability negotiation behind an injected Core WebSocket-style transport with shared fixture schemas suitable for the Python repository.",

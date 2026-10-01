@@ -293,3 +293,14 @@ A private durable binding manifest retains up to 1,024 established symbols acros
 provider entity/display renames; changing a Go symbol requires explicit Rename.
 Generated private-home files remain local; only synthetic tests are committed.
 This is a tooling prototype, not a frozen public SDK or native discovery collector.
+
+## Optional Bridge negotiation (B01)
+
+`internal/bridge` probes a separate injected authenticated Core-style transport.
+[Shared protocol fixtures](agent/BRIDGE-PROTOCOL.md) define bounded major/minor,
+capability and required-semantic negotiation. Status distinguishes absent,
+incompatible, available and temporarily unavailable. Unknown/denied/malformed/
+timeout responses leave native HA ingestion and process health untouched. Probe
+backoff is finite and caller-driven; there is no install, broadened credential,
+Core restart, extra listener or Bridge state selection. Synthetic schema fixtures
+are not Python compatibility or HAOS evidence.

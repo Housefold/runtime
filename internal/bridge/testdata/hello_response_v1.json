@@ -1,0 +1,1 @@
+{"id":1,"type":"result","success":true,"result":{"protocol":{"major":1,"minor":0},"bridge_version":"synthetic-1.0.0","core_version":"synthetic-2026.9","required":[],"capabilities":[{"name":"discovery","version":{"major":1,"minor":0},"required":["bounded_chunks"],"limits":{"frame":65536,"chunks":16,"total":1048576}}]}}

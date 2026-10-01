@@ -29,3 +29,5 @@
 - P01 completed: Added source-neutral official manifest/catalog review and offline Ed25519/digest compatibility verification. Evidence: [record](evidence/P01.md).
 
 - G03 completed: Added bounded canonical discovery and deterministic Go binding prototype with durable stable identity-to-symbol mapping. Evidence: [record](evidence/G03.md).
+
+- B01 completed: Added optional separate Core-style Bridge negotiation with bounded schemas/fixtures and explicit availability/backoff. Evidence: [record](evidence/B01.md).

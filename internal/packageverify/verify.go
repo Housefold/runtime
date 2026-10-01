@@ -113,7 +113,7 @@ func metadata(authority Authority, signed Signed, value any) error {
 func ArtifactStatement(manifestDigest, artifactDigest string) []byte {
 	return []byte("housefold-package-v1\x00" + manifestDigest + "\x00" + artifactDigest)
 }
-func Verify(authority Authority, catalog, manifest Signed, artifact, artifactSignature []byte, expected Expected, now time.Time) (Review, error) {
+func Inspect(authority Authority, catalog, manifest Signed, now time.Time) (Review, error) {
 	var review Review
 	var c Catalog
 	var m Manifest
@@ -158,9 +158,6 @@ func Verify(authority Authority, catalog, manifest Signed, artifact, artifactSig
 		}
 		seenCapabilities[capability] = true
 	}
-	if m.Identity != expected.Identity || m.Version != expected.Version || m.Arch != expected.Arch || m.RuntimeMajor != expected.RuntimeMajor || m.RuntimeMinMinor > expected.RuntimeMinor || m.ProtocolMajor != expected.ProtocolMajor || m.ProtocolMinMinor > expected.ProtocolMinor {
-		return review, ErrInvalid
-	}
 	manifestDigest := Digest(manifest.Data)
 	seen := map[string]bool{}
 	found := false
@@ -177,8 +174,39 @@ func Verify(authority Authority, catalog, manifest Signed, artifact, artifactSig
 			found = true
 		}
 	}
-	if !found || len(artifact) == 0 || len(artifact) > MaxArtifact || Digest(artifact) != m.ArtifactDigest || !ed25519.Verify(authority.PublicKey, ArtifactStatement(manifestDigest, m.ArtifactDigest), artifactSignature) {
+	if !found {
 		return review, ErrInvalid
 	}
 	return Review{SigningAuthority: authority.KeyID, CatalogSequence: c.Sequence, Identity: m.Identity, Version: m.Version, Architecture: m.Arch, Capabilities: append([]string(nil), m.Capabilities...), ArtifactDigest: m.ArtifactDigest, Compatible: true}, nil
+}
+
+// Verify binds inspected declarations to target compatibility and native bytes.
+func Verify(authority Authority, catalog, manifest Signed, artifact, artifactSignature []byte, expected Expected, now time.Time) (Review, error) {
+	review, err := Inspect(authority, catalog, manifest, now)
+	if err != nil {
+		return review, err
+	}
+	var m Manifest
+	_ = json.Unmarshal(manifest.Data, &m)
+	if m.Identity != expected.Identity || m.Version != expected.Version || m.Arch != expected.Arch || m.RuntimeMajor != expected.RuntimeMajor || m.RuntimeMinMinor > expected.RuntimeMinor || m.ProtocolMajor != expected.ProtocolMajor || m.ProtocolMinMinor > expected.ProtocolMinor || len(artifact) == 0 || len(artifact) > MaxArtifact || Digest(artifact) != m.ArtifactDigest || !ed25519.Verify(authority.PublicKey, ArtifactStatement(Digest(manifest.Data), m.ArtifactDigest), artifactSignature) {
+		return Review{}, ErrInvalid
+	}
+	return review, nil
+}
+
+// VerifyCatalog also accepts an empty official catalog: Runtime installs alone.
+func VerifyCatalog(authority Authority, signed Signed, now time.Time) (Catalog, error) {
+	var c Catalog
+	if authority.KeyID == "" || metadata(authority, signed, &c) != nil || c.Schema != 1 || c.KeyID != authority.KeyID || c.Sequence == 0 || c.Sequence < authority.MinimumSequence || !now.Before(c.Expires) || c.Expires.After(now.Add(30*24*time.Hour)) || c.Entries == nil || len(c.Entries) > MaxEntries {
+		return Catalog{}, ErrInvalid
+	}
+	seen := map[string]bool{}
+	for _, entry := range c.Entries {
+		key := entry.Identity + "\x00" + entry.Version + "\x00" + entry.Arch
+		if seen[key] || !identity.MatchString(entry.Identity) || !version.MatchString(entry.Version) || len(entry.Version) > 64 || !digestPattern.MatchString(entry.ManifestDigest) || !digestPattern.MatchString(entry.ArtifactDigest) || (entry.Arch != "amd64" && entry.Arch != "aarch64") {
+			return Catalog{}, ErrInvalid
+		}
+		seen[key] = true
+	}
+	return c, nil
 }

@@ -8,10 +8,13 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"runtime"
 	"syscall"
 	"time"
 
 	"github.com/housefold/runtime/internal/bootstrap"
+	"github.com/housefold/runtime/internal/catalog"
+	"github.com/housefold/runtime/internal/durable"
 	"github.com/housefold/runtime/internal/estate"
 	"github.com/housefold/runtime/internal/ha"
 	"github.com/housefold/runtime/internal/supervisor"
@@ -54,7 +57,12 @@ func run(ctx context.Context, address string, logger *slog.Logger, recovery ...b
 		if required {
 			return nil
 		}
-		owner := estate.New(estate.Config{Root: "/data/housefold", Source: source.(*ha.StateSession), Logger: logger, OnRecovery: status.SetRecoveryRequired})
+		arch := "amd64"
+		if runtime.GOARCH == "arm64" {
+			arch = "aarch64"
+		}
+		client := catalog.New(durable.NewFile("/data/housefold/catalog.json"), arch)
+		owner := estate.New(estate.Config{Root: "/data/housefold", Source: source.(*ha.StateSession), Logger: logger, OnRecovery: status.SetRecoveryRequired, Authority: catalog.OfficialAuthority(), Catalog: client})
 		status.SetEstate(owner)
 		return owner
 	}})

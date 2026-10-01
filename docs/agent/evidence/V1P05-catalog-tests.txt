@@ -1,0 +1,2 @@
+ok  	github.com/housefold/runtime/internal/catalog	1.206s
+ok  	github.com/housefold/runtime/internal/packageverify	1.085s

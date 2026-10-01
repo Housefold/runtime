@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/housefold/runtime/internal/action"
+	"github.com/housefold/runtime/internal/catalog"
 	"github.com/housefold/runtime/internal/durable"
 	"github.com/housefold/runtime/internal/execution"
 	"github.com/housefold/runtime/internal/ha"
@@ -81,6 +82,7 @@ type Config struct {
 	Logger       *slog.Logger
 	OnRecovery   func()
 	StoreFactory func(string) durable.Store
+	Catalog      *catalog.Client
 }
 type Engine struct {
 	op              sync.Mutex
@@ -100,6 +102,7 @@ type Engine struct {
 	initialized     chan struct{}
 	storageDegraded bool
 	ownedStores     map[string]durable.Store
+	catalogDone     chan struct{}
 }
 
 func New(config Config) *Engine {

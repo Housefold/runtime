@@ -405,3 +405,18 @@ module failure/quarantine and UI failure do not independently fail the watchdog.
 Parent process dumpability is disabled after privilege drop to protect its initial
 environment and descriptors from same-UID proc/ptrace reads. Full isolation and
 credential-boundary adversarial proof remain mandatory V1P08/V1P12.
+
+## Catalog transport status (V1P05 blocked)
+
+The production catalog owner has fixed-source HTTPS, verified bounded durable
+metadata cache, monotonic sequence/immutable version checks, explicit dependency
+review and review-digest-bound native artifact download/staging. Network loss
+never changes module desired state or Runtime health. Cached expired declarations
+are visible but cannot authorize installs; corrupt caches are preserved and fenced.
+Catalog jobs have independent cancellation and do not block module supervision.
+
+The official source and signing-key custody are **not provisioned**: GitHub denied
+repository creation and Actions secrets access (evidence/V1P05.md). Production
+reports `unconfigured` and authorizes no install until a real pinned Housefold
+public key/source is established. Synthetic fixtures are not an official catalog.
+This is an external blocker, not completion or a release waiver.

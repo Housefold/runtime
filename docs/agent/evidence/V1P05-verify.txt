@@ -1,0 +1,160 @@
+.........
+----------------------------------------------------------------------
+Ran 9 tests in 2.824s
+
+OK
+go version go1.26.8 linux/amd64
+linux
+amd64
+1
+?   	github.com/housefold/runtime/cmd/reference-module	[no test files]
+ok  	github.com/housefold/runtime/cmd/runtime	9.024s
+ok  	github.com/housefold/runtime/internal/action	0.008s
+ok  	github.com/housefold/runtime/internal/bootstrap	0.022s
+ok  	github.com/housefold/runtime/internal/bridge	0.011s
+ok  	github.com/housefold/runtime/internal/catalog	0.085s
+ok  	github.com/housefold/runtime/internal/discovery	0.007s
+ok  	github.com/housefold/runtime/internal/durable	0.004s
+ok  	github.com/housefold/runtime/internal/estate	1.779s
+ok  	github.com/housefold/runtime/internal/execution	0.800s
+ok  	github.com/housefold/runtime/internal/ha	1.156s
+ok  	github.com/housefold/runtime/internal/module	0.261s
+ok  	github.com/housefold/runtime/internal/packageverify	0.020s
+?   	github.com/housefold/runtime/internal/state	[no test files]
+ok  	github.com/housefold/runtime/internal/supervisor	0.008s
+ok  	github.com/housefold/runtime/internal/timeline	0.033s
+?   	github.com/housefold/runtime/cmd/reference-module	[no test files]
+ok  	github.com/housefold/runtime/cmd/runtime	10.056s
+ok  	github.com/housefold/runtime/internal/action	1.037s
+ok  	github.com/housefold/runtime/internal/bootstrap	2.020s
+ok  	github.com/housefold/runtime/internal/bridge	1.049s
+ok  	github.com/housefold/runtime/internal/catalog	1.212s
+ok  	github.com/housefold/runtime/internal/discovery	1.033s
+ok  	github.com/housefold/runtime/internal/durable	1.015s
+ok  	github.com/housefold/runtime/internal/estate	4.111s
+ok  	github.com/housefold/runtime/internal/execution	6.641s
+ok  	github.com/housefold/runtime/internal/ha	7.816s
+ok  	github.com/housefold/runtime/internal/module	4.716s
+ok  	github.com/housefold/runtime/internal/packageverify	1.117s
+?   	github.com/housefold/runtime/internal/state	[no test files]
+ok  	github.com/housefold/runtime/internal/supervisor	1.023s
+ok  	github.com/housefold/runtime/internal/timeline	1.098s
+github.com/docker/buildx v0.31.0 44945d71ff077ce7fc142fbdee6acec8d9acb630
+#0 building with "default" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 1.67kB done
+#1 DONE 0.0s
+
+#2 resolve image config for docker-image://docker.io/docker/dockerfile:1
+#2 DONE 0.4s
+
+#3 docker-image://docker.io/docker/dockerfile:1@sha256:4edf897a3ffa55b89f906fc8cc78afdb3f1834cc9c7083565e611a8a7d5fe99e
+#3 CACHED
+
+#4 [internal] load metadata for public.ecr.aws/docker/library/golang:1.26.8-alpine@sha256:8ac98ca534ac3f51e1f420a1dd2c15e74c75cfa0f23f3ad27eb5d7236c349a0c
+#4 DONE 0.0s
+
+#5 [internal] load .dockerignore
+#5 transferring context: 2B done
+#5 DONE 0.0s
+
+#6 [build 1/6] FROM public.ecr.aws/docker/library/golang:1.26.8-alpine@sha256:8ac98ca534ac3f51e1f420a1dd2c15e74c75cfa0f23f3ad27eb5d7236c349a0c
+#6 DONE 0.0s
+
+#7 [internal] load build context
+#7 transferring context: 82.36kB done
+#7 DONE 0.0s
+
+#8 [build 2/6] WORKDIR /src
+#8 CACHED
+
+#9 [build 3/6] COPY go.mod go.sum ./
+#9 CACHED
+
+#10 [build 4/6] COPY cmd/ ./cmd/
+#10 DONE 0.6s
+
+#11 [build 5/6] COPY internal/ ./internal/
+#11 DONE 0.6s
+
+#12 [build 6/6] RUN --mount=type=secret,id=proxy_ca     if [ -f /run/secrets/proxy_ca ]; then export SSL_CERT_FILE=/run/secrets/proxy_ca; fi &&     mkdir -p /out/data/housefold &&     case "amd64" in       amd64) goarch=amd64 ;;       aarch64) goarch=arm64 ;;       *) echo "unsupported BUILD_ARCH: amd64" >&2; exit 1 ;;     esac &&     CGO_ENABLED=0 GOOS=linux GOARCH="${goarch}"       go build -trimpath -ldflags="-s -w -X main.buildVersion=dev -X main.buildSource=unknown"       -o /out/housefold-runtime ./cmd/runtime
+#12 0.717 go: downloading github.com/coder/websocket v1.8.15
+#12 DONE 11.2s
+
+#13 [stage-1 1/3] COPY --from=build /out/housefold-runtime /housefold-runtime
+#13 DONE 0.0s
+
+#14 [stage-1 2/3] COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
+#14 DONE 0.0s
+
+#15 [stage-1 3/3] COPY --from=build --chown=10001:10001 /out/data/ /data/
+#15 DONE 0.0s
+
+#16 exporting to image
+#16 exporting layers
+#16 exporting layers 0.2s done
+#16 writing image sha256:8c4459bff37fd4568ae1eab0185e86ad565b0bb6f51bde3e5d348c83ae3d078a done
+#16 naming to docker.io/library/housefold-runtime:agent-amd64 done
+#16 DONE 0.2s
+#0 building with "default" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 1.67kB done
+#1 DONE 0.0s
+
+#2 resolve image config for docker-image://docker.io/docker/dockerfile:1
+#2 DONE 0.2s
+
+#3 docker-image://docker.io/docker/dockerfile:1@sha256:4edf897a3ffa55b89f906fc8cc78afdb3f1834cc9c7083565e611a8a7d5fe99e
+#3 CACHED
+
+#4 [internal] load metadata for public.ecr.aws/docker/library/golang:1.26.8-alpine@sha256:8ac98ca534ac3f51e1f420a1dd2c15e74c75cfa0f23f3ad27eb5d7236c349a0c
+#4 DONE 0.0s
+
+#5 [internal] load .dockerignore
+#5 transferring context: 2B done
+#5 DONE 0.0s
+
+#6 [build 1/6] FROM public.ecr.aws/docker/library/golang:1.26.8-alpine@sha256:8ac98ca534ac3f51e1f420a1dd2c15e74c75cfa0f23f3ad27eb5d7236c349a0c
+#6 DONE 0.0s
+
+#7 [internal] load build context
+#7 transferring context: 4.21kB done
+#7 DONE 0.0s
+
+#8 [build 4/6] COPY cmd/ ./cmd/
+#8 CACHED
+
+#9 [build 2/6] WORKDIR /src
+#9 CACHED
+
+#10 [build 3/6] COPY go.mod go.sum ./
+#10 CACHED
+
+#11 [build 5/6] COPY internal/ ./internal/
+#11 CACHED
+
+#12 [build 6/6] RUN --mount=type=secret,id=proxy_ca     if [ -f /run/secrets/proxy_ca ]; then export SSL_CERT_FILE=/run/secrets/proxy_ca; fi &&     mkdir -p /out/data/housefold &&     case "aarch64" in       amd64) goarch=amd64 ;;       aarch64) goarch=arm64 ;;       *) echo "unsupported BUILD_ARCH: aarch64" >&2; exit 1 ;;     esac &&     CGO_ENABLED=0 GOOS=linux GOARCH="${goarch}"       go build -trimpath -ldflags="-s -w -X main.buildVersion=dev -X main.buildSource=unknown"       -o /out/housefold-runtime ./cmd/runtime
+#12 0.773 go: downloading github.com/coder/websocket v1.8.15
+#12 DONE 11.7s
+
+#13 [stage-1 1/3] COPY --from=build /out/housefold-runtime /housefold-runtime
+#13 DONE 0.0s
+
+#14 [stage-1 2/3] COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
+#14 DONE 0.0s
+
+#15 [stage-1 3/3] COPY --from=build --chown=10001:10001 /out/data/ /data/
+#15 DONE 0.0s
+
+#16 exporting to image
+#16 exporting layers
+#16 exporting layers 0.8s done
+#16 writing image sha256:f342c8d8c862ec139f4e01919766b0649707bfc8c16866ee6ea234e3492faba0 done
+#16 naming to docker.io/library/housefold-runtime:agent-arm64 done
+#16 DONE 0.8s
+{"case": "normal", "health": 200, "runtime_uid": 10001, "shutdown_exit": 0, "state_preserved": true}
+{"case": "recovery", "health": 503, "runtime_uid": 10001, "shutdown_exit": 0, "state_preserved": true}
+PASS: disposable-container packaging only; HAOS gate remains separate
+PASS: requested checks completed; HAOS/hardware validation is separate

@@ -20,6 +20,15 @@ func (e *Engine) Run(ctx context.Context) {
 	if err != nil {
 		e.fail()
 	}
+	if err == nil {
+		if client := e.config.Catalog; client != nil {
+			e.mu.Lock()
+			e.catalogDone = make(chan struct{})
+			done := e.catalogDone
+			e.mu.Unlock()
+			go func() { defer close(done); client.Run(e.ctx) }()
+		}
+	}
 	close(e.initialized)
 	if err != nil {
 		<-ctx.Done()
@@ -46,12 +55,19 @@ func (e *Engine) Close() {
 	for _, u := range e.units {
 		units = append(units, u)
 	}
+	catalogDone := e.catalogDone
 	e.mu.Unlock()
 	// Every child has already received cancellation; joins share one budget.
 	ctx, cancel := context.WithTimeout(context.Background(), module.JoinTimeout)
 	defer cancel()
 	for _, u := range units {
 		_ = u.Stop(ctx)
+	}
+	if catalogDone != nil {
+		select {
+		case <-catalogDone:
+		case <-ctx.Done():
+		}
 	}
 }
 func (e *Engine) Ready(ctx context.Context) error {

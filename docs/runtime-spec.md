@@ -550,3 +550,26 @@ without following them; a linked root is never traversed. Interrupted intent
 causes recovery-required and never resumes deletion automatically. Smaller
 cleanup and reset operations are separate from factory reset and removal.
 The HA-admin BIOS exposes these operations only in V1P03; there is no new LAN API.
+
+## Production optional Bridge adapter (V1P10)
+
+Native owns a second private local authenticated command socket for Bridge
+hello/discovery, separate from native state and native registry commands.
+Automatic negotiation checks finite backoff/30-second probe deadlines on a
+one-second worker; HA generation/liveness change invalidates enrichment and
+forces new negotiation. Native collection is refreshed immediately after a
+Bridge probe/change/failure. Compatible bounded discovery pages enrich canonical
+metadata and generated bindings while retaining native generic entities/fields.
+Conflicting strong identities, bounds/normalization/permission/protocol failures
+leave native discovery as the fallback. No HA state values are merged.
+
+Ingress status and native diagnostic attributes expose absent, incompatible,
+available, active (selected discovery enrichment) and temporarily unavailable
+states, safe Bridge/Core versions, optional user-controlled setup guidance and
+the native state source. Setup is informational; no automatic installation,
+Core restart or repeated notification is introduced. No Housefold Python Bridge
+repository/version-pinned barrier proof currently exists. Production ordered
+state is a false constant with no runtime override, even if advertised as
+compatible. Enabling it requires reviewed source changes and real version-pinned
+Python snapshot barrier/contiguous-sequence compatibility evidence. The native
+state session remains the only production authority and fallback in this build.

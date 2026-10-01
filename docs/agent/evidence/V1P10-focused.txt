@@ -1,0 +1,2 @@
+ok  	github.com/housefold/runtime/internal/bridge	1.064s
+ok  	github.com/housefold/runtime/internal/hacontrol	1.117s

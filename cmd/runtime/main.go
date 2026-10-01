@@ -58,6 +58,7 @@ func run(ctx context.Context, address string, logger *slog.Logger, recovery ...b
 	required := len(recovery) > 0 && recovery[0]
 	return runListener(ctx, listener, os.Getenv("SUPERVISOR_TOKEN"), logger, func() stateSession { return ha.NewStateSession(logger) }, runtimeComposition{RecoveryRequired: required, NewEstate: func(source stateSession, status *supervisor.StatusStore) backgroundService {
 		native := hacontrol.NewNative(os.Getenv("SUPERVISOR_TOKEN"), source.(*ha.StateSession))
+		status.SetBridge(native)
 		if required {
 			native.SetSignals(func() hacontrol.OperationalSnapshot {
 				return hacontrol.OperationalSnapshot{Runtime: "recovery_required", Catalog: "unconfigured"}

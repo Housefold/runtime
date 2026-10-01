@@ -48,6 +48,7 @@ func (n *Native) CollectDiscovery(ctx context.Context) (err error) {
 		if err != nil {
 			n.mu.Lock()
 			n.discoveryFresh = false
+			n.bridgeSelected = false
 			n.mu.Unlock()
 		}
 	}()
@@ -213,6 +214,14 @@ func (n *Native) CollectDiscovery(ctx context.Context) (err error) {
 		return ErrNative
 	}
 	n.mu.Lock()
+	n.bridgeSelected = false
+	if enriched, used, bridgeErr := n.enrichDiscovery(normalized); bridgeErr == nil {
+		normalized = enriched
+		n.bridgeSelected = used
+		n.bridgeError = false
+	} else {
+		n.bridgeError = true
+	}
 	n.discovered = normalized
 	n.discoveryFresh = true
 	sink := n.discoverySink

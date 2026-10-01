@@ -247,3 +247,14 @@ func (c *Client) Probe(ctx context.Context, now time.Time) (Result, error) {
 	c.mu.Unlock()
 	return result, err
 }
+
+// Invalidate forgets capability liveness on HA transport/generation loss. Only
+// negotiation's normal bounded worker may restore readiness; state is untouched.
+func (c *Client) Invalidate() {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.result.Status = Unavailable
+	c.result.Capabilities = map[string]Capability{}
+	c.result.NextProbe = time.Time{}
+	c.discoveryFresh = false
+}

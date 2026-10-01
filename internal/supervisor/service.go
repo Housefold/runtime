@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/housefold/runtime/internal/estate"
+	"github.com/housefold/runtime/internal/hacontrol"
 	"html/template"
 	"net"
 	"net/http"
@@ -37,8 +38,23 @@ type StatusStore struct {
 	status   HAStatus
 	recovery bool
 	estate   interface{ Snapshot() estate.Snapshot }
+	bridge   interface{ BridgeSnapshot() hacontrol.BridgeInfo }
 }
 
+func (s *StatusStore) SetBridge(b interface{ BridgeSnapshot() hacontrol.BridgeInfo }) {
+	s.mu.Lock()
+	s.bridge = b
+	s.mu.Unlock()
+}
+func (s *StatusStore) Bridge() hacontrol.BridgeInfo {
+	s.mu.RLock()
+	b := s.bridge
+	s.mu.RUnlock()
+	if b == nil {
+		return hacontrol.BridgeInfo{Status: "unavailable", StateSource: "native"}
+	}
+	return b.BridgeSnapshot()
+}
 func (s *StatusStore) SetEstate(owner interface{ Snapshot() estate.Snapshot }) {
 	s.mu.Lock()
 	s.estate = owner
@@ -178,6 +194,7 @@ func (s *Service) serveHealth(w http.ResponseWriter, r *http.Request) {
 type statusPageData struct {
 	Runtime        string
 	Estate         estate.Snapshot
+	Bridge         hacontrol.BridgeInfo
 	Phase          string
 	Connection     string
 	Freshness      string
@@ -220,6 +237,7 @@ var statusPage = template.Must(template.New("status").Parse(`<!doctype html>
       </dl>
 	  <p>Runtime process health is independent of Home Assistant availability. Cached state remains stale until a complete new generation is synchronized.</p>
     </section>
+    <section aria-labelledby="bridge-heading"><h2 id="bridge-heading">Optional Bridge</h2><p>{{.Bridge.Status}} · Bridge {{.Bridge.BridgeVersion}} · Core {{.Bridge.CoreVersion}}</p><p>{{.Bridge.Guidance}}</p><p>State source: {{.Bridge.StateSource}}. {{.Bridge.Limitation}}</p></section>
     <section aria-labelledby="modules-heading"><h2 id="modules-heading">Modules</h2>
     <p>Estate: {{.Estate.Phase}}. Pressure: {{.Estate.Resources.Pressure}}. Runtime RSS KiB: {{.Estate.Resources.Host.Runtime.RSSKiB}}. Managed RSS KiB: {{.Estate.Resources.Managed.RSSKiB}}. Storage bytes: {{.Estate.Resources.StorageBytes}}. Free bytes: {{.Estate.Resources.FreeBytes}}. Storage writes degraded: {{.Estate.StorageDegraded}}</p>
     {{range .Estate.Modules}}<p>{{.Identity}} {{.Version}} · {{.Phase}} · enabled: {{.Desired}} · service: {{.ServiceHealthy}} · UI: {{.UIHealthy}} · RSS KiB: {{.Usage.RSSKiB}} / {{.Limits.MemoryKiB}} · CPU: {{.Usage.CPUPercent}} / {{.Limits.CPUPercent}}% · threads: {{.Usage.Threads}} / {{.Limits.Threads}} · FDs: {{.Usage.FDs}} / {{.Limits.FDs}} · priority: {{.Limits.Priority}} · {{.Error}}</p>{{else}}<p>No installed modules.</p>{{end}}
@@ -237,7 +255,7 @@ func (s *Service) serveStatus(w http.ResponseWriter) {
 	if s.status != nil {
 		current = s.status.HA()
 	}
-	page := statusPageData{Estate: s.status.Estate(), Runtime: "Healthy", Phase: "disconnected", Connection: "unavailable", Freshness: "none", LastSuccessful: "Not yet synchronized"}
+	page := statusPageData{Bridge: s.status.Bridge(), Estate: s.status.Estate(), Runtime: "Healthy", Phase: "disconnected", Connection: "unavailable", Freshness: "none", LastSuccessful: "Not yet synchronized"}
 	if s.status.RecoveryRequired() {
 		page.Runtime = "Recovery required: private storage unavailable"
 	}

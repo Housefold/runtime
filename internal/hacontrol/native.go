@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/housefold/runtime/internal/action"
+	"github.com/housefold/runtime/internal/bridge"
 	"github.com/housefold/runtime/internal/discovery"
 	"github.com/housefold/runtime/internal/ha"
 	"github.com/housefold/runtime/internal/module"
@@ -76,10 +77,16 @@ type Native struct {
 	signals        func() OperationalSnapshot
 	events         chan ActionSignal
 	droppedEvents  atomic.Uint64
+	bridgeCore     *Core
+	bridgeClient   *bridge.Client
+	bridgeSelected bool
+	bridgeError    bool
 }
 
 func NewNative(token string, source *ha.StateSession) *Native {
-	return &Native{token: token, base: defaultAPIURL, http: localHTTP(), core: NewCore(token), source: source, events: make(chan ActionSignal, 64)}
+	n := &Native{token: token, base: defaultAPIURL, http: localHTTP(), core: NewCore(token), source: source, events: make(chan ActionSignal, 64), bridgeCore: NewCore(token)}
+	n.bridgeClient = bridge.New(n.bridgeCore)
+	return n
 }
 func (n *Native) SetDiscoverySink(sink func(discovery.Snapshot) error) {
 	n.mu.Lock()
@@ -163,6 +170,7 @@ func (n *Native) DiscoverySnapshot() (discovery.Snapshot, bool) {
 }
 func (n *Native) Run(ctx context.Context) {
 	defer n.core.Close()
+	defer n.bridgeCore.Close()
 	workCtx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	done := make(chan struct{})
@@ -175,10 +183,43 @@ func (n *Native) Run(ctx context.Context) {
 	}
 }
 func (n *Native) discoveryLoop(ctx context.Context) {
-	ticker := time.NewTicker(30 * time.Second)
+	ticker := time.NewTicker(time.Second)
 	defer ticker.Stop()
+	var next time.Time
+	var generation uint64
+	wasFresh := true
 	for {
-		_ = n.CollectDiscovery(ctx)
+		now := time.Now()
+		fresh := n.source == nil || n.source.Metadata().Fresh
+		if n.source != nil {
+			g := n.source.Metadata().Generation
+			if g != generation {
+				generation = g
+				n.bridgeClient.Invalidate()
+				next = time.Time{}
+			}
+		}
+		if !fresh {
+			if wasFresh {
+				n.bridgeClient.Invalidate()
+				n.bridgeCore.Close()
+				n.mu.Lock()
+				n.bridgeSelected = false
+				n.discoveryFresh = false
+				n.mu.Unlock()
+			}
+		} else {
+			result := n.bridgeClient.Snapshot()
+			if !now.Before(result.NextProbe) {
+				n.probeBridge(ctx, now)
+				next = time.Time{} // Enrichment changes/failure publish native fallback immediately.
+			}
+			if !now.Before(next) {
+				_ = n.CollectDiscovery(ctx)
+				next = now.Add(30 * time.Second)
+			}
+		}
+		wasFresh = fresh
 		select {
 		case <-ctx.Done():
 			return
@@ -223,6 +264,7 @@ func (n *Native) signalLoop(ctx context.Context) {
 		}
 		wasFresh = true
 		snapshot := source()
+		snapshot.Bridge = n.BridgeSnapshot().Status
 		rows := map[string]any{"sensor.housefold_runtime": map[string]any{"state": snapshot.Runtime, "attributes": map[string]any{"friendly_name": "Housefold Runtime", "module_count": len(snapshot.Modules), "storage_degraded": snapshot.StorageDegraded, "catalog": snapshot.Catalog, "bridge": snapshot.Bridge, "action_event_drops": n.droppedEvents.Load()}}}
 		issues := map[string]bool{"housefold_runtime_recovery": snapshot.Runtime == "recovery_required", "housefold_storage": snapshot.StorageDegraded}
 		for _, m := range snapshot.Modules {

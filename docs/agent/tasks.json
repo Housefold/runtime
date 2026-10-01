@@ -169,9 +169,9 @@
         "V1P06"
       ],
       "kind": "implementation",
-      "status": "todo",
+      "status": "done",
       "approval_required": null,
-      "evidence": null,
+      "evidence": "docs/agent/evidence/V1P10.md",
       "blocker": null,
       "acceptance": [
         "Expose absent/incompatible/available/active Bridge status and user guidance; installation remains user-controlled through normal HA mechanisms.",

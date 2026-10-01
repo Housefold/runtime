@@ -1,0 +1,12 @@
+{
+  "id": 1,
+  "type": "housefold/state/subscribe",
+  "body": {
+    "major": 1,
+    "limits": {
+      "frame": 65536,
+      "chunks": 16,
+      "total": 1048576
+    }
+  }
+}

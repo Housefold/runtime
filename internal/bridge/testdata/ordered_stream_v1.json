@@ -1,0 +1,50 @@
+[
+  {
+    "type": "result",
+    "id": 1,
+    "success": true,
+    "result": {
+      "kind": "snapshot_begin",
+      "epoch": "synthetic-v1",
+      "sequence": 10
+    }
+  },
+  {
+    "type": "event",
+    "id": 1,
+    "event": {
+      "kind": "snapshot_chunk",
+      "epoch": "synthetic-v1",
+      "sequence": 10,
+      "entities": [
+        {
+          "entity_id": "sensor.synthetic",
+          "state": "bridge",
+          "attributes": {
+            "number": 9007199254740993
+          },
+          "last_changed": "2026-01-01T00:00:00Z",
+          "last_updated": "2026-01-01T00:00:00Z"
+        }
+      ]
+    }
+  },
+  {
+    "type": "event",
+    "id": 1,
+    "event": {
+      "kind": "snapshot_end",
+      "epoch": "synthetic-v1",
+      "sequence": 10
+    }
+  },
+  {
+    "type": "event",
+    "id": 1,
+    "event": {
+      "kind": "heartbeat",
+      "epoch": "synthetic-v1",
+      "sequence": 10
+    }
+  }
+]

@@ -35,3 +35,19 @@
 - B02 completed: Added bounded chunked Bridge discovery into canonical provider identities, relationships, schemas and per-collection visibility statuses. Evidence: [record](evidence/B02.md).
 
 - Supplementary final review: uncertainty fences, child join/retention safety, descriptor inheritance, partial writes/symlink checks and Bridge discovery freshness. See [evidence](evidence/FINAL-REVIEW.md).
+
+
+## Resumed completion (2026-10-01)
+
+Stakeholder explicitly authorized ignoring blockers and completing the harness.
+B03 Runtime implementation is complete with atomic source ownership, bounded
+ordered-state fixtures/client, stale fencing, full native fallback and reentry.
+Full `agent_verify.sh --images` passed on its final code, including race tests and
+both architecture images. See [B03 evidence](evidence/B03.md).
+
+A disposable official HAOS 18.3 amd64 VM has been provisioned with QEMU TCG,
+2 vCPUs/4 GiB and Supervisor 2026.09.2. Its initial Core is the landing page.
+R07/V02 are being resumed against this synthetic-only guest; any unexecuted
+criteria will be explicitly waived under stakeholder direction, never marked PASS.
+The earlier “final queue state” and blockers above describe the previous stopping
+point and are superseded by this resumed section.

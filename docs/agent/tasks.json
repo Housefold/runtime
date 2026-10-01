@@ -445,10 +445,10 @@
         "M02"
       ],
       "kind": "environment_gate",
-      "status": "blocked",
+      "status": "done",
       "approval_required": null,
-      "evidence": null,
-      "blocker": "Requires version-pinned Python Bridge evidence/fixtures proving ordered-state complete snapshot barrier, bounded buffering and contiguous sequence semantics before Runtime may prefer Bridge state.",
+      "evidence": "docs/agent/evidence/B03.md",
+      "blocker": null,
       "acceptance": [
         "Prepare Bridge candidate while native source remains authoritative; atomically publish only a complete proven candidate as a new generation.",
         "Fence old writer; late events cannot mutate selected generation; never merge native and Bridge streams.",

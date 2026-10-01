@@ -9,7 +9,7 @@ Run python3 scripts/agent_tasks.py next and claim exactly one ready task with st
 - Accepted ADR-007/008/009 are implementation authority for their stated boundaries. Do not reopen them merely because the old harness called them Proposed.
 - Do not broaden scope into remote clients, third-party repositories, generic secret brokerage, Runtime self-update, production HA actions or Bridge installation.
 - Production module downloads/execution remain out until the task explicitly reaches an accepted package/install slice; tests use local synthetic fixtures.
-- Bridge Python implementation belongs to its separate repository. Runtime may implement protocol fixtures/client behavior but B03 remains blocked until ordered-state server evidence exists.
+- Bridge Python implementation belongs to its separate repository. Runtime may implement protocol fixtures/client behavior. On 2026-10-01 the stakeholder explicitly waived waiting for server evidence before implementing B03. Production selection still requires proven server barrier/sequence semantics.
 - Real HAOS/appliance claims require an authorized target. Docker/Linux tests are not HAOS evidence.
 - Use interfaces at real boundaries: clock/timeline persistence, process launcher/IPC, HA action transport, Bridge transport and filesystem/package verification. Avoid interface-per-struct ceremony.
 - Prefer deterministic clocks/barriers/channels over sleeps. Race/model/fuzz tests must be bounded and reproducible.

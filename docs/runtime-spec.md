@@ -333,5 +333,24 @@ The cmd/runtime foundation still operates without modules or Bridge. New librari
 are exercised through synthetic fixtures/injected boundaries; this queue does not
 claim a production installer, restart loop, real HA action adapter, native discovery
 collector, cron expression parser or complete public SDK. HAOS/appliance gates
-R07/V02 and Python ordered-state gate B03 remain blocked. No packaging changed;
-container image checks are not claimed for this code-only queue.
+R07/V02 validation and Python production compatibility remain separate evidence.
+The resumed harness records image checks and stakeholder-waived criteria explicitly.
+
+
+## Atomic source ownership (B03)
+
+The stakeholder authorized proceeding past implementation blockers on 2026-10-01.
+Private `ha.Sources` owns a canonical externally managed StateSession; separate
+native and Bridge sessions prepare bounded candidates, with one selected local
+writer token. Complete reset, fencing, revision accounting, stale retention and
+fresh native fallback follow ADR-009. `bridge.PrepareOrdered` consumes the versioned
+[ordered-state contract](agent/BRIDGE-PROTOCOL.md). Failure during preparation leaves
+the existing source healthy. Selected sequence/epoch/liveness failure requires a
+new complete native reconciliation. Later reentry requires another complete Bridge
+candidate. Source changes produce generation resets; streams are never merged.
+
+Production cmd/runtime remains on native HA. This implementation does not assert
+Python barrier correctness, automatically install Bridge or activate an unproven
+server. Version-pinned cross-repository and HAOS integration evidence is required
+before production activation. Synthetic library tests prove local ownership and
+failure behavior under the stated injected transport/resync contracts.

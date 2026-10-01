@@ -24,23 +24,24 @@ const (
 )
 
 type StateSession struct {
-	mu              sync.RWMutex
-	subscribers     map[*Subscription]struct{}
-	subscriberBytes int
-	closed          bool
-	metadata        StateMetadata
-	states          map[string]EntityState
-	stateBytes      int
-	watermarks      map[string]stateWatermark
-	tombstones      map[string]time.Time
-	tombstoneBytes  int
-	changed         chan struct{}
-	url             string
-	wait            waitFunc
-	syncTimeout     time.Duration
-	pingInterval    time.Duration
-	pongTimeout     time.Duration
-	logger          *slog.Logger
+	externallyManaged bool
+	mu                sync.RWMutex
+	subscribers       map[*Subscription]struct{}
+	subscriberBytes   int
+	closed            bool
+	metadata          StateMetadata
+	states            map[string]EntityState
+	stateBytes        int
+	watermarks        map[string]stateWatermark
+	tombstones        map[string]time.Time
+	tombstoneBytes    int
+	changed           chan struct{}
+	url               string
+	wait              waitFunc
+	syncTimeout       time.Duration
+	pingInterval      time.Duration
+	pongTimeout       time.Duration
+	logger            *slog.Logger
 }
 
 func NewStateSession(logger *slog.Logger) *StateSession {
@@ -108,6 +109,9 @@ func (s *StateSession) setStatus(status Status) {
 
 // Run owns the connection lifecycle and retries failed sessions until ctx ends.
 func (s *StateSession) Run(ctx context.Context, token string) {
+	if s.externallyManaged {
+		return
+	}
 	defer s.shutdownSubscriptions()
 	delay := firstRetryDelay
 	for ctx.Err() == nil {

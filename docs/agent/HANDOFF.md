@@ -29,3 +29,10 @@ version retry exhaustion is terminal quarantine, with no automatic rollback.
 No push, deployment, release, real-home action, production module download,
 Bridge installation or third-party execution is authorized. Resume only when a
 blocked gate's concrete restart condition is supplied or a new task is assigned.
+
+
+Resumed on stakeholder instruction, 2026-10-01: B03 now has verified Runtime
+source switching and ordered-state fixtures/client; production selection remains
+unwired pending Python compatibility evidence. Full image harness passed. The
+new disposable HAOS 18.3/Supervisor 2026.09.2 guest is being used for R07/V02;
+the prior instruction to wait for supplied targets no longer governs this run.

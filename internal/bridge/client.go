@@ -199,6 +199,15 @@ func (c *Client) Probe(ctx context.Context, now time.Time) (Result, error) {
 					break
 				}
 				seen[cap.Name] = true
+				if cap.Name == "ordered_state" {
+					if orderedCompatible(cap) {
+						cap.Limits.Frame = min(cap.Limits.Frame, MaxFrame)
+						cap.Limits.Chunks = min(cap.Limits.Chunks, MaxChunks)
+						cap.Limits.Total = min(cap.Limits.Total, MaxTotal)
+						result.Capabilities[cap.Name] = cap
+					}
+					continue
+				}
 				if cap.Name != "discovery" || cap.Version.Major != 1 {
 					continue
 				}

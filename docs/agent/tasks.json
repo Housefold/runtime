@@ -351,9 +351,9 @@
         "R03"
       ],
       "kind": "implementation",
-      "status": "todo",
+      "status": "done",
       "approval_required": null,
-      "evidence": null,
+      "evidence": "docs/agent/evidence/A01.md",
       "blocker": null,
       "acceptance": [
         "Add an internal action gateway behind the canonical module protocol using only fake/injected HA action transport in tests.",

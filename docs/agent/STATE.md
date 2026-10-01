@@ -23,3 +23,5 @@
 - M05 completed: Added isolated bounded generation state stores and optional version/schema-aware warm/final IPC handover. Evidence: [record](evidence/M05.md).
 
 - M06 completed: Added artifact/state retention references, fresh-epoch manual rollback, finite selected-version backoff and persisted terminal quarantine. Evidence: [record](evidence/M06.md).
+
+- A01 completed: Added boot/generation-fenced canonical action gateway with durable unknown-before-send metadata, bounded deduplication and distinct HA outcomes. Evidence: [record](evidence/A01.md).

@@ -244,3 +244,21 @@ or new admission occurs. Explicit OperatorRecover resets the selected version's
 budget while still requiring a new epoch and readiness. Other modules continue.
 Callers drive restart attempts with explicit time; no production recovery loop or
 artifact deletion is enabled by these libraries.
+
+## Internal action gateway (A01)
+
+Canonical `action_request`/`action_result` messages bind requests to server-owned
+session identity and optional execution work ID. Cutover serializes admission:
+active generation may admit work; draining generations require their previously
+admitted token. The gateway reserves durable `unknown` metadata before invoking
+an injected transport. It distinguishes not_sent, accepted, rejected_by_ha and
+unknown; neither disconnect nor restart retries uncertain submissions. Request
+IDs deduplicate across generations/restarts and reject changed request digests.
+
+Requests cap data at 64 KiB, in-flight calls at 16, retained records at 1,024,
+with five-second context deadlines; transports must honor contexts. At retained
+capacity new requests fail not_sent; records are not silently evicted. Persisted
+metadata contains hashes/IDs/outcomes, not HA request payloads. A failed response
+commit leaves uncertainty. Observation matches/not-observed annotate evidence
+without rewriting submission outcomes or asserting causality. Tests use fake HA
+only; cmd/runtime has no production action wiring.

@@ -11,9 +11,13 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/housefold/runtime/internal/bootstrap"
 	"github.com/housefold/runtime/internal/ha"
 	"github.com/housefold/runtime/internal/supervisor"
 )
+
+var buildVersion = "dev"
+var buildSource = "unknown"
 
 const processShutdownTimeout = 9 * time.Second
 
@@ -24,19 +28,27 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
-	if err := run(ctx, ":8099", logger); err != nil {
+	dataErr := bootstrap.Prepare("/data/housefold", 10001)
+	if err := bootstrap.Drop(10001); err != nil {
+		logger.Error("Runtime privilege drop failed")
+		os.Exit(1)
+	}
+	if dataErr != nil {
+		logger.Error("Runtime storage recovery required")
+	}
+	if err := run(ctx, ":8099", logger, dataErr != nil); err != nil {
 		logger.Error("runtime stopped with error", "error", err.Error())
 		os.Exit(1)
 	}
 	logger.Info("runtime stopped")
 }
 
-func run(ctx context.Context, address string, logger *slog.Logger) error {
+func run(ctx context.Context, address string, logger *slog.Logger, recovery ...bool) error {
 	listener, err := net.Listen("tcp", address)
 	if err != nil {
 		return fmt.Errorf("listen for runtime health: %w", err)
 	}
-	return runListener(ctx, listener, os.Getenv("SUPERVISOR_TOKEN"), logger, func() stateSession { return ha.NewStateSession(logger) })
+	return runListener(ctx, listener, os.Getenv("SUPERVISOR_TOKEN"), logger, func() stateSession { return ha.NewStateSession(logger) }, recovery...)
 }
 
 type stateSession interface {
@@ -47,11 +59,14 @@ type stateSession interface {
 
 type stateSessionFactory func() stateSession
 
-func runListener(ctx context.Context, listener net.Listener, token string, logger *slog.Logger, newSession stateSessionFactory) error {
+func runListener(ctx context.Context, listener net.Listener, token string, logger *slog.Logger, newSession stateSessionFactory, recovery ...bool) error {
 	runCtx, cancel := context.WithCancel(ctx)
 	defer cancel()
-	logger.Info("runtime started", "health", "/healthz")
+	logger.Info("runtime started", "health", "/healthz", "version", buildVersion, "source", buildSource)
 	status := &supervisor.StatusStore{}
+	if len(recovery) > 0 && recovery[0] {
+		status.SetRecoveryRequired()
+	}
 	service := supervisor.NewService(status)
 	serviceDone := make(chan error, 1)
 	go func() { serviceDone <- service.Run(runCtx, listener) }()

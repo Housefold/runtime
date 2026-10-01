@@ -17,7 +17,10 @@ ingress: true
 ingress_port: 8099
 panel_title: Housefold
 panel_icon: mdi:home-automation
-panel_admin: false
+panel_admin: true
 ports:
   8099/tcp: null
 watchdog: "http://[HOST]:[PORT:8099]/healthz"
+options: {}
+schema: {}
+backup: cold

@@ -1,9 +1,9 @@
 # Handoff
 
-Continue `python3 scripts/agent_tasks.py next` and claim exactly one ready task. V1P01 is complete with source-grounded COMPOSITION.md/ADR-010 and evidence/V1P01.md. PRODUCTIZATION.md/tasks.json remain authoritative. Runtime v1 is not complete.
+V1P01 and V1P02 are complete; evidence records/logs identify tested source and local image IDs. Continue `python3 scripts/agent_tasks.py next` with one active task. PRODUCTIZATION/tasks remain authoritative; no v1 release gate has passed.
 
-Next is normal HA App packaging/zero-config startup (V1P02), followed by the independent production module and HA integrations as the ledger permits. Do not infer wiring from prior library tests. The current ingress status is not admin enforcement and current scratch UID10001 needs first-start writable estate provisioning and remote TLS roots.
+Production module/HA/catalog/storage owners are still unwired. BIOS must enforce HA-admin access server-side and expose working estate operations, not stub controls. Private library tests alone do not prove composition. Preserve generation fencing, explicit unknown actions, bounded resources, credentials isolated from children, conservative recovery, native HA fallback and independent Runtime watchdog health.
 
-Local toolchain: PATH=/workspace/toolchain/go/bin:$PATH (verified Go 1.26.8). Verification: bash scripts/agent_verify.sh; add --images for packaging and retain sanitized exact logs/digests. Docker daemon local socket works. GitHub read confirmed runtime admin/push for the configured actor. Publish/push only where the accepted tasks require it and gates authorize it.
+Toolchain: PATH=/workspace/toolchain/go/bin:$PATH. Image verification also needs HOUSEFOLD_BUILD_CA=/etc/ssl/certs/ca-certificates.crt here. Digest-pinned official ECR Go builder avoids observed Docker Hub rate limiting. Docker/GitHub read access works. Push/publish only where accepted tasks/gates require and authorize it.
 
-Never touch live HAOS. Use only disposable systems/synthetic data/actions. No historical waiver or mock/Docker substitute satisfies V1P12–V1P14.
+Only disposable environments and synthetic actions/data are authorized. Never touch the live HAOS household. V1P12 independent adversarial security, V1P13 measured soak and V1P14 exact candidate through actual App repository on clean supported HAOS remain mandatory.

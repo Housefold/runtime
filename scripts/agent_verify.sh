@@ -36,5 +36,6 @@ if [[ "${1:-}" == "--images" ]]; then
   fi
   docker buildx build "${image_flags[@]}" --platform linux/amd64 --build-arg BUILD_ARCH=amd64 -f Dockerfile -t housefold-runtime:agent-amd64 .
   docker buildx build "${image_flags[@]}" --platform linux/arm64 --build-arg BUILD_ARCH=aarch64 -f Dockerfile -t housefold-runtime:agent-arm64 .
+  python3 scripts/image_smoke.py --isolated-test
 fi
 echo "PASS: requested checks completed; HAOS/hardware validation is separate"

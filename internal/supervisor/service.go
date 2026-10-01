@@ -32,9 +32,13 @@ type HAStatus struct {
 // StatusStore keeps the latest session metadata in memory for the local status
 // page. No persistence or household state is involved.
 type StatusStore struct {
-	mu     sync.RWMutex
-	status HAStatus
+	mu       sync.RWMutex
+	status   HAStatus
+	recovery bool
 }
+
+func (s *StatusStore) SetRecoveryRequired()   { s.mu.Lock(); s.recovery = true; s.mu.Unlock() }
+func (s *StatusStore) RecoveryRequired() bool { s.mu.RLock(); defer s.mu.RUnlock(); return s.recovery }
 
 func (s *StatusStore) UpdateHA(phase, connection, freshness string, generation uint64, entityCount int, lastSuccessful time.Time) {
 	s.mu.Lock()
@@ -140,6 +144,10 @@ func (s *Service) serveHealth(w http.ResponseWriter, r *http.Request) {
 	}
 	status := "healthy"
 	code := http.StatusOK
+	if s.status.RecoveryRequired() {
+		status = "recovery_required"
+		code = http.StatusServiceUnavailable
+	}
 	if s.stopping.Load() {
 		status = "unavailable"
 		code = http.StatusServiceUnavailable
@@ -152,6 +160,7 @@ func (s *Service) serveHealth(w http.ResponseWriter, r *http.Request) {
 }
 
 type statusPageData struct {
+	Runtime        string
 	Phase          string
 	Connection     string
 	Freshness      string
@@ -180,7 +189,7 @@ var statusPage = template.Must(template.New("status").Parse(`<!doctype html>
     <h1>Housefold Runtime</h1>
     <section aria-labelledby="runtime-heading">
       <h2 id="runtime-heading">Runtime</h2>
-      <p>Healthy</p>
+      <p>{{.Runtime}}</p>
     </section>
     <section aria-labelledby="ha-heading">
       <h2 id="ha-heading">Home Assistant</h2>
@@ -207,7 +216,10 @@ func (s *Service) serveStatus(w http.ResponseWriter) {
 	if s.status != nil {
 		current = s.status.HA()
 	}
-	page := statusPageData{Phase: "disconnected", Connection: "unavailable", Freshness: "none", LastSuccessful: "Not yet synchronized"}
+	page := statusPageData{Runtime: "Healthy", Phase: "disconnected", Connection: "unavailable", Freshness: "none", LastSuccessful: "Not yet synchronized"}
+	if s.status.RecoveryRequired() {
+		page.Runtime = "Recovery required: private storage unavailable"
+	}
 	if current.Phase != "" {
 		page.Phase = current.Phase
 		page.Connection = current.Connection

@@ -238,3 +238,23 @@ func TestHealthRouteRemainsAvailableToSupervisorPeer(t *testing.T) {
 		t.Fatalf("health status = %d, want 200", response.Code)
 	}
 }
+
+func TestRuntimeIntegrityIsDistinctFromDependencyHealth(t *testing.T) {
+	store := &StatusStore{}
+	service := NewService(store)
+	for _, connection := range []string{"denied", "unavailable"} {
+		store.UpdateHA("disconnected", connection, "stale", 1, 0, time.Time{})
+		request := httptest.NewRequest(http.MethodGet, "/healthz", nil)
+		response := httptest.NewRecorder()
+		service.handler().ServeHTTP(response, request)
+		if response.Code != http.StatusOK {
+			t.Fatal("HA dependency changed Runtime health")
+		}
+	}
+	store.SetRecoveryRequired()
+	response := httptest.NewRecorder()
+	service.handler().ServeHTTP(response, httptest.NewRequest(http.MethodGet, "/healthz", nil))
+	if response.Code != http.StatusServiceUnavailable || !strings.Contains(response.Body.String(), "recovery_required") {
+		t.Fatal(response.Body.String())
+	}
+}

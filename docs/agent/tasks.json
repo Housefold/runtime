@@ -25,9 +25,9 @@
         "V1P01"
       ],
       "kind": "implementation",
-      "status": "todo",
+      "status": "done",
       "approval_required": null,
-      "evidence": null,
+      "evidence": "docs/agent/evidence/V1P02.md",
       "blocker": null,
       "acceptance": [
         "Make Runtime installable as a normal Housefold HAOS App for amd64/aarch64 with start-on-boot, watchdog and ingress conventions.",

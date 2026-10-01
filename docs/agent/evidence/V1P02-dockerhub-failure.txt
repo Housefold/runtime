@@ -1,0 +1,70 @@
+.........
+----------------------------------------------------------------------
+Ran 9 tests in 2.827s
+
+OK
+go version go1.26.8 linux/amd64
+linux
+amd64
+1
+ok  	github.com/housefold/runtime/cmd/runtime	9.013s
+ok  	github.com/housefold/runtime/internal/action	0.006s
+ok  	github.com/housefold/runtime/internal/bootstrap	0.012s
+ok  	github.com/housefold/runtime/internal/bridge	0.012s
+ok  	github.com/housefold/runtime/internal/discovery	0.007s
+ok  	github.com/housefold/runtime/internal/durable	0.003s
+ok  	github.com/housefold/runtime/internal/execution	0.679s
+ok  	github.com/housefold/runtime/internal/ha	0.940s
+ok  	github.com/housefold/runtime/internal/module	0.217s
+ok  	github.com/housefold/runtime/internal/packageverify	0.009s
+?   	github.com/housefold/runtime/internal/state	[no test files]
+ok  	github.com/housefold/runtime/internal/supervisor	0.012s
+ok  	github.com/housefold/runtime/internal/timeline	0.017s
+ok  	github.com/housefold/runtime/cmd/runtime	10.037s
+ok  	github.com/housefold/runtime/internal/action	1.025s
+ok  	github.com/housefold/runtime/internal/bootstrap	1.008s
+ok  	github.com/housefold/runtime/internal/bridge	1.050s
+ok  	github.com/housefold/runtime/internal/discovery	1.033s
+ok  	github.com/housefold/runtime/internal/durable	1.011s
+ok  	github.com/housefold/runtime/internal/execution	6.007s
+ok  	github.com/housefold/runtime/internal/ha	6.993s
+ok  	github.com/housefold/runtime/internal/module	4.710s
+ok  	github.com/housefold/runtime/internal/packageverify	1.055s
+?   	github.com/housefold/runtime/internal/state	[no test files]
+ok  	github.com/housefold/runtime/internal/supervisor	1.013s
+ok  	github.com/housefold/runtime/internal/timeline	1.108s
+github.com/docker/buildx v0.31.0 44945d71ff077ce7fc142fbdee6acec8d9acb630
+#0 building with "default" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 1.57kB done
+#1 DONE 0.0s
+
+#2 resolve image config for docker-image://docker.io/docker/dockerfile:1
+#2 DONE 1.1s
+
+#3 docker-image://docker.io/docker/dockerfile:1@sha256:4edf897a3ffa55b89f906fc8cc78afdb3f1834cc9c7083565e611a8a7d5fe99e
+#3 resolve docker.io/docker/dockerfile:1@sha256:4edf897a3ffa55b89f906fc8cc78afdb3f1834cc9c7083565e611a8a7d5fe99e done
+#3 sha256:4edf897a3ffa55b89f906fc8cc78afdb3f1834cc9c7083565e611a8a7d5fe99e 9.08kB / 9.08kB done
+#3 sha256:7b32114e84ca21aeb2d6f871a0b62b3a0762193f75d9afd048ee4cbe889f3148 1.13kB / 1.13kB done
+#3 sha256:528c92d70d7e39dbb3dd1c6681f6750c565c7e45b70527cda47c1a61495c1b6a 1.41kB / 1.41kB done
+#3 sha256:9d2b4f57f9e20f33279375ce25c6ff14f30f64270ed5c7b613b2b30256754f62 0B / 14.28MB 0.1s
+#3 sha256:9d2b4f57f9e20f33279375ce25c6ff14f30f64270ed5c7b613b2b30256754f62 5.24MB / 14.28MB 0.3s
+#3 extracting sha256:9d2b4f57f9e20f33279375ce25c6ff14f30f64270ed5c7b613b2b30256754f62
+#3 sha256:9d2b4f57f9e20f33279375ce25c6ff14f30f64270ed5c7b613b2b30256754f62 14.28MB / 14.28MB 0.4s done
+#3 extracting sha256:9d2b4f57f9e20f33279375ce25c6ff14f30f64270ed5c7b613b2b30256754f62 0.1s done
+#3 DONE 0.5s
+
+#4 [internal] load metadata for docker.io/library/golang:1.26.8-alpine
+#4 ERROR: unexpected status from HEAD request to https://registry-1.docker.io/v2/library/golang/manifests/1.26.8-alpine: 429 Too Many Requests
+------
+ > [internal] load metadata for docker.io/library/golang:1.26.8-alpine:
+------
+Dockerfile:2
+--------------------
+   1 |     # syntax=docker/dockerfile:1
+   2 | >>> FROM --platform=$BUILDPLATFORM golang:1.26.8-alpine AS build
+   3 |     
+   4 |     WORKDIR /src
+--------------------
+ERROR: failed to build: failed to solve: unexpected status from HEAD request to https://registry-1.docker.io/v2/library/golang/manifests/1.26.8-alpine: 429 Too Many Requests

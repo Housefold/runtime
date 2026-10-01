@@ -358,3 +358,9 @@ failure behavior under the stated injected transport/resync contracts.
 ## Runtime v1 composition
 
 [Production composition audit](agent/COMPOSITION.md) maps actual source to every productization task. ADR-010 defines startup/recovery ownership and degraded control-plane behavior. Historical foundation statements above and below describe implementation slices, not Runtime v1 completion. No live HAOS system is an authorized test target.
+
+## App packaging (V1P02)
+
+Runtime uses Supervisor-provided Core proxy authentication with empty options and no first-run credentials. config.yaml declares system startup, automatic boot, internal watchdog, ingress with admin panel visibility, no host port and cold backup through Supervisor stop/archive/restart. Panel visibility alone is not admin authorization; V1P03 must enforce that server-side before release.
+
+The scratch image contains a statically linked binary and public TLS CA roots. A digest-pinned Go 1.26.8 builder cross-compiles amd64/aarch64. Startup briefly provisions /data/housefold with private 0700 ownership, rejects links/non-directories/unexpected owners without replacing data, then drops supplementary groups and UID/GID to 10001 before listening. The container init keeps its normal signal-forwarding capability; Runtime and children run unprivileged. Data provisioning failure is recovery_required (503 watchdog) while ingress status remains available; HA denial/loss does not change watchdog health. Both image architectures build; disposable-container checks supplement but do not prove HAOS installation/support.

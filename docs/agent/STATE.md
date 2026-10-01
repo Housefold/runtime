@@ -1,9 +1,9 @@
 # Current state
 
-Runtime v1 productization is IN PROGRESS, not release-ready. Entering main was df3ebbe3d7dd11e4edd6832526dd88cdad6f54de. V1P01 reconciled source with the accepted contract: see COMPOSITION.md, ADR-010 and evidence/V1P01.md. Historical implementation/waiver evidence is preserved but satisfies none of the new mandatory release gates.
+Runtime v1 is IN PROGRESS, not release-ready. V1P01 reconciled actual source/contracts (COMPOSITION.md, ADR-010). V1P02 ships zero-config normal App packaging, private writable estate bootstrap, privilege dropping, CA roots, digest-pinned dual architecture builder and CI verification. See evidence/V1P01.md and V1P02.md.
 
-Actual composition still runs native HA ingestion plus coarse ingress status. Module/action/discovery/catalog/Bridge libraries are private foundations requiring production integration. BIOS must become server-side HA-admin-only. All wiring gaps and owning tasks are mapped in COMPOSITION.md.
+V1P02 focused plus repository --images verification PASS, including ordinary/race tests, vet/build, cross-builds, both images and disposable packaging/UID/recovery/restart/shutdown checks. Docker Hub 429 was resolved using the matching digest from the official public ECR mirror. These checks are not HAOS acceptance.
 
-V1P01 verification passed Go 1.26.8 ordinary/race tests, vet, builds, both cross-compiles and 9 Python checks. Use PATH=/workspace/toolchain/go/bin:$PATH in this worker; /usr/bin/go is unrelated. Docker local daemon is available; GitHub runtime admin/push access confirmed read-only. No distribution artifact published and no live HAOS touched.
+Actual runtime still primarily composes native HA/status; modules/action/discovery/catalog/Bridge need production wiring. Admin panel visibility is enabled; BIOS server-side enforcement remains pending. Nothing published, no live HAOS touched. Historical waivers satisfy no v1 criterion.
 
-Continue first ready task via the ledger. No autonomous waivers exist. Security, soak and exact-artifact disposable HAOS acceptance remain mandatory.
+Use PATH=/workspace/toolchain/go/bin:$PATH and HOUSEFOLD_BUILD_CA=/etc/ssl/certs/ca-certificates.crt for image checks on this worker. Continue first ready ledger task. Security, soak and exact-artifact real-repository disposable HAOS gates remain mandatory.

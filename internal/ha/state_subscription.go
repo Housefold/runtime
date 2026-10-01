@@ -10,8 +10,8 @@ import (
 const (
 	maxSubscriptionEvents     = 256
 	maxSubscriptionBytes      = 8 * 1024 * 1024
-	maxSubscribers            = 4
-	maxTotalSubscriptionBytes = 32 * 1024 * 1024
+	maxSubscribers            = 16
+	maxTotalSubscriptionBytes = 128 * 1024 * 1024
 )
 
 type queuedStateEvent struct {

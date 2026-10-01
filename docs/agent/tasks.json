@@ -65,9 +65,9 @@
         "V1P01"
       ],
       "kind": "implementation",
-      "status": "todo",
+      "status": "done",
       "approval_required": null,
-      "evidence": null,
+      "evidence": "docs/agent/evidence/V1P04.md",
       "blocker": null,
       "acceptance": [
         "Compose existing IPC/state/timeline/execution/launcher/cutover/handover/retention/quarantine mechanisms into the production Runtime process.",

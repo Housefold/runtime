@@ -47,6 +47,11 @@ func Prepare(path string, uid int) error {
 // Drop is required even when data validation fails: recovery must not become a
 // privileged management plane. A privilege-drop failure is a process failure.
 func Drop(uid int) error {
+	// Parent memory, initial environment and descriptors must not be readable
+	// through proc/ptrace by a same-UID child, including rootless launches.
+	if _, _, errno := syscall.Syscall6(syscall.SYS_PRCTL, 4 /* PR_SET_DUMPABLE */, 0, 0, 0, 0, 0); errno != 0 {
+		return errno
+	}
 	if uid < 1 {
 		return ErrData
 	}
@@ -62,5 +67,13 @@ func Drop(uid int) error {
 	if err := syscall.Setgid(uid); err != nil {
 		return err
 	}
-	return syscall.Setuid(uid)
+	if err := syscall.Setuid(uid); err != nil {
+		return err
+	}
+	// Linux resets dumpability when credentials change.
+	_, _, errno := syscall.Syscall6(syscall.SYS_PRCTL, 4, 0, 0, 0, 0, 0)
+	if errno != 0 {
+		return errno
+	}
+	return nil
 }

@@ -126,3 +126,47 @@ func (s *StateStore) Write(key string, value []byte) error {
 	}
 	return s.file.Save(raw)
 }
+
+// CopyFrom copies bounded opaque state into a distinct generation. Callers
+// serialize lifecycle and freeze source writes for the final cutover copy.
+func (s *StateStore) CopyFrom(source *StateStore) error {
+	if source == s {
+		return ErrFenced
+	}
+	source.mu.Lock()
+	data, err := source.read()
+	source.mu.Unlock()
+	if err != nil {
+		return err
+	}
+	raw, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.file.Save(raw)
+}
+
+// OpenState validates existing durable state without initializing absent files.
+// Missing retained state is corruption, not a fresh generation.
+func OpenState(root string, id Identity) (*StateStore, error) {
+	if !filepath.IsAbs(root) || id.Module == "" || id.Generation == 0 {
+		return nil, ErrFenced
+	}
+	sum := sha256.Sum256([]byte(id.Module))
+	moduleDir := filepath.Join(root, hex.EncodeToString(sum[:]))
+	path := filepath.Join(moduleDir, fmt.Sprint(id.Generation))
+	for _, dir := range []string{root, moduleDir, path} {
+		info, err := os.Lstat(dir)
+		if err != nil || !info.IsDir() || info.Mode()&os.ModeSymlink != 0 {
+			return nil, durable.ErrCorrupt
+		}
+	}
+	s := &StateStore{identity: id, file: durable.NewFile(filepath.Join(path, "state.json")), path: path}
+	if _, err := s.read(); err != nil {
+		return nil, err
+	}
+	return s, nil
+}
+func (s *StateStore) Reference() string { return s.path }

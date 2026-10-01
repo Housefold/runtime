@@ -84,11 +84,13 @@ Private in-process reads and subscriptions are implemented under harness R02;
 see [ADR-006](adr/006-private-state-consumers.md). Reads carry atomic generation,
 revision and freshness. Independent ordered streams begin with an authoritative
 complete reset, then deliver visible deltas, freshness loss and generation resets.
-Consumers own deep copies. Four subscribers reserve at most 32 MiB of canonical
+Consumers own deep copies. Sixteen subscribers reserve at most 128 MiB of canonical
 queued payload, each capped at 256 events/8 MiB, including initial/reset views.
 Oversized initial views fail explicitly; slow-consumer overflow, cancellation and
-source shutdown are distinct terminal outcomes. This adds no module interface,
-network surface, persistence or HA action authority.
+source shutdown are distinct terminal outcomes. The production estate uses one independent stream per child (including preparing
+peers); it does not share mutable views. HA-side subscription loss is capability
+loss and triggers bounded resubscription, rather than restarting the module or
+Runtime. These provisional ceilings require the mandatory resource/soak gates.
 
 ## Measured developer-host limits and shutdown
 
@@ -364,3 +366,42 @@ failure behavior under the stated injected transport/resync contracts.
 Runtime uses Supervisor-provided Core proxy authentication with empty options and no first-run credentials. config.yaml declares system startup, automatic boot, internal watchdog, ingress with admin panel visibility, no host port and cold backup through Supervisor stop/archive/restart. Panel visibility alone is not admin authorization; V1P03 must enforce that server-side before release.
 
 The scratch image contains a statically linked binary and public TLS CA roots. A digest-pinned Go 1.26.8 builder cross-compiles amd64/aarch64. Startup briefly provisions /data/housefold with private 0700 ownership, rejects links/non-directories/unexpected owners without replacing data, then drops supplementary groups and UID/GID to 10001 before listening. The container init keeps its normal signal-forwarding capability; Runtime and children run unprivileged. Data provisioning failure is recovery_required (503 watchdog) while ingress status remains available; HA denial/loss does not change watchdog health. Both image architectures build; disposable-container checks supplement but do not prove HAOS installation/support.
+
+## Production module estate (V1P04)
+
+`cmd/runtime` now owns the estate alongside the native HA session and ingress
+service. HTTP starts independently of estate recovery. `/data/housefold` contains
+a checksummed inventory, execution ledger, generation router, timeline and action
+ledger, verified content-addressed ELF artifacts and four isolated logical state
+scopes per generation. Persistent, cache, generation and temp scopes each limit
+opaque state to 64 keys/8 MiB. Module storage is accessed through private IPC.
+Current and immediately previous successful versions and their durable state stay
+retained. Removal and disable stop/fence work while preserving every scope;
+destructive recovery requires a separate explicit operation (V1P09). Physical GC
+and comprehensive resource policy remain V1P08.
+
+Desired state is persisted before lifecycle changes. Enabled modules recover
+offline from reverified cached signed packages in dependency order, with new boot
+and generation authority. Disabled modules remain stopped; crash budgets and
+quarantine survive reboot. Exact signed required dependencies are enabled and
+prepared as a group, then selected in one router commit; optional absent modules
+do not block startup. Required dependency loss fences new admissions while
+leaving existing children available for recovery. Failed candidates never replace
+the selected version, and interrupted updates require explicit retry.
+
+The estate owns children before negotiation, joins them before retirement and
+uses one IPC reader per child with correlated handover responses. Health is a
+required capability: readiness and service health govern admission; UI health is
+separate. A finite heartbeat deadline and existing bounded restart/quarantine
+mechanism contain child failure. Only the selected ready generation can submit
+new triggers/actions; draining work retains its existing execution attribution.
+Final handover freezes source writes and copies persistent state into an isolated
+candidate before selecting it. Restart/rollback never reuse an old epoch.
+
+Disk pressure fences writes without silently discarding state. Corruption, missing
+retained durable state or uncertain commits enter Runtime recovery-required, stop
+children and return watchdog 503 while ingress remains available. HA absence,
+module failure/quarantine and UI failure do not independently fail the watchdog.
+Parent process dumpability is disabled after privilege drop to protect its initial
+environment and descriptors from same-UID proc/ptrace reads. Full isolation and
+credential-boundary adversarial proof remain mandatory V1P08/V1P12.

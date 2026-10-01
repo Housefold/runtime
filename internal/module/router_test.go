@@ -184,3 +184,20 @@ func TestFailedCandidateJoinRemainsTracked(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestDrainingSessionCannotAdmitFreshTriggers(t *testing.T) {
+	r, _, _, now, old := routerFixture(t)
+	candidate, err := r.Prepare(old.Module, "2")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err = r.Ready(candidate, true, nil); err != nil {
+		t.Fatal(err)
+	}
+	if err = r.Cutover(candidate, now); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = r.AdmitFrom(old, "automation", timeline.Occurrence{ID: "late", Logical: now}, now); err != ErrFenced {
+		t.Fatal("stale trigger admitted", err)
+	}
+}

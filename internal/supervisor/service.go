@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"github.com/housefold/runtime/internal/estate"
 	"html/template"
 	"net"
 	"net/http"
@@ -35,8 +36,23 @@ type StatusStore struct {
 	mu       sync.RWMutex
 	status   HAStatus
 	recovery bool
+	estate   interface{ Snapshot() estate.Snapshot }
 }
 
+func (s *StatusStore) SetEstate(owner interface{ Snapshot() estate.Snapshot }) {
+	s.mu.Lock()
+	s.estate = owner
+	s.mu.Unlock()
+}
+func (s *StatusStore) Estate() estate.Snapshot {
+	s.mu.RLock()
+	owner := s.estate
+	s.mu.RUnlock()
+	if owner == nil {
+		return estate.Snapshot{Phase: "unavailable"}
+	}
+	return owner.Snapshot()
+}
 func (s *StatusStore) SetRecoveryRequired()   { s.mu.Lock(); s.recovery = true; s.mu.Unlock() }
 func (s *StatusStore) RecoveryRequired() bool { s.mu.RLock(); defer s.mu.RUnlock(); return s.recovery }
 
@@ -161,6 +177,7 @@ func (s *Service) serveHealth(w http.ResponseWriter, r *http.Request) {
 
 type statusPageData struct {
 	Runtime        string
+	Estate         estate.Snapshot
 	Phase          string
 	Connection     string
 	Freshness      string
@@ -203,6 +220,10 @@ var statusPage = template.Must(template.New("status").Parse(`<!doctype html>
       </dl>
 	  <p>Runtime process health is independent of Home Assistant availability. Cached state remains stale until a complete new generation is synchronized.</p>
     </section>
+    <section aria-labelledby="modules-heading"><h2 id="modules-heading">Modules</h2>
+    <p>Estate: {{.Estate.Phase}}. Storage writes degraded: {{.Estate.StorageDegraded}}</p>
+    {{range .Estate.Modules}}<p>{{.Identity}} {{.Version}} · {{.Phase}} · enabled: {{.Desired}} · service: {{.ServiceHealthy}} · UI: {{.UIHealthy}} · {{.Error}}</p>{{else}}<p>No installed modules.</p>{{end}}
+    </section>
     <p>For app recovery, use Home Assistant Supervisor controls and logs. If Home Assistant is unavailable, use the HAOS host console and <code>ha apps</code> commands.</p>
   </main>
 </body>
@@ -216,7 +237,7 @@ func (s *Service) serveStatus(w http.ResponseWriter) {
 	if s.status != nil {
 		current = s.status.HA()
 	}
-	page := statusPageData{Runtime: "Healthy", Phase: "disconnected", Connection: "unavailable", Freshness: "none", LastSuccessful: "Not yet synchronized"}
+	page := statusPageData{Estate: s.status.Estate(), Runtime: "Healthy", Phase: "disconnected", Connection: "unavailable", Freshness: "none", LastSuccessful: "Not yet synchronized"}
 	if s.status.RecoveryRequired() {
 		page.Runtime = "Recovery required: private storage unavailable"
 	}

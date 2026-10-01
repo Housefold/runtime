@@ -9,10 +9,13 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"testing"
 	"time"
 
+	"github.com/housefold/runtime/internal/estate"
 	"github.com/housefold/runtime/internal/ha"
+	"github.com/housefold/runtime/internal/supervisor"
 )
 
 type fakeStateSession struct {
@@ -117,6 +120,72 @@ func TestRunListenerFailureCancelsStateSession(t *testing.T) {
 func TestRunReturnsListenFailure(t *testing.T) {
 	if err := run(context.Background(), "127.0.0.1:-1", slog.New(slog.NewTextHandler(io.Discard, nil))); err == nil {
 		t.Fatal("run returned nil for an invalid listen address")
+	}
+}
+
+func TestProductionEstateOwnerRecoveryAndJoin(t *testing.T) {
+	for _, corrupt := range []bool{false, true} {
+		t.Run(map[bool]string{false: "empty_native_ha_down", true: "corrupt_estate"}[corrupt], func(t *testing.T) {
+			root := filepath.Join(t.TempDir(), "estate")
+			if corrupt {
+				if err := os.WriteFile(root, []byte("preserve-synthetic-corruption"), 0600); err != nil {
+					t.Fatal(err)
+				}
+			}
+			listener, err := net.Listen("tcp", "127.0.0.1:0")
+			if err != nil {
+				t.Fatal(err)
+			}
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+			logger := slog.New(slog.NewTextHandler(io.Discard, nil))
+			session := &fakeStateSession{started: make(chan string, 1), stopped: make(chan struct{}), changes: make(chan struct{}, 1)}
+			owners := make(chan *estate.Engine, 1)
+			done := make(chan error, 1)
+			go func() {
+				done <- runListener(ctx, listener, "synthetic", logger, func() stateSession { return session }, runtimeComposition{NewEstate: func(_ stateSession, status *supervisor.StatusStore) backgroundService {
+					e := estate.New(estate.Config{Root: root, Logger: logger, OnRecovery: status.SetRecoveryRequired})
+					status.SetEstate(e)
+					owners <- e
+					return e
+				}})
+			}()
+			owner := <-owners
+			ready, c := context.WithTimeout(ctx, 3*time.Second)
+			err = owner.Ready(ready)
+			c()
+			if (err != nil) != corrupt {
+				t.Fatal("estate startup", err)
+			}
+			client := &http.Client{Timeout: time.Second}
+			response, err := client.Get("http://" + listener.Addr().String() + "/healthz")
+			if err != nil {
+				t.Fatal(err)
+			}
+			response.Body.Close()
+			want := http.StatusOK
+			if corrupt {
+				want = http.StatusServiceUnavailable
+			}
+			if response.StatusCode != want {
+				t.Fatal("dependency/integrity health", response.StatusCode)
+			}
+			cancel()
+			select {
+			case err := <-done:
+				if err != nil {
+					t.Fatal(err)
+				}
+			case <-time.After(3 * time.Second):
+				t.Fatal("estate owner failed to join")
+			}
+			if corrupt {
+				raw, _ := os.ReadFile(root)
+				if string(raw) != "preserve-synthetic-corruption" {
+					t.Fatal("corruption overwritten")
+				}
+			}
+		})
 	}
 }
 

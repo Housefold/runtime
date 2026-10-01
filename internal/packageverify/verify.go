@@ -41,7 +41,25 @@ type Entry struct {
 	ManifestDigest string `json:"manifest_digest"`
 	ArtifactDigest string `json:"artifact_digest"`
 }
+type Dependency struct {
+	Identity string `json:"identity"`
+	Version  string `json:"version"`
+	Optional bool   `json:"optional,omitempty"`
+}
+type Resources struct {
+	MemoryKiB  uint64 `json:"memory_kib,omitempty"`
+	CPUPercent uint64 `json:"cpu_percent,omitempty"`
+	Threads    uint64 `json:"threads,omitempty"`
+	FDs        uint64 `json:"fds,omitempty"`
+}
 type Manifest struct {
+	Dependencies     []Dependency `json:"dependencies,omitempty"`
+	Resources        Resources    `json:"resources,omitempty"`
+	Priority         string       `json:"priority,omitempty"`
+	Outbound         []string     `json:"outbound,omitempty"`
+	HandoverRequired bool         `json:"handover_required,omitempty"`
+	AllowClean       bool         `json:"allow_clean,omitempty"`
+
 	Schema           int      `json:"schema"`
 	Identity         string   `json:"identity"`
 	Version          string   `json:"version"`
@@ -107,6 +125,31 @@ func Verify(authority Authority, catalog, manifest Signed, artifact, artifactSig
 	}
 	if m.Schema != 1 || !identity.MatchString(m.Identity) || !version.MatchString(m.Version) || len(m.Version) > 64 || (m.Arch != "amd64" && m.Arch != "aarch64") || m.RuntimeMajor < 1 || m.RuntimeMinMinor < 0 || m.ProtocolMajor < 1 || m.ProtocolMinMinor < 0 || len(m.Capabilities) > 32 || !digestPattern.MatchString(m.ArtifactDigest) {
 		return review, ErrInvalid
+	}
+	if len(m.Dependencies) > 32 || len(m.Outbound) > 32 || m.Resources.MemoryKiB > 512*1024 || m.Resources.CPUPercent > 100 || m.Resources.Threads > 128 || m.Resources.FDs > 256 {
+		return review, ErrInvalid
+	}
+	if m.Priority != "" && m.Priority != "essential" && m.Priority != "normal" && m.Priority != "background" {
+		return review, ErrInvalid
+	}
+	deps := map[string]bool{}
+	for _, d := range m.Dependencies {
+		if !identity.MatchString(d.Identity) || !version.MatchString(d.Version) || len(d.Version) > 64 || d.Identity == m.Identity || deps[d.Identity] {
+			return review, ErrInvalid
+		}
+		deps[d.Identity] = true
+	}
+	hosts := map[string]bool{}
+	for _, host := range m.Outbound {
+		if len(host) == 0 || len(host) > 253 || host == "supervisor" || host == "homeassistant" || hosts[host] {
+			return review, ErrInvalid
+		}
+		for _, c := range host {
+			if !(c >= 'a' && c <= 'z' || c >= '0' && c <= '9' || c == '.' || c == '-') {
+				return review, ErrInvalid
+			}
+		}
+		hosts[host] = true
 	}
 	seenCapabilities := map[string]bool{}
 	for _, capability := range m.Capabilities {

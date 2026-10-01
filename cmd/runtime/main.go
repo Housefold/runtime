@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/housefold/runtime/internal/bootstrap"
+	"github.com/housefold/runtime/internal/estate"
 	"github.com/housefold/runtime/internal/ha"
 	"github.com/housefold/runtime/internal/supervisor"
 )
@@ -48,7 +49,15 @@ func run(ctx context.Context, address string, logger *slog.Logger, recovery ...b
 	if err != nil {
 		return fmt.Errorf("listen for runtime health: %w", err)
 	}
-	return runListener(ctx, listener, os.Getenv("SUPERVISOR_TOKEN"), logger, func() stateSession { return ha.NewStateSession(logger) }, recovery...)
+	required := len(recovery) > 0 && recovery[0]
+	return runListener(ctx, listener, os.Getenv("SUPERVISOR_TOKEN"), logger, func() stateSession { return ha.NewStateSession(logger) }, runtimeComposition{RecoveryRequired: required, NewEstate: func(source stateSession, status *supervisor.StatusStore) backgroundService {
+		if required {
+			return nil
+		}
+		owner := estate.New(estate.Config{Root: "/data/housefold", Source: source.(*ha.StateSession), Logger: logger, OnRecovery: status.SetRecoveryRequired})
+		status.SetEstate(owner)
+		return owner
+	}})
 }
 
 type stateSession interface {
@@ -58,13 +67,18 @@ type stateSession interface {
 }
 
 type stateSessionFactory func() stateSession
+type backgroundService interface{ Run(context.Context) }
+type runtimeComposition struct {
+	RecoveryRequired bool
+	NewEstate        func(stateSession, *supervisor.StatusStore) backgroundService
+}
 
-func runListener(ctx context.Context, listener net.Listener, token string, logger *slog.Logger, newSession stateSessionFactory, recovery ...bool) error {
+func runListener(ctx context.Context, listener net.Listener, token string, logger *slog.Logger, newSession stateSessionFactory, composition ...runtimeComposition) error {
 	runCtx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	logger.Info("runtime started", "health", "/healthz", "version", buildVersion, "source", buildSource)
 	status := &supervisor.StatusStore{}
-	if len(recovery) > 0 && recovery[0] {
+	if len(composition) > 0 && composition[0].RecoveryRequired {
 		status.SetRecoveryRequired()
 	}
 	service := supervisor.NewService(status)
@@ -72,6 +86,13 @@ func runListener(ctx context.Context, listener net.Listener, token string, logge
 	go func() { serviceDone <- service.Run(runCtx, listener) }()
 
 	session := newSession()
+	var estateDone chan struct{}
+	if len(composition) > 0 && composition[0].NewEstate != nil {
+		if owner := composition[0].NewEstate(session, status); owner != nil {
+			estateDone = make(chan struct{})
+			go func() { defer close(estateDone); owner.Run(runCtx) }()
+		}
+	}
 	updateStatus := func() {
 		metadata := session.Metadata()
 		freshness := "none"
@@ -122,7 +143,7 @@ func runListener(ctx context.Context, listener net.Listener, token string, logge
 	cancel()
 	deadline := time.NewTimer(processShutdownTimeout)
 	defer deadline.Stop()
-	for serviceWait != nil || sessionWait != nil || notifyWait != nil {
+	for serviceWait != nil || sessionWait != nil || notifyWait != nil || estateDone != nil {
 		select {
 		case err = <-serviceWait:
 			serviceWait = nil
@@ -130,6 +151,8 @@ func runListener(ctx context.Context, listener net.Listener, token string, logge
 			sessionWait = nil
 		case <-notifyWait:
 			notifyWait = nil
+		case <-estateDone:
+			estateDone = nil
 		case <-deadline.C:
 			_ = listener.Close()
 			return errProcessShutdownTimeout

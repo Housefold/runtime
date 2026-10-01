@@ -34,7 +34,7 @@ func cloneState(root string, from Generation, to Identity) (*StateStore, error) 
 	if from.StatePath == "" {
 		return target, nil
 	}
-	source, err := AllocateState(root, Identity{Module: from.Module, Generation: from.Number})
+	source, err := OpenState(root, Identity{Module: from.Module, Generation: from.Number})
 	if err != nil {
 		return nil, err
 	}
@@ -72,6 +72,9 @@ func (r *Router) PrepareRollback(module, root string) (Identity, error) {
 	store, err := cloneState(root, old, id)
 	if err == nil && old.ArtifactDigest != "" {
 		err = r.BindReferences(id, old.ArtifactDigest, store)
+		if err == nil {
+			err = r.BindRequirements(id, old.Required)
+		}
 	}
 	if err != nil {
 		_ = r.FailCandidate(id)
@@ -164,6 +167,9 @@ func (r *Router) RestartCandidate(module, root string, now time.Time) (Identity,
 	store, err := cloneState(root, old, id)
 	if err == nil && old.ArtifactDigest != "" {
 		err = r.BindReferences(id, old.ArtifactDigest, store)
+		if err == nil {
+			err = r.BindRequirements(id, old.Required)
+		}
 	}
 	if err != nil {
 		_ = r.FailCandidateAt(id, now)
@@ -209,4 +215,54 @@ func (r *Router) stopOwned(n uint64) error {
 	delete(r.children, n)
 	r.mu.Unlock()
 	return nil
+}
+
+// StopSelected fences new work before stopping/joining the selected process.
+// It changes neither version nor restart budget; desired-state ownership is in
+// the estate. Failed joins remain owned and block replacement.
+func (r *Router) StopSelected(moduleID string) error {
+	r.mu.Lock()
+	sel := r.data.Modules[moduleID]
+	delete(r.ready, sel.Active)
+	err := r.exec.PauseGeneration(moduleID, sel.Active)
+	r.mu.Unlock()
+	if err != nil {
+		return err
+	}
+	return r.stopOwned(sel.Active)
+}
+
+// RestoreSelected prepares a fresh epoch from the selected isolated state after
+// a deliberate stop or a Runtime reboot. It never clears terminal quarantine.
+func (r *Router) RestoreSelected(moduleID, root string) (Identity, error) {
+	r.mu.Lock()
+	sel := r.data.Modules[moduleID]
+	old, ok := r.data.Generations[sel.Active]
+	if !ok || old.Phase != Active || old.Crashed || r.children[old.Number] != nil {
+		r.mu.Unlock()
+		return Identity{}, ErrFenced
+	}
+	id, err := r.prepareLocked(moduleID, old.Version)
+	if err == nil {
+		d := routerCopy(r.data)
+		g := d.Generations[id.Generation]
+		g.Replaces = old.Number
+		d.Generations[g.Number] = g
+		err = r.commit(d)
+	}
+	r.mu.Unlock()
+	if err != nil {
+		return id, err
+	}
+	store, err := cloneState(root, old, id)
+	if err == nil {
+		err = r.BindReferences(id, old.ArtifactDigest, store)
+		if err == nil {
+			err = r.BindRequirements(id, old.Required)
+		}
+	}
+	if err != nil {
+		_ = r.FailCandidate(id)
+	}
+	return id, err
 }

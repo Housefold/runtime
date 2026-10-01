@@ -138,3 +138,39 @@ func TestHandoverDeadline(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestDependencyActivationIsAtomicAndReleasesAllBarriers(t *testing.T) {
+	for _, fail := range []bool{true, false} {
+		r, _, _, now, original := routerFixture(t)
+		peer, err := r.Prepare("dependency", "1")
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err = r.Ready(peer, true, nil); err != nil {
+			t.Fatal(err)
+		}
+		if err = r.Cutover(peer, now); err != nil {
+			t.Fatal(err)
+		}
+		next, _ := r.Prepare("synthetic", "2")
+		nextPeer, _ := r.Prepare("dependency", "2")
+		r.Ready(next, true, nil)
+		r.Ready(nextPeer, true, nil)
+		a, b := &sourceFixture{data: []byte("a")}, &sourceFixture{data: []byte("b")}
+		err = r.ActivateMany(context.Background(), []Activation{
+			{Identity: next, Source: a, Candidate: &candidateFixture{result: Compatible}, Warm: Compatible},
+			{Identity: nextPeer, Source: b, Candidate: &candidateFixture{result: Compatible, failFinal: fail}, Warm: Compatible},
+		}, now)
+		data := r.Snapshot()
+		if fail {
+			if err == nil || data.Modules["synthetic"].Active != original.Generation || data.Modules["dependency"].Active != peer.Generation {
+				t.Fatal("partial activation", data, err)
+			}
+		} else if err != nil || data.Modules["synthetic"].Active != next.Generation || data.Modules["dependency"].Active != nextPeer.Generation {
+			t.Fatal(data, err)
+		}
+		if a.frozen || b.frozen {
+			t.Fatal("leaked final barrier")
+		}
+	}
+}

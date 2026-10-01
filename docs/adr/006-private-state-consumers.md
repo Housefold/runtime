@@ -33,7 +33,7 @@ repairs a stale generation in place. Phase/status updates remain on Changes.
 Every subscription has an independent queue capped at 256 events and 8 MiB of
 canonical JSON event payload, including the envelope and complete initial/reset
 view. An oversized initial view returns ErrInitialTooLarge. There are at most
-four subscribers, each reserving its full allowance, hence 32 MiB maximum queued
+sixteen subscribers, each reserving its full allowance, hence 128 MiB maximum queued
 canonical payload. This measures serialized payload, not heap or caller-owned
 copies. The canonical size is computed before cloning. A queue overflow discards
 that subscription's pending data, closes Done, releases resources and returns
@@ -53,7 +53,7 @@ single-use lifecycle; callers must construct a new session after shutdown.
 
 Sharing mutable snapshots would reduce allocations but violate ownership.
 Unbounded channels would let slow consumers exhaust memory. Separate full-size
-reservations limit simultaneous subscribers to four but avoid global pressure
+reservations limit simultaneous subscribers to sixteen but avoid global pressure
 arbitrarily evicting a healthy consumer. Full reset data is explicit and atomic;
 views exceeding the subscription bound can still be read using Snapshot but
 cannot establish this stream. A scoped/resnapshot public protocol is a later
@@ -80,3 +80,8 @@ are included exactly. The prior arithmetic allowance undercounted this envelope
 by four bytes and is corrected without changing the accepted 8 MiB limit.
 Standalone state decoding now rejects trailing JSON/content; timestamp semantics
 remain those in ADR-003, with no new relationship rejection rule.
+
+V1P04 extends the bounded subscription count to the production launcher ceiling
+of sixteen children, including preparing peers. Per-consumer bounds are unchanged;
+V1P13 must measure the increased maximum before release. Historical R04 evidence
+does not establish appliance support for this production ceiling.

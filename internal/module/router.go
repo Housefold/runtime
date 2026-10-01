@@ -30,7 +30,13 @@ const (
 	Quarantined Lifecycle = "QUARANTINED"
 )
 
+type Requirement struct {
+	Module  string
+	Version string
+}
+
 type Generation struct {
+	Required       []Requirement
 	ArtifactDigest string
 	StatePath      string
 	Crashed        bool
@@ -82,6 +88,13 @@ func OpenRouter(store durable.Store, exec *execution.Manager, boot string) (*Rou
 		}
 	}
 	for n, g := range d.Generations {
+		seenDeps := map[string]bool{}
+		for _, dep := range g.Required {
+			if len(g.Required) > 32 || dep.Module == "" || len(dep.Module) > 128 || dep.Module == g.Module || dep.Version == "" || len(dep.Version) > 128 || seenDeps[dep.Module] {
+				return nil, durable.ErrCorrupt
+			}
+			seenDeps[dep.Module] = true
+		}
 		if n == 0 || n != g.Number || n > d.Next || g.Module == "" || g.Version == "" || (g.Phase != Preparing && g.Phase != Active && g.Phase != Draining && g.Phase != Retired && g.Phase != Quarantined) {
 			return nil, durable.ErrCorrupt
 		}
@@ -168,6 +181,18 @@ func (r *Router) prepareLocked(module, version string) (Identity, error) {
 	return r.identity(g), nil
 }
 
+// Track binds child ownership before negotiation/readiness. Failed preparation
+// cannot make a live unjoined process or its state collectable.
+func (r *Router) Track(id Identity, child Child) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if child == nil || !r.matches(id) || r.data.Generations[id.Generation].Phase != Preparing || r.children[id.Generation] != nil {
+		return ErrFenced
+	}
+	r.children[id.Generation] = child
+	return nil
+}
+
 // Acknowledgement must come from the launcher-bound session identity. Recovery
 // never reuses old boot authority: every selected generation must handshake anew.
 func (r *Router) Ready(id Identity, accepting bool, child Child) error {
@@ -201,39 +226,66 @@ func (r *Router) cutoverLocked(id Identity, now time.Time) error {
 	}
 	d := routerCopy(r.data)
 	g := d.Generations[id.Generation]
-	if g.Replaces != 0 {
-		if err := r.exec.RebindPending(id.Module, g.Replaces, g.Number); err != nil {
-			return err
-		}
-	}
 	if sel.Active != 0 {
 		old := d.Generations[sel.Active]
+		if old.Version == g.Version {
+			g.Replaces = old.Number
+		}
 		old.Phase = Draining
 		old.DrainUntil = now.Add(DrainBudget)
 		d.Generations[old.Number] = old
-		sel.Previous = old.Number
+		if g.Replaces == 0 || old.Version != g.Version {
+			sel.Previous = old.Number
+		}
 	}
 	g.Phase = Active
 	d.Generations[g.Number] = g
 	sel.Active = g.Number
 	sel.Candidate = 0
 	d.Modules[g.Module] = sel
-	return r.commit(d)
+	// Persist selection first. Rebinding before a failed cutover could orphan
+	// or discard old queued work when the candidate is retired.
+	if err := r.commit(d); err != nil {
+		return err
+	}
+	if g.Replaces != 0 {
+		if err := r.exec.RebindPending(id.Module, g.Replaces, g.Number); err != nil {
+			r.poisoned = true
+			return errors.Join(durable.ErrUncertain, err)
+		}
+	}
+	return nil
 }
 func (r *Router) Admit(definition string, o timeline.Occurrence, now time.Time) (execution.Record, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
+	return r.admitLocked(definition, o, now)
+}
+
+// AdmitFrom binds a module-produced trigger to the current launcher session.
+// A draining generation cannot submit fresh triggers to its replacement.
+func (r *Router) AdmitFrom(id Identity, definition string, o timeline.Occurrence, now time.Time) (execution.Record, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	def, ok := r.exec.Snapshot().Definitions[definition]
+	if !ok || def.Module != id.Module || !r.matches(id) || r.data.Modules[id.Module].Active != id.Generation || !r.ready[id.Generation] {
+		return execution.Record{}, ErrFenced
+	}
+	return r.admitLocked(definition, o, now)
+}
+func (r *Router) admitLocked(definition string, o timeline.Occurrence, now time.Time) (execution.Record, error) {
 	def, ok := r.exec.Snapshot().Definitions[definition]
 	if !ok || r.poisoned || !r.exec.Healthy() {
 		return execution.Record{}, ErrFenced
 	}
 	sel := r.data.Modules[def.Module]
 	g := r.data.Generations[sel.Active]
-	if g.Phase != Active || !r.ready[g.Number] {
+	if g.Phase != Active || !r.ready[g.Number] || !r.dependenciesReady(g) {
 		return execution.Record{}, ErrFenced
 	}
 	return r.exec.AdmitGeneration(definition, o, now, g.Number)
 }
+
 func (r *Router) FailCandidate(id Identity) error {
 	return r.FailCandidateAt(id, time.Now())
 }
@@ -347,7 +399,7 @@ func (r *Router) WithAuthority(id Identity, work string, f func() error) error {
 		return ErrFenced
 	}
 	if work == "" {
-		if g.Phase != Active {
+		if g.Phase != Active || !r.dependenciesReady(g) {
 			return ErrFenced
 		}
 	} else if !r.exec.Owns(work, id.Module, id.Generation) {
@@ -377,4 +429,42 @@ func (r *Router) Dispatch(ctx context.Context, session *Session) (bool, error) {
 		return false, err
 	}
 	return true, session.Send(ctx, frame)
+}
+
+func (r *Router) dependenciesReady(g Generation) bool {
+	for _, req := range g.Required {
+		sel := r.data.Modules[req.Module]
+		peer := r.data.Generations[sel.Active]
+		if peer.Phase != Active || peer.Crashed || peer.Version != req.Version || !r.ready[peer.Number] {
+			return false
+		}
+	}
+	return true
+}
+func (r *Router) BindRequirements(id Identity, requirements []Requirement) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if !r.matches(id) || r.data.Generations[id.Generation].Phase != Preparing || len(requirements) > 32 {
+		return ErrFenced
+	}
+	seen := map[string]bool{}
+	for _, req := range requirements {
+		if req.Module == id.Module || req.Module == "" || len(req.Module) > 128 || req.Version == "" || len(req.Version) > 128 || seen[req.Module] {
+			return ErrFenced
+		}
+		seen[req.Module] = true
+	}
+	d := routerCopy(r.data)
+	g := d.Generations[id.Generation]
+	g.Required = append([]Requirement(nil), requirements...)
+	d.Generations[g.Number] = g
+	return r.commit(d)
+}
+
+func (r *Router) Accepting(moduleID string) bool {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	sel := r.data.Modules[moduleID]
+	g := r.data.Generations[sel.Active]
+	return !r.poisoned && r.exec.Healthy() && g.Phase == Active && !g.Crashed && r.ready[g.Number] && r.dependenciesReady(g)
 }

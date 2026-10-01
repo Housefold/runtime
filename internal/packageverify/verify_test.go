@@ -71,3 +71,34 @@ func TestSignedInvalidMetadata(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestSignedUnsafeDependenciesAndResourcesRejected(t *testing.T) {
+	for _, mutate := range []func(*Manifest){
+		func(m *Manifest) { m.Dependencies = []Dependency{{Identity: m.Identity, Version: m.Version}} },
+		func(m *Manifest) {
+			m.Dependencies = []Dependency{{Identity: "peer", Version: "1.0.0"}, {Identity: "peer", Version: "1.0.0", Optional: true}}
+		},
+		func(m *Manifest) { m.Dependencies = []Dependency{{Identity: "../peer", Version: "1.0.0"}} },
+		func(m *Manifest) { m.Resources.MemoryKiB = 512*1024 + 1 },
+		func(m *Manifest) { m.Resources.CPUPercent = 101 },
+		func(m *Manifest) { m.Resources.Threads = 129 },
+		func(m *Manifest) { m.Resources.FDs = 257 },
+		func(m *Manifest) { m.Priority = "root" },
+		func(m *Manifest) { m.Outbound = []string{"supervisor"} },
+		func(m *Manifest) { m.Outbound = []string{"https://synthetic.invalid"} },
+	} {
+		f := makeFixture()
+		var m Manifest
+		_ = json.Unmarshal(f.manifest.Data, &m)
+		mutate(&m)
+		f.manifest = sign(f.key, m)
+		var c Catalog
+		_ = json.Unmarshal(f.catalog.Data, &c)
+		c.Entries[0].ManifestDigest = Digest(f.manifest.Data)
+		f.catalog = sign(f.key, c)
+		f.signature = ed25519.Sign(f.key, ArtifactStatement(Digest(f.manifest.Data), Digest(f.artifact)))
+		if _, err := f.verify(); err != ErrInvalid {
+			t.Fatal("unsafe signed metadata accepted", m, err)
+		}
+	}
+}

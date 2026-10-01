@@ -44,7 +44,7 @@ func (f *File) Load() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	if info.Mode()&os.ModeSymlink != 0 {
+	if !info.Mode().IsRegular() {
 		return nil, ErrCorrupt
 	}
 	file, err := os.Open(f.path)

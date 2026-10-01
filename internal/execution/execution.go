@@ -103,7 +103,7 @@ func Open(store durable.Store) (*Manager, error) {
 		if id != r.ID || r.Sequence == 0 || r.Sequence > d.Sequence || r.Occurrence.ID != id || (!terminal(r.Phase) && r.Phase != Pending && r.Phase != Running && r.Phase != Canceling) {
 			return nil, durable.ErrCorrupt
 		}
-		if _, ok := d.Definitions[r.Definition]; !ok {
+		if def, ok := d.Definitions[r.Definition]; !ok || r.Module != def.Module {
 			return nil, durable.ErrCorrupt
 		}
 		if r.Phase == Running || r.Phase == Canceling {
@@ -434,3 +434,53 @@ func (m *Manager) RebindPending(module string, old, new uint64) error {
 }
 
 func (m *Manager) Healthy() bool { m.mu.Lock(); defer m.mu.Unlock(); return !m.poisoned }
+
+// ResumeGeneration promotes only ready, boot-bound generation work. Disabled or
+// quarantined module queues never become running merely because time advances.
+func (m *Manager) ResumeGeneration(moduleID string, generation uint64, now time.Time) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	d := copyData(m.data)
+	changed := false
+	for _, def := range d.Definitions {
+		if def.Module != moduleID {
+			continue
+		}
+		running := 0
+		pending := []Record{}
+		for id, r := range d.Records {
+			if r.Definition != def.ID {
+				continue
+			}
+			if r.Phase == Pending && !now.Before(r.Expires) {
+				r.Phase = Expired
+				d.Records[id] = r
+				changed = true
+			}
+			if r.Phase == Running || r.Phase == Canceling {
+				running++
+			}
+			if r.Phase == Pending && r.Generation == generation && !r.Occurrence.Logical.After(now) && now.Before(r.Expires) {
+				pending = append(pending, r)
+			}
+		}
+		sortRecords(pending)
+		limit := 1
+		if def.Mode == Parallel {
+			limit = def.Concurrency
+		}
+		for _, r := range pending {
+			if running >= limit {
+				break
+			}
+			r.Phase = Running
+			d.Records[r.ID] = r
+			running++
+			changed = true
+		}
+	}
+	if !changed {
+		return nil
+	}
+	return m.commit(d)
+}

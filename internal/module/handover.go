@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"time"
+
+	"github.com/housefold/runtime/internal/durable"
 )
 
 const MaxHandover = 512 << 10
@@ -166,4 +168,98 @@ func (p SessionStatePeer) Freeze(ctx context.Context) (func(), error) {
 		f, _ := FrameOf("state_resume", struct{}{})
 		_ = p.Session.Send(ctx, f)
 	}, nil
+}
+
+// Activation groups already-prepared generations. Required dependency cutovers
+// publish one router transaction; a failed final handover selects none of them.
+type Activation struct {
+	Identity  Identity
+	Source    StateSource
+	Candidate StateCandidate
+	Warm      Adoption
+}
+
+func (r *Router) ActivateMany(ctx context.Context, entries []Activation, now time.Time) error {
+	if len(entries) == 0 || len(entries) > MaxModules {
+		return ErrFenced
+	}
+	ctx, cancel := context.WithTimeout(ctx, HandoverBudget)
+	defer cancel()
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	seen := map[string]bool{}
+	for _, a := range entries {
+		id := a.Identity
+		if seen[id.Module] || !r.matches(id) || !r.ready[id.Generation] || r.data.Modules[id.Module].Candidate != id.Generation {
+			return ErrFenced
+		}
+		seen[id.Module] = true
+	}
+	for _, a := range entries {
+		if a.Warm == Compatible {
+			if a.Source == nil || a.Candidate == nil {
+				return ErrHandover
+			}
+			release, err := a.Source.Freeze(ctx)
+			if err != nil {
+				return err
+			}
+			defer release()
+			old := r.data.Generations[r.data.Modules[a.Identity.Module].Active]
+			p, err := a.Source.Export(ctx, true)
+			if err != nil {
+				return err
+			}
+			if err = checkPacket(p, old.Version); err != nil {
+				return err
+			}
+			adoption, err := a.Candidate.Adopt(ctx, p, true)
+			if err != nil {
+				return err
+			}
+			if adoption != Compatible {
+				return ErrHandover
+			}
+		} else if a.Warm != CleanStart {
+			return ErrHandover
+		}
+	}
+	if ctx.Err() != nil {
+		return ctx.Err()
+	}
+	d := routerCopy(r.data)
+	for _, a := range entries {
+		sel := d.Modules[a.Identity.Module]
+		g := d.Generations[a.Identity.Generation]
+		if sel.Active != 0 {
+			old := d.Generations[sel.Active]
+			if old.Version == g.Version {
+				g.Replaces = old.Number
+			}
+			old.Phase = Draining
+			old.DrainUntil = now.Add(DrainBudget)
+			d.Generations[old.Number] = old
+			if g.Replaces == 0 || old.Version != g.Version {
+				sel.Previous = old.Number
+			}
+		}
+		g.Phase = Active
+		d.Generations[g.Number] = g
+		sel.Active = g.Number
+		sel.Candidate = 0
+		d.Modules[g.Module] = sel
+	}
+	if err := r.commit(d); err != nil {
+		return err
+	}
+	for _, a := range entries {
+		g := d.Generations[a.Identity.Generation]
+		if g.Replaces != 0 {
+			if err := r.exec.RebindPending(g.Module, g.Replaces, g.Number); err != nil {
+				r.poisoned = true
+				return errors.Join(durable.ErrUncertain, err)
+			}
+		}
+	}
+	return nil
 }

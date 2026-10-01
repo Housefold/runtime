@@ -94,3 +94,17 @@ func TestRawJSONRoundTrip(t *testing.T) {
 		}
 	}
 }
+
+func TestNonRegularStateFailsBeforeReading(t *testing.T) {
+	root := t.TempDir()
+	fifo := filepath.Join(root, "fifo")
+	if err := syscall.Mkfifo(fifo, 0600); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := NewFile(fifo).Load(); !errors.Is(err, ErrCorrupt) {
+		t.Fatal("accepted named pipe", err)
+	}
+	if _, err := NewFile(root).Load(); !errors.Is(err, ErrCorrupt) {
+		t.Fatal("accepted directory", err)
+	}
+}

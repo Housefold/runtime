@@ -193,3 +193,26 @@ func (t *Timeline) Ack(id string) error {
 	delete(d.Pending, id)
 	return t.commit(d)
 }
+
+func ValidateSchedule(s Schedule) bool { return validSchedule(s) }
+
+// PutMany publishes a candidate generation's reviewed registrations in one
+// durable timeline commit. Duplicate identities and capacity reject all rows.
+func (t *Timeline) PutMany(rows []Schedule) error {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	d := clone(t.data)
+	seen := map[string]bool{}
+	for _, s := range rows {
+		if !validSchedule(s) || seen[s.ID] {
+			return ErrLimit
+		}
+		seen[s.ID] = true
+		s.Start = s.Start.UTC()
+		d.Schedules[s.ID] = s
+	}
+	if len(d.Schedules) > MaxSchedules {
+		return ErrLimit
+	}
+	return t.commit(d)
+}

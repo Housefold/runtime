@@ -2,7 +2,9 @@ package bootstrap
 
 import (
 	"errors"
+	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"testing"
 )
@@ -50,5 +52,29 @@ func TestPrivateEstateAndPreservedCorruption(t *testing.T) {
 	raw, _ = os.ReadFile(file)
 	if string(raw) != "keep" {
 		t.Fatal("modified bad estate")
+	}
+}
+
+// Both helper environments are synthetic; no real worker credentials are read.
+func TestChildrenCannotReadParentInitialEnvironment(t *testing.T) {
+	if os.Getenv("HOUSEFOLD_DUMP_TEST") != "1" {
+		cmd := exec.Command(os.Args[0], "-test.run=^TestChildrenCannotReadParentInitialEnvironment$")
+		cmd.Env = []string{"HOUSEFOLD_DUMP_TEST=1", "SYNTHETIC_SUPERVISOR_TOKEN=must-not-leak"}
+		if out, err := cmd.CombinedOutput(); err != nil {
+			t.Fatalf("isolated helper: %v %s", err, out)
+		}
+		return
+	}
+	uid := os.Getuid()
+	if uid == 0 {
+		uid = 10001
+	}
+	if err := Drop(uid); err != nil {
+		t.Fatal(err)
+	}
+	cmd := exec.Command("/bin/cat", fmt.Sprintf("/proc/%d/environ", os.Getpid()))
+	cmd.Env = []string{}
+	if _, err := cmd.Output(); err == nil {
+		t.Fatal("same-UID child could read parent credentials")
 	}
 }

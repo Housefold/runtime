@@ -25,3 +25,5 @@
 - M06 completed: Added artifact/state retention references, fresh-epoch manual rollback, finite selected-version backoff and persisted terminal quarantine. Evidence: [record](evidence/M06.md).
 
 - A01 completed: Added boot/generation-fenced canonical action gateway with durable unknown-before-send metadata, bounded deduplication and distinct HA outcomes. Evidence: [record](evidence/A01.md).
+
+- P01 completed: Added source-neutral official manifest/catalog review and offline Ed25519/digest compatibility verification. Evidence: [record](evidence/P01.md).

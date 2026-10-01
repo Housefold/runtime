@@ -262,3 +262,16 @@ metadata contains hashes/IDs/outcomes, not HA request payloads. A failed respons
 commit leaves uncertainty. Observation matches/not-observed annotate evidence
 without rewriting submission outcomes or asserting causality. Tests use fake HA
 only; cmd/runtime has no production action wiring.
+
+## Offline official package verification (P01)
+
+Source-neutral schema-1 manifests declare identity/version/architecture,
+Runtime/protocol major and minimum minor, artifact digest and capabilities.
+A configured official Ed25519 authority verifies signed bounded catalog,
+manifest and domain-separated artifact statement. Catalog sequence floor,
+expiry, exact expected identity/version/architecture and compatibility are
+checked offline. Metadata is capped at 64 KiB, catalogs at 128 entries, artifacts
+at 16 MiB and declarations at 32 entries. Review data reports provenance and
+compatibility; declarations are disclosures, never per-entity grants. No arbitrary
+repository, unsigned path, downloader, installer or unattended activation exists.
+Production signing keys/catalog freshness persistence require later wiring.

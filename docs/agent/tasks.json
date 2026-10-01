@@ -370,9 +370,9 @@
         "M03"
       ],
       "kind": "implementation",
-      "status": "todo",
+      "status": "done",
       "approval_required": null,
-      "evidence": null,
+      "evidence": "docs/agent/evidence/P01.md",
       "blocker": null,
       "acceptance": [
         "Define source-neutral manifest/package metadata for official modules including identity/version/arch/protocol compatibility and declared capabilities.",

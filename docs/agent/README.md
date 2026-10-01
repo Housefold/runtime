@@ -1,13 +1,9 @@
-# Start here
+# Productization harness
 
-1. Read [AUDIT](AUDIT.md), [WORKFLOW](WORKFLOW.md), [DECISIONS](DECISIONS.md), [STATE](STATE.md), [HANDOFF](HANDOFF.md), and [tasks.json](tasks.json).
-2. Reconcile the audit with the current Git HEAD and preserve existing work.
-3. Run `python3 scripts/agent_tasks.py next`; claim the reported ready task with `start ID`.
-4. Implement and verify each ready task. Copy [evidence template](evidence/TEMPLATE.md), record real results, then mark it done.
-5. Update STATE/HANDOFF and make a small local commit. Work alone; do not push, deploy or release.
+Read PRODUCTIZATION.md first, then WORKFLOW.md, STATE.md, HANDOFF.md, the Runtime spec/ADRs and tasks.json.
 
-At repository root, use `bash scripts/agent_verify.sh` for Go checks and `bash scripts/agent_verify.sh --images` for packaging changes. HAOS validation is a separate task. Missing tools/tests are BLOCKED, never PASS. See [the kickoff prompt](../../START_PROMPT.md).
+Use `python3 scripts/agent_tasks.py next` to select work. Implement one task completely, create a filled evidence record under `docs/agent/evidence/`, then mark it done. Continue until the queue closes or a genuine blocker prevents a release gate.
 
-For managed HTTPS proxies, set `HOUSEFOLD_BUILD_CA` to the worker's combined CA
-bundle when running image verification; BuildKit mounts it for the build only.
-Current measurements: [performance](performance.md). HAOS matrix: [runbook](HAOS-VALIDATION.md).
+Use `bash scripts/agent_verify.sh` for code and `bash scripts/agent_verify.sh --images` for packaging. Release completion additionally requires the independent security gate, soak gate and exact-artifact disposable HAOS gate in tasks.json.
+
+There are no agent waivers in the productization harness. A blocked release criterion remains blocked until the stakeholder explicitly changes the contract.

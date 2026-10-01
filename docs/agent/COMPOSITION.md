@@ -48,3 +48,13 @@ trust/source remains unconfigured, full HA-admin BIOS/log/audit/distribution
 remain pending, and no v1 release gate or HAOS acceptance has passed. Independent
 ready tasks are exhausted. See evidence/BLOCKED.md for the external blocker and
 exact remaining criteria; none is waived.
+
+## V1P03 production BIOS
+
+The stakeholder authorized sidestepping V1P05 provisioning for independent BIOS
+and distribution implementation. Catalog acceptance and final release dependencies
+are unchanged. BIOS now composes the real estate owner, native HA-admin lookup,
+verified catalog review and bounded single-use management operations. Normal
+Supervisor Runtime lifecycle/log/backup controls remain linked. Diagnostic privacy,
+recovery-only bootstrap and explicit reset are implemented and developer-tested.
+The official signing authority/source remains unconfigured and visible as such.

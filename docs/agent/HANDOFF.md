@@ -1,7 +1,7 @@
 # Handoff — stakeholder-authorized independent continuation
 
 V1P05 remains blocked; stakeholder authorized proceeding with independent BIOS
-and distribution work. See evidence/CATALOG-BYPASS.md. Begin V1P03, then V1P07,
+and distribution work. See evidence/CATALOG-BYPASS.md. V1P03 is committed; continue V1P07,
 and prepare V1P11. Preserve all remaining final release dependencies and criteria.
 
 Production composition: cmd/runtime starts unpublished HTTP/native state and
@@ -30,8 +30,7 @@ module join. Confirmed FactoryReset is separate, requires normal App restart;
 interrupted intent never auto-resumes deletion. Bridge active means compatible
 discovery enrichment only; orderedBridgeEnabled=false has no runtime override
 without pinned Python snapshot/sequence evidence. The native state owner remains
-production authority. Current peer-only status page is not completed HA-admin
-BIOS; implement actual server-side admin authorization before release.
+production authority. BIOS now enforces current HA-admin membership with a dedicated Core socket, bounded single-use approvals and real estate operations. Verify actual ingress/Core behavior in the exact-artifact HAOS gate.
 
 Toolchain Go1.26.8: PATH=/workspace/toolchain/go/bin:$PATH. Image worker proxy CA:
 HOUSEFOLD_BUILD_CA=/etc/ssl/certs/ca-certificates.crt. Pinned official ECR builder

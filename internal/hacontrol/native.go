@@ -77,6 +77,7 @@ type Native struct {
 	signals        func() OperationalSnapshot
 	events         chan ActionSignal
 	droppedEvents  atomic.Uint64
+	adminCore      *Core
 	bridgeCore     *Core
 	bridgeClient   *bridge.Client
 	bridgeSelected bool
@@ -84,7 +85,7 @@ type Native struct {
 }
 
 func NewNative(token string, source *ha.StateSession) *Native {
-	n := &Native{token: token, base: defaultAPIURL, http: localHTTP(), core: NewCore(token), source: source, events: make(chan ActionSignal, 64), bridgeCore: NewCore(token)}
+	n := &Native{token: token, base: defaultAPIURL, http: localHTTP(), core: NewCore(token), source: source, events: make(chan ActionSignal, 64), bridgeCore: NewCore(token), adminCore: NewCore(token)}
 	n.bridgeClient = bridge.New(n.bridgeCore)
 	return n
 }
@@ -170,6 +171,7 @@ func (n *Native) DiscoverySnapshot() (discovery.Snapshot, bool) {
 }
 func (n *Native) Run(ctx context.Context) {
 	defer n.core.Close()
+	defer n.adminCore.Close()
 	defer n.bridgeCore.Close()
 	workCtx, cancel := context.WithCancel(ctx)
 	defer cancel()

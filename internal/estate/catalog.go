@@ -82,3 +82,15 @@ func (s catalogStore) Save(raw []byte) error {
 	}
 	return s.store.Save(raw)
 }
+
+func (e *Engine) RefreshCatalog(ctx context.Context, now time.Time) error {
+	e.op.Lock()
+	defer e.op.Unlock()
+	if !e.available() {
+		return ErrRecovery
+	}
+	if e.config.Catalog == nil {
+		return catalog.ErrUnavailable
+	}
+	return e.config.Catalog.Refresh(ctx, now)
+}

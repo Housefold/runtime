@@ -65,6 +65,9 @@ type ModuleStatus struct {
 	Identity                  string
 	Installed, Desired        bool
 	Version                   string
+	RetainedVersion           string
+	Dependencies              []packageverify.Dependency
+	Capabilities, Outbound    []string
 	Generation                uint64
 	Phase                     string
 	ServiceHealthy, UIHealthy bool
@@ -468,8 +471,18 @@ func (e *Engine) Snapshot() Snapshot {
 		status := ModuleStatus{Identity: id, Installed: entry.Installed, Desired: entry.Desired, Version: g.Version, Generation: g.Number, Phase: string(g.Phase), Error: entry.UpdateError, Accepting: r != nil && r.Accepting(id)}
 		status.PressurePaused = entry.PressurePaused
 		if entry.Current != nil {
-			status.Limits = limitsFor(entry.Current.declaration())
+			m := entry.Current.declaration()
+			if status.Version == "" {
+				status.Version = m.Version
+			}
+			status.Dependencies = append([]packageverify.Dependency(nil), m.Dependencies...)
+			status.Capabilities = append([]string(nil), m.Capabilities...)
+			status.Outbound = append([]string(nil), m.Outbound...)
+			status.Limits = limitsFor(m)
 			status.Requests = packageverify.EffectiveRequests(entry.Current.declaration().Requests)
+		}
+		if entry.Previous != nil {
+			status.RetainedVersion = entry.Previous.declaration().Version
 		}
 		if u := units[g.Number]; u != nil {
 			u.mu.Lock()
@@ -592,3 +605,7 @@ func (e *Engine) String() string {
 	s := e.Snapshot()
 	return fmt.Sprintf("estate %s (%d modules)", s.Phase, len(s.Modules))
 }
+
+// EnterRecovery keeps explicit recovery authority without opening damaged stores.
+// Only the composition root uses it after bootstrap storage validation failed.
+func (e *Engine) EnterRecovery() { e.fail() }

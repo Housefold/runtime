@@ -59,12 +59,6 @@ func run(ctx context.Context, address string, logger *slog.Logger, recovery ...b
 	return runListener(ctx, listener, os.Getenv("SUPERVISOR_TOKEN"), logger, func() stateSession { return ha.NewStateSession(logger) }, runtimeComposition{RecoveryRequired: required, NewEstate: func(source stateSession, status *supervisor.StatusStore) backgroundService {
 		native := hacontrol.NewNative(os.Getenv("SUPERVISOR_TOKEN"), source.(*ha.StateSession))
 		status.SetBridge(native)
-		if required {
-			native.SetSignals(func() hacontrol.OperationalSnapshot {
-				return hacontrol.OperationalSnapshot{Runtime: "recovery_required", Catalog: "unconfigured"}
-			})
-			return native
-		}
 		arch := "amd64"
 		if runtime.GOARCH == "arm64" {
 			arch = "aarch64"
@@ -72,6 +66,16 @@ func run(ctx context.Context, address string, logger *slog.Logger, recovery ...b
 		owner := estate.New(estate.Config{Root: "/data/housefold", Trampoline: "/module-launcher", Source: source.(*ha.StateSession), Logger: logger, OnRecovery: status.SetRecoveryRequired, Authority: catalog.OfficialAuthority(), Actions: native, Discovery: native})
 		owner.ConfigureOfficialCatalog(arch)
 		status.SetEstate(owner)
+		status.SetManagement(owner, native)
+		if required {
+			owner.EnterRecovery()
+			native.SetSignals(func() hacontrol.OperationalSnapshot {
+				return hacontrol.OperationalSnapshot{Runtime: "recovery_required", Catalog: "unconfigured"}
+			})
+			// Do not initialize damaged/unavailable storage. Retain only explicit reset
+			// authority for BIOS; native/admin adapters remain independent of estate.
+			return native
+		}
 		native.SetDiscoverySink(owner.PublishDiscovery)
 		native.SetSignals(owner.OperationalSnapshot)
 		return joinedServices{owner, native}

@@ -18,7 +18,7 @@ func TestRunServesHealthyHealthCheck(t *testing.T) {
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	done := make(chan error, 1)
-	service := NewService(nil)
+	service := authorizedTestService(nil)
 	go func() { done <- service.Run(ctx, listener) }()
 	t.Cleanup(func() {
 		cancel()
@@ -55,7 +55,7 @@ func TestRunServesHealthyHealthCheck(t *testing.T) {
 }
 
 func TestHealthRouteRejectsOtherMethodsAndPaths(t *testing.T) {
-	service := NewService(nil)
+	service := authorizedTestService(nil)
 	for _, tc := range []struct {
 		method string
 		path   string
@@ -67,6 +67,7 @@ func TestHealthRouteRejectsOtherMethodsAndPaths(t *testing.T) {
 	} {
 		request := httptest.NewRequest(tc.method, tc.path, nil)
 		request.RemoteAddr = ingressPeer + ":4567"
+		request.Header.Set("X-Remote-User-Id", testAdmin)
 		response := httptest.NewRecorder()
 		service.handler().ServeHTTP(response, request)
 		if response.Code != tc.want {
@@ -76,7 +77,7 @@ func TestHealthRouteRejectsOtherMethodsAndPaths(t *testing.T) {
 }
 
 func TestStoppingHealthIsUnavailable(t *testing.T) {
-	service := NewService(nil)
+	service := authorizedTestService(nil)
 	service.stopping.Store(true)
 	request := httptest.NewRequest(http.MethodGet, "/healthz", nil)
 	response := httptest.NewRecorder()
@@ -97,7 +98,7 @@ func TestRunReturnsListenerStartupFailure(t *testing.T) {
 	if err := listener.Close(); err != nil {
 		t.Fatal(err)
 	}
-	if err := NewService(nil).Run(context.Background(), listener); err == nil {
+	if err := authorizedTestService(nil).Run(context.Background(), listener); err == nil {
 		t.Fatal("Run returned nil for a closed listener")
 	}
 }
@@ -110,7 +111,7 @@ func TestCancellationClosesListener(t *testing.T) {
 	address := listener.Addr().String()
 	ctx, cancel := context.WithCancel(context.Background())
 	done := make(chan error, 1)
-	go func() { done <- NewService(nil).Run(ctx, listener) }()
+	go func() { done <- authorizedTestService(nil).Run(ctx, listener) }()
 	cancel()
 	select {
 	case err := <-done:
@@ -129,7 +130,7 @@ func TestStatusPageRequiresIngressPeerAndOnlyShowsCoarseStatus(t *testing.T) {
 	checkedAt := time.Date(2026, time.September, 27, 14, 0, 0, 0, time.FixedZone("test", 3600))
 	store := &StatusStore{}
 	store.UpdateHA("ready", "connected", "fresh", 7, 42, checkedAt)
-	service := NewService(store)
+	service := authorizedTestService(store)
 
 	for _, tc := range []struct {
 		name       string
@@ -149,6 +150,7 @@ func TestStatusPageRequiresIngressPeerAndOnlyShowsCoarseStatus(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			request := httptest.NewRequest(tc.method, tc.path, nil)
 			request.RemoteAddr = tc.remoteAddr
+			request.Header.Set("X-Remote-User-Id", testAdmin)
 			if tc.forwarded != "" {
 				request.Header.Set("X-Forwarded-For", tc.forwarded)
 				request.Header.Set("X-Remote-User", "admin")
@@ -195,8 +197,9 @@ func TestStatusPageHandlesUncheckedAndUnknownHAStatus(t *testing.T) {
 			}
 			request := httptest.NewRequest(http.MethodGet, "/", nil)
 			request.RemoteAddr = "172.30.32.2:4567"
+			request.Header.Set("X-Remote-User-Id", testAdmin)
 			response := httptest.NewRecorder()
-			NewService(store).handler().ServeHTTP(response, request)
+			authorizedTestService(store).handler().ServeHTTP(response, request)
 			if response.Code != http.StatusOK {
 				t.Fatalf("status = %d, want 200", response.Code)
 			}
@@ -217,8 +220,9 @@ func TestStatusPageRendersEveryHAConnectionResult(t *testing.T) {
 			store.UpdateHA(phase, "connected", "synchronizing", 0, 0, time.Date(2026, time.September, 27, 14, 0, 0, 0, time.UTC))
 			request := httptest.NewRequest(http.MethodGet, "/", nil)
 			request.RemoteAddr = ingressPeer + ":4567"
+			request.Header.Set("X-Remote-User-Id", testAdmin)
 			response := httptest.NewRecorder()
-			NewService(store).handler().ServeHTTP(response, request)
+			authorizedTestService(store).handler().ServeHTTP(response, request)
 			if response.Code != http.StatusOK {
 				t.Fatalf("status = %d, want 200", response.Code)
 			}
@@ -233,7 +237,7 @@ func TestHealthRouteRemainsAvailableToSupervisorPeer(t *testing.T) {
 	request := httptest.NewRequest(http.MethodGet, "/healthz", nil)
 	request.RemoteAddr = "172.30.32.1:4567"
 	response := httptest.NewRecorder()
-	NewService(nil).handler().ServeHTTP(response, request)
+	authorizedTestService(nil).handler().ServeHTTP(response, request)
 	if response.Code != http.StatusOK {
 		t.Fatalf("health status = %d, want 200", response.Code)
 	}
@@ -241,7 +245,7 @@ func TestHealthRouteRemainsAvailableToSupervisorPeer(t *testing.T) {
 
 func TestRuntimeIntegrityIsDistinctFromDependencyHealth(t *testing.T) {
 	store := &StatusStore{}
-	service := NewService(store)
+	service := authorizedTestService(store)
 	for _, connection := range []string{"denied", "unavailable"} {
 		store.UpdateHA("disconnected", connection, "stale", 1, 0, time.Time{})
 		request := httptest.NewRequest(http.MethodGet, "/healthz", nil)

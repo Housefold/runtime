@@ -47,9 +47,9 @@
         "V1P10"
       ],
       "kind": "implementation",
-      "status": "todo",
+      "status": "done",
       "approval_required": null,
-      "evidence": null,
+      "evidence": "docs/agent/evidence/V1P03.md",
       "blocker": null,
       "acceptance": [
         "Serve the lightweight BIOS-style UI through HA ingress and enforce HA-admin authorization server-side; deny non-admins.",

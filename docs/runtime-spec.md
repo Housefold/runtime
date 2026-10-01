@@ -17,7 +17,7 @@ Housefold Runtime is the stable, local supervisor and control plane for Housefol
 | Optional Go modules | Trusted official separate processes with private inherited IPC under accepted ADR-007/008; implemented internal foundations remain separate from production installation/activation. |
 | Operating principle | Essential, latency-sensitive behavior remains local when the VPS, internet, cloud AI, or an optional module is unavailable. |
 | HA ownership | HA remains authoritative for device integrations, raw entity state, and service execution. Runtime keeps a private, memory-only state view and rebuilds it after disconnects. See [ADR-003](adr/003-ha-state-cache-and-reconnection.md). |
-| Management | The v1 contract requires an HA-admin-only BIOS through ingress, including recovery during subsystem degradation. Current HEAD still implements the earlier read-only status page. ADR-010 supersedes ADR-005 for v1. Supervisor/host-console recovery remains independent. |
+| Management | The v1 contract requires an HA-admin-only BIOS through ingress, including recovery during subsystem degradation. Current production BIOS verifies ingress identity against current HA admin membership before every read or mutation. ADR-010 supersedes ADR-005 for v1. Supervisor/host-console recovery remains independent. |
 
 ## Historical foundation boundary
 
@@ -364,7 +364,7 @@ failure behavior under the stated injected transport/resync contracts.
 
 ## App packaging (V1P02)
 
-Runtime uses Supervisor-provided Core proxy authentication with empty options and no first-run credentials. config.yaml declares system startup, automatic boot, internal watchdog, ingress with admin panel visibility, no host port and cold backup through Supervisor stop/archive/restart. Panel visibility alone is not admin authorization; V1P03 must enforce that server-side before release.
+Runtime uses Supervisor-provided Core proxy authentication with empty options and no first-run credentials. config.yaml declares system startup, automatic boot, internal watchdog, ingress with admin panel visibility, no host port and cold backup through Supervisor stop/archive/restart. Panel visibility alone is not admin authorization; BIOS enforces current HA-admin membership server-side (ADR-011).
 
 The scratch image contains a statically linked binary and public TLS CA roots. A digest-pinned Go 1.26.8 builder cross-compiles amd64/aarch64. Startup briefly provisions /data/housefold with private 0700 ownership, rejects links/non-directories/unexpected owners without replacing data, then drops supplementary groups and UID/GID to 10001 before listening. The container init keeps its normal signal-forwarding capability; Runtime and children run unprivileged. Data provisioning failure is recovery_required (503 watchdog) while ingress status remains available; HA denial/loss does not change watchdog health. Both image architectures build; disposable-container checks supplement but do not prove HAOS installation/support.
 
@@ -573,3 +573,24 @@ state is a false constant with no runtime override, even if advertised as
 compatible. Enabling it requires reviewed source changes and real version-pinned
 Python snapshot barrier/contiguous-sequence compatibility evidence. The native
 state session remains the only production authority and fallback in this build.
+
+## Production BIOS management (V1P03)
+
+ADR-011 defines the server authorization boundary. Ingress-only GET /, GET /review,
+GET /diagnostics and POST /manage require verified current HA-admin membership,
+with a separate native Core admin socket and no role cache. The coarse healthz
+watchdog stays independent of dependency availability. BIOS reports lifecycle,
+retained version, desired/dependency state, service/UI health, resource usage and
+limits, storage pressure, native HA/optional Bridge and catalog availability.
+
+Single-use user-bound approvals, strict bounded forms, one bounded worker and
+finite result state protect lifecycle/install/update/remove/rollback/quarantine,
+cleanup/cache-temp reset and explicitly confirmed factory reset. Catalog review
+shows the signed dependency closure and requires its digest at install. Runtime
+lifecycle/update/backup/live logs use linked normal HA App controls. Recovery-only
+bootstrap keeps BIOS/reset authority without opening damaged data.
+
+Diagnostics export excludes household state, credentials, raw errors, paths and
+admin identities/approvals. Tests cover genuine estate reset/restart, role revocation,
+authenticated loopback Core, forged/duplicate/missing identity, approval replay,
+concurrency and invalid/traversal/reset forms. These do not prove the HAOS gate.

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"github.com/housefold/runtime/internal/catalog"
 	"github.com/housefold/runtime/internal/estate"
 	"github.com/housefold/runtime/internal/hacontrol"
 	"html/template"
@@ -34,11 +35,13 @@ type HAStatus struct {
 // StatusStore keeps the latest session metadata in memory for the local status
 // page. No persistence or household state is involved.
 type StatusStore struct {
-	mu       sync.RWMutex
-	status   HAStatus
-	recovery bool
-	estate   interface{ Snapshot() estate.Snapshot }
-	bridge   interface{ BridgeSnapshot() hacontrol.BridgeInfo }
+	mu         sync.RWMutex
+	status     HAStatus
+	recovery   bool
+	estate     interface{ Snapshot() estate.Snapshot }
+	bridge     interface{ BridgeSnapshot() hacontrol.BridgeInfo }
+	management Management
+	admin      AdminAuthorizer
 }
 
 func (s *StatusStore) SetBridge(b interface{ BridgeSnapshot() hacontrol.BridgeInfo }) {
@@ -91,26 +94,42 @@ func (s *StatusStore) HA() HAStatus {
 	return s.status
 }
 
-// Service serves process health and an ingress-only read-only status page.
+// Service serves Runtime health and the HA-admin ingress BIOS.
 type Service struct {
-	stopping atomic.Bool
-	status   *StatusStore
+	stopping   atomic.Bool
+	status     *StatusStore
+	mu         sync.Mutex
+	tickets    map[string]approval
+	job        operationStatus
+	working    bool
+	workCtx    context.Context
+	workCancel context.CancelFunc
+	workers    sync.WaitGroup
 }
 
 func NewService(status *StatusStore) *Service {
 	if status == nil {
 		status = &StatusStore{}
 	}
-	return &Service{status: status}
+	ctx, cancel := context.WithCancel(context.Background())
+	return &Service{status: status, tickets: map[string]approval{}, workCtx: ctx, workCancel: cancel}
 }
 
 // Run serves on listener until ctx is canceled or the server fails. The caller
 // owns listener creation so tests and embedding code can select an address.
 func (s *Service) Run(ctx context.Context, listener net.Listener) error {
+	s.mu.Lock()
+	s.workCancel()
+	s.workCtx, s.workCancel = context.WithCancel(ctx)
+	s.mu.Unlock()
+	defer func() { s.mu.Lock(); s.workCancel(); s.mu.Unlock(); s.workers.Wait() }()
 	server := &http.Server{
 		Handler:           s.handler(),
 		ReadHeaderTimeout: 2 * time.Second,
-		WriteTimeout:      2 * time.Second,
+		ReadTimeout:       5 * time.Second,
+		WriteTimeout:      5 * time.Second,
+		MaxHeaderBytes:    16 << 10,
+		BaseContext:       func(net.Listener) context.Context { return ctx },
 		IdleTimeout:       30 * time.Second,
 	}
 	serveDone := make(chan error, 1)
@@ -143,28 +162,52 @@ func (s *Service) Run(ctx context.Context, listener net.Listener) error {
 func (s *Service) handler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Content-Type-Options", "nosniff")
+		w.Header().Set("Cache-Control", "no-store")
+		w.Header().Set("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'self'; frame-ancestors 'self'")
+		w.Header().Set("Referrer-Policy", "no-referrer")
 		if r.URL.Path == "/healthz" {
 			s.serveHealth(w, r)
 			return
 		}
-		if r.URL.Path != "/" {
+		switch r.URL.Path {
+		case "/", "/manage", "/review", "/diagnostics":
+		default:
 			http.NotFound(w, r)
 			return
 		}
 		if !isIngressPeer(r.RemoteAddr) {
-			http.Error(w, "forbidden", http.StatusForbidden)
+			http.Error(w, "forbidden", 403)
 			return
 		}
-		if r.Method != http.MethodGet {
-			w.Header().Set("Allow", http.MethodGet)
-			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		id, err := s.authorize(r)
+		if err != nil {
+			http.Error(w, "HA administrator authorization unavailable or denied", 403)
 			return
 		}
 		if s.stopping.Load() {
-			http.Error(w, "runtime is stopping", http.StatusServiceUnavailable)
+			http.Error(w, "runtime is stopping", 503)
 			return
 		}
-		s.serveStatus(w)
+		switch r.URL.Path {
+		case "/manage":
+			s.manage(w, r, id)
+		case "/review":
+			s.review(w, r, id)
+		case "/diagnostics":
+			s.diagnostics(w, r)
+		case "/":
+			if r.Method != http.MethodGet {
+				w.Header().Set("Allow", "GET")
+				http.Error(w, "method not allowed", 405)
+				return
+			}
+			csrf, err := s.issue(id)
+			if err != nil {
+				http.Error(w, "management unavailable", 503)
+				return
+			}
+			s.serveStatus(w, csrf)
+		}
 	})
 }
 
@@ -201,6 +244,9 @@ type statusPageData struct {
 	Generation     uint64
 	EntityCount    int
 	LastSuccessful string
+	CSRF           string
+	Catalog        catalog.Snapshot
+	Job            operationStatus
 }
 
 var statusPage = template.Must(template.New("status").Parse(`<!doctype html>
@@ -209,9 +255,9 @@ var statusPage = template.Must(template.New("status").Parse(`<!doctype html>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light dark">
-  <title>Housefold Runtime status</title>
+  <title>Housefold Runtime BIOS</title>
   <style>
-    body { font: 1rem/1.5 system-ui, sans-serif; margin: 2rem auto; max-width: 48rem; padding: 0 1rem; }
+    body { font: 1rem/1.5 ui-monospace, monospace; margin: 2rem auto; max-width: 72rem; padding: 0 1rem; }
     h1 { line-height: 1.2; }
     section { border: 1px solid; border-radius: .5rem; margin: 1rem 0; padding: 1rem; }
     dt { font-weight: 650; }
@@ -220,7 +266,9 @@ var statusPage = template.Must(template.New("status").Parse(`<!doctype html>
 </head>
 <body>
   <main>
-    <h1>Housefold Runtime</h1>
+    <h1>Housefold Runtime BIOS</h1>
+ <p><a href="./">Refresh status</a> · <a href="./diagnostics">Download diagnostics</a> · <a href="/hassio/dashboard" target="_top" rel="noreferrer">Home Assistant App lifecycle, update, backup and live logs</a></p>
+ {{if .Job.Operation}}<p>Last operation: {{.Job.Operation}} · {{.Job.Subject}} · {{.Job.State}} · {{.Job.Result}}</p>{{end}}
     <section aria-labelledby="runtime-heading">
       <h2 id="runtime-heading">Runtime</h2>
       <p>{{.Runtime}}</p>
@@ -240,22 +288,31 @@ var statusPage = template.Must(template.New("status").Parse(`<!doctype html>
     <section aria-labelledby="bridge-heading"><h2 id="bridge-heading">Optional Bridge</h2><p>{{.Bridge.Status}} · Bridge {{.Bridge.BridgeVersion}} · Core {{.Bridge.CoreVersion}}</p><p>{{.Bridge.Guidance}}</p><p>State source: {{.Bridge.StateSource}}. {{.Bridge.Limitation}}</p></section>
     <section aria-labelledby="modules-heading"><h2 id="modules-heading">Modules</h2>
     <p>Estate: {{.Estate.Phase}}. Pressure: {{.Estate.Resources.Pressure}}. Runtime RSS KiB: {{.Estate.Resources.Host.Runtime.RSSKiB}}. Managed RSS KiB: {{.Estate.Resources.Managed.RSSKiB}}. Storage bytes: {{.Estate.Resources.StorageBytes}}. Free bytes: {{.Estate.Resources.FreeBytes}}. Storage writes degraded: {{.Estate.StorageDegraded}}</p>
-    {{range .Estate.Modules}}<p>{{.Identity}} {{.Version}} · {{.Phase}} · enabled: {{.Desired}} · service: {{.ServiceHealthy}} · UI: {{.UIHealthy}} · RSS KiB: {{.Usage.RSSKiB}} / {{.Limits.MemoryKiB}} · CPU: {{.Usage.CPUPercent}} / {{.Limits.CPUPercent}}% · threads: {{.Usage.Threads}} / {{.Limits.Threads}} · FDs: {{.Usage.FDs}} / {{.Limits.FDs}} · priority: {{.Limits.Priority}} · {{.Error}}</p>{{else}}<p>No installed modules.</p>{{end}}
+    {{range .Estate.Modules}}<article><p>{{.Identity}} {{.Version}} · {{.Phase}} · enabled: {{.Desired}} · service: {{.ServiceHealthy}} · UI: {{.UIHealthy}} · RSS KiB: {{.Usage.RSSKiB}} / {{.Limits.MemoryKiB}} · CPU: {{.Usage.CPUPercent}} / {{.Limits.CPUPercent}}% · threads: {{.Usage.Threads}} / {{.Limits.Threads}} · FDs: {{.Usage.FDs}} / {{.Limits.FDs}} · priority: {{.Limits.Priority}} · {{.Error}}</p><p>Retained version: {{.RetainedVersion}} · dependencies: {{range .Dependencies}}{{.Identity}} {{.Version}} (optional: {{.Optional}}) {{end}} · capabilities: {{range .Capabilities}}{{.}} {{end}} · outbound: {{range .Outbound}}{{.}} {{end}}</p>
+ <form action="./manage" method="post"><input type="hidden" name="csrf" value="{{$.CSRF}}"><input type="hidden" name="module" value="{{.Identity}}">
+ {{if .Installed}}<button name="operation" value="start">Start / enable on Runtime boot</button><button name="operation" value="stop">Stop / disable</button><button name="operation" value="restart">Restart</button><button name="operation" value="recover">Recover quarantine</button><button name="operation" value="rollback">Roll back to retained version</button><button name="operation" value="remove">Remove (preserve data)</button>{{end}}
+ <button name="operation" value="clear_volatile">Clear cache and temporary data</button></form></article>{{else}}<p>No installed modules.</p>{{end}}
     </section>
-    <p>For app recovery, use Home Assistant Supervisor controls and logs. If Home Assistant is unavailable, use the HAOS host console and <code>ha apps</code> commands.</p>
+    <section><h2>Official catalog</h2><p>Status: {{.Catalog.Status}} · sequence: {{.Catalog.Sequence}}</p><p>Only verified official releases can be installed. An unavailable catalog does not affect existing modules.</p>
+ {{range .Catalog.Items}}<p>{{.Manifest.Identity}} {{.Manifest.Version}} · {{.Manifest.Arch}} · compatible: {{.Compatible}}</p>{{if .Compatible}}<form action="./review" method="get"><input type="hidden" name="module" value="{{.Manifest.Identity}}"><input type="hidden" name="version" value="{{.Manifest.Version}}"><button>Review install / update and dependencies</button></form>{{end}}{{end}}
+ <form action="./manage" method="post"><input type="hidden" name="csrf" value="{{.CSRF}}"><button name="operation" value="refresh_catalog">Refresh official catalog</button></form></section>
+ <section><h2>Storage and recovery</h2><p>Cleanup preserves all active and retained state. Factory reset removes all Runtime and module data, then requires an App restart.</p>
+ <form action="./manage" method="post"><input type="hidden" name="csrf" value="{{.CSRF}}"><button name="operation" value="cleanup">Safe storage cleanup</button></form>
+ <form action="./manage" method="post"><input type="hidden" name="csrf" value="{{.CSRF}}"><label>Type DELETE ALL HOUSEFOLD DATA to confirm <input name="confirmation" autocomplete="off" maxlength="64"></label><button name="operation" value="factory_reset">Factory reset all Housefold data</button></form></section>
+ <p>For app recovery, use Home Assistant Supervisor controls and logs. If Home Assistant is unavailable, use the HAOS host console and <code>ha apps</code> commands.</p>
   </main>
 </body>
 </html>`))
 
-func (s *Service) serveStatus(w http.ResponseWriter) {
+func (s *Service) serveStatus(w http.ResponseWriter, csrf string) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Header().Set("Cache-Control", "no-store")
-	w.Header().Set("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; frame-ancestors 'self'")
+	w.Header().Set("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'self'; frame-ancestors 'self'")
 	current := HAStatus{}
 	if s.status != nil {
 		current = s.status.HA()
 	}
-	page := statusPageData{Bridge: s.status.Bridge(), Estate: s.status.Estate(), Runtime: "Healthy", Phase: "disconnected", Connection: "unavailable", Freshness: "none", LastSuccessful: "Not yet synchronized"}
+	page := statusPageData{CSRF: csrf, Catalog: s.catalogStatus(), Job: s.operation(), Bridge: s.status.Bridge(), Estate: s.status.Estate(), Runtime: "Healthy", Phase: "disconnected", Connection: "unavailable", Freshness: "none", LastSuccessful: "Not yet synchronized"}
 	if s.status.RecoveryRequired() {
 		page.Runtime = "Recovery required: private storage unavailable"
 	}

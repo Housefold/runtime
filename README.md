@@ -6,14 +6,13 @@ resource/lifecycle recovery and optional Bridge enrichment.
 
 ## Current status
 
-**Runtime v1 is externally BLOCKED and not release-ready.** Independent ready
-implementation tasks are committed and development verification passes. The
-current GitHub integration cannot provision the official catalog signing/source
-infrastructure. Production catalog trust remains unconfigured. Full HA-admin
-BIOS, audit/diagnostics, actual distribution and mandatory security/soak/exact-
-artifact disposable-HAOS acceptance remain incomplete. See
-[STATE](docs/agent/STATE.md), [HANDOFF](docs/agent/HANDOFF.md) and
-[exact blocker evidence/resume requirements](docs/agent/evidence/BLOCKED.md).
+**Runtime v1 is incomplete and not release-ready.** The stakeholder authorized
+continuing independent engineering while official catalog provisioning (V1P05)
+remains externally blocked. Production catalog trust stays unconfigured; no
+fixture authority is trusted. HA-admin BIOS is implemented; diagnostics/audit,
+actual distribution and mandatory security/soak/exact-artifact disposable-HAOS
+acceptance remain to complete. See [STATE](docs/agent/STATE.md),
+[HANDOFF](docs/agent/HANDOFF.md) and [blocker evidence](docs/agent/evidence/BLOCKED.md).
 
 Native HA state, actions, discovery and operational signals are composed;
 verified native modules have transactional dependency/lifecycle management,
@@ -21,8 +20,10 @@ private IPC, handover/drain/retention, manual rollback, restart/quarantine,
 bounded resource/pressure/storage policies and conservative cold-backup recovery.
 HA/Bridge/module failure stays separate from Runtime process health. No
 functional module is preinstalled. Credentials stay at Runtime's HA adapters.
-The current ingress page is read-only and peer-restricted; full server-side
-HA-admin authorization/management remains V1P03. There is no host port mapping.
+BIOS checks current HA-admin membership server-side for every read and management
+request. It exposes estate lifecycle, signed catalog review, resource/storage and
+recovery operations; Runtime lifecycle/update/backup/live logs use normal HA App
+controls. There is no host port mapping. Exact HAOS verification remains mandatory.
 
 HA state is memory-only and excluded from status/logs. Native WebSocket freshness
 has the boundary documented in [ADR-003](docs/adr/003-ha-state-cache-and-reconnection.md).

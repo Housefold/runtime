@@ -37,15 +37,18 @@ func localHTTP() *http.Client {
 }
 
 type ModuleSignal struct {
-	Identity       string `json:"module"`
-	Version        string `json:"version"`
-	Generation     uint64 `json:"generation"`
-	Boot           string `json:"boot"`
-	Phase          string `json:"phase"`
-	Desired        bool   `json:"desired"`
-	ServiceHealthy bool   `json:"service_healthy"`
-	UIHealthy      bool   `json:"ui_healthy"`
-	Installed      bool   `json:"installed"`
+	Identity       string               `json:"module"`
+	Version        string               `json:"version"`
+	Generation     uint64               `json:"generation"`
+	Boot           string               `json:"boot"`
+	Phase          string               `json:"phase"`
+	Desired        bool                 `json:"desired"`
+	ServiceHealthy bool                 `json:"service_healthy"`
+	UIHealthy      bool                 `json:"ui_healthy"`
+	Installed      bool                 `json:"installed"`
+	Usage          module.Usage         `json:"usage"`
+	Limits         module.ProcessLimits `json:"limits"`
+	PressurePaused bool                 `json:"pressure_paused"`
 }
 type OperationalSnapshot struct {
 	Runtime         string         `json:"runtime"`
@@ -106,6 +109,9 @@ func (n *Native) call(ctx context.Context, request action.Request) (action.Outco
 		return action.NotSent, ErrNative
 	}
 	outcome, _, err := n.request(ctx, http.MethodPost, "services/"+request.Domain+"/"+request.Service, request.Data, 4096)
+	if outcome == action.Rejected {
+		return outcome, nil
+	} // Explicit HA refusal is a known outcome.
 	return outcome, err
 }
 func (n *Native) request(ctx context.Context, method, path string, raw []byte, limit int64) (action.Outcome, []byte, error) {

@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/signal"
 	"runtime"
+	"runtime/debug"
 	"sync"
 	"syscall"
 	"time"
@@ -30,6 +31,7 @@ const processShutdownTimeout = 9 * time.Second
 var errProcessShutdownTimeout = errors.New("runtime shutdown deadline exceeded")
 
 func main() {
+	debug.SetMemoryLimit(128 << 20)
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
@@ -68,7 +70,7 @@ func run(ctx context.Context, address string, logger *slog.Logger, recovery ...b
 			arch = "aarch64"
 		}
 		client := catalog.New(durable.NewFile("/data/housefold/catalog.json"), arch)
-		owner := estate.New(estate.Config{Root: "/data/housefold", Source: source.(*ha.StateSession), Logger: logger, OnRecovery: status.SetRecoveryRequired, Authority: catalog.OfficialAuthority(), Catalog: client, Actions: native, Discovery: native})
+		owner := estate.New(estate.Config{Root: "/data/housefold", Trampoline: "/module-launcher", Source: source.(*ha.StateSession), Logger: logger, OnRecovery: status.SetRecoveryRequired, Authority: catalog.OfficialAuthority(), Catalog: client, Actions: native, Discovery: native})
 		status.SetEstate(owner)
 		native.SetDiscoverySink(owner.PublishDiscovery)
 		native.SetSignals(owner.OperationalSnapshot)

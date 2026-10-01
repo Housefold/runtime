@@ -464,3 +464,51 @@ changes and fresh HA generations; it creates no administrative buttons/services.
 This adapter survives estate integrity failure and joins separately at shutdown.
 Native HA/module capability loss does not independently fail the Runtime watchdog.
 Real HAOS protocol/permissions/lifecycle proof remains mandatory V1P14.
+
+## Production resource and storage policy (V1P08)
+
+Signed manifests carry requests, limits and essential/normal/background priority.
+Zero fields choose requests of 4 MiB/1% CPU/4 threads/8 FDs and limits of
+128 MiB/50% CPU/64 threads/64 FDs. Signed limits cannot exceed 512 MiB/100%
+CPU/128 threads/256 FDs; requests cannot exceed limits. Desired installed
+requests admit at most 512 MiB/100% CPU/192 threads/768 FDs. Process count
+remains sixteen including preparation. These are provisional engineering
+ceilings; V1P13 must justify release thresholds on supported infrastructure.
+
+The packaged native launcher locks its OS thread through exec, raises module
+OOM preference, applies priority nice values 5/10/15, hard descriptor and
+shared-UID process ceilings, no-new-privileges and inherited seccomp guards
+against process-group/namespace escape and LAN listeners. Artifact fd4 and
+launch metadata never survive exec. Children retain only fd3 IPC and Go memory/
+scheduler hints. CPU/RSS/thread/aggregate-FD/process limits are sampled over
+the owned process group, not claimed as per-module kernel cgroup enforcement.
+Three consecutive violations or unavailable samples enter the ordinary same-
+version restart/quarantine path. Short bursts clear the counter. Runtime never
+signals a group after reaping its leader; joining also checks descendants.
+
+Runtime has a 128 MiB Go soft memory target, bounded HTTP connections (64),
+existing transport/input/queue ceilings and private group ownership. Host memory
+availability, this App's cgroup working set (excluding inactive file cache),
+pid headroom, Runtime RSS/threads/FDs and managed aggregate usage drive pressure.
+Runtime RSS above 256 MiB or managed RSS above 512 MiB triggers Housefold-only
+pressure handling. One background, then normal, then essential victim is stopped
+per tick, with stable identity tie-breaking. Desired intent and pressure pause
+are preserved; pressure does not consume a healthy module's crash budget.
+Five consecutive clear samples resume one module at a time in reverse priority
+with a fresh epoch. Startup also samples host headroom before launch. Neither
+HA Core nor unrelated Apps are enumerated for management or signaled. Usage,
+limits, priority, pauses and coarse host/storage metrics are visible in estate
+status/ingress and module operational HA attributes.
+
+Storage reserves 64 MiB plus expected atomic-write headroom; write failures
+fence writes and preserve current bytes. A successful sync probe with at least
+96 MiB free permits recovery. The estate accounting ceiling is 1 GiB, traversal
+is capped at 20,000 entries with bounded per-directory allocation and depth.
+GC is serialized with lifecycle and validates the complete tree before deletion.
+It removes abandoned staged artifacts, obsolete cache/temp generations, then
+obsolete unreferenced durable generations/artifacts. Inventory current/previous/
+pending, all router references, execution references and unjoined children form
+its protected set. Removal/disable keeps selected and retained data. Linked,
+unknown or unaccountable entries fail closed; no selected durable store is
+silently reset to gain space. Detailed HAOS OOM/pressure/shutdown behavior remains
+mandatory security/soak/acceptance evidence, not established by these tests.

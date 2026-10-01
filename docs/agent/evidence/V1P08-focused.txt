@@ -1,0 +1,4 @@
+ok  	github.com/housefold/runtime/internal/estate	4.405s
+ok  	github.com/housefold/runtime/internal/supervisor	1.027s
+ok  	github.com/housefold/runtime/internal/hacontrol	1.142s
+ok  	github.com/housefold/runtime/internal/packageverify	(cached)

@@ -169,8 +169,8 @@ func (s *StateSession) broadcastLocked(event state.Event) {
 		return
 	}
 	size := eventSize(event)
-	// Each admitted subscriber reserves 8 MiB; four subscribers bound total
-	// queued canonical payload to 32 MiB without evicting unrelated consumers.
+	// Each admitted subscriber reserves 8 MiB; sixteen subscribers bound total
+	// queued canonical payload to 128 MiB without evicting unrelated consumers.
 	for sub := range s.subscribers {
 		if len(sub.queue) >= maxSubscriptionEvents || sub.bytes+size > maxSubscriptionBytes {
 			sub.finishLocked(state.ErrOverflow)

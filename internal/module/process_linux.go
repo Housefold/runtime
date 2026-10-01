@@ -4,6 +4,7 @@ package module
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -16,6 +17,7 @@ import (
 	"sync"
 	"syscall"
 	"time"
+	"unsafe"
 )
 
 const JoinTimeout = 2 * time.Second
@@ -23,21 +25,27 @@ const MaxChildren = 16
 
 var childSlots = make(chan struct{}, MaxChildren)
 
-// LocalLaunch is an explicit local artifact boundary. Production catalog and
-// operator approval wiring are deliberately absent. No parent env is copied.
+// LocalLaunch executes an already verified local artifact. Production callers
+// supply the packaged guard trampoline. No parent environment is copied.
 type LocalLaunch struct {
 	Path        string
 	Args        []string
 	Identity    Identity
 	RSSLimitKiB uint64
+	Trampoline  string
+	Limits      ProcessLimits
 }
 type Process struct {
-	Session *Session
-	cmd     *exec.Cmd
-	done    chan struct{}
-	mu      sync.Mutex
-	err     error
-	limit   uint64
+	Session   *Session
+	cmd       *exec.Cmd
+	done      chan struct{}
+	mu        sync.Mutex
+	err       error
+	limit     uint64
+	birth     uint64
+	sampleAt  time.Time
+	sampleCPU uint64
+	killed    bool
 }
 
 func LaunchLocal(ctx context.Context, spec LocalLaunch) (*Process, error) {
@@ -73,6 +81,27 @@ func LaunchLocal(ctx context.Context, spec LocalLaunch) (*Process, error) {
 	cmd := exec.Command(spec.Path, spec.Args...)
 	cmd.Env = []string{"HOUSEFOLD_IPC_FD=3"}
 	cmd.ExtraFiles = []*os.File{child}
+	if spec.Trampoline != "" {
+		if !filepath.IsAbs(spec.Trampoline) || !ValidLimits(spec.Limits) {
+			conn.Close()
+			return nil, ErrProtocol
+		}
+		info, err := os.Lstat(spec.Path)
+		if err != nil || !info.Mode().IsRegular() {
+			conn.Close()
+			return nil, ErrProtocol
+		}
+		artifact, err := os.Open(spec.Path)
+		if err != nil {
+			conn.Close()
+			return nil, err
+		}
+		defer artifact.Close()
+		raw, _ := json.Marshal(launchSettings{Limits: spec.Limits, Args: spec.Args, Name: spec.Path})
+		cmd = exec.Command(spec.Trampoline)
+		cmd.Env = []string{"HOUSEFOLD_LAUNCH_SETTINGS=" + string(raw), "GOMAXPROCS=1"}
+		cmd.ExtraFiles = []*os.File{child, artifact}
+	}
 	cmd.Stdin = nil
 	output, err := os.OpenFile(os.DevNull, os.O_WRONLY, 0)
 	if err != nil {
@@ -84,7 +113,7 @@ func LaunchLocal(ctx context.Context, spec LocalLaunch) (*Process, error) {
 	// keep open after the direct child exits, preventing Wait from joining.
 	cmd.Stdout = output
 	cmd.Stderr = output
-	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true, Pdeathsig: syscall.SIGKILL}
 	if err = markDescriptors(); err != nil {
 		conn.Close()
 		return nil, err
@@ -93,13 +122,37 @@ func LaunchLocal(ctx context.Context, spec LocalLaunch) (*Process, error) {
 		conn.Close()
 		return nil, err
 	}
-	p := &Process{Session: NewSession(conn, spec.Identity), cmd: cmd, done: make(chan struct{}), limit: spec.RSSLimitKiB}
+	stat, err := readProc(cmd.Process.Pid)
+	if err != nil {
+		_ = syscall.Kill(-cmd.Process.Pid, syscall.SIGKILL)
+		_ = cmd.Wait()
+		conn.Close()
+		return nil, err
+	}
+	p := &Process{Session: NewSession(conn, spec.Identity), cmd: cmd, done: make(chan struct{}), limit: spec.RSSLimitKiB, birth: stat.Start}
 	stop := context.AfterFunc(ctx, func() { p.kill() })
 	success = true
 	go func() {
+		// Hold the leader as a zombie until the group is killed. Reaping first
+		// permits PID reuse and could signal an unrelated later process group.
+		var info [128]byte
+		for {
+			_, _, errno := syscall.Syscall6(syscall.SYS_WAITID, 1, uintptr(cmd.Process.Pid), uintptr(unsafe.Pointer(&info[0])), 4|0x01000000, 0, 0)
+			if errno == syscall.EINTR {
+				continue
+			}
+			break
+		}
+		p.kill()
 		err := cmd.Wait()
-		_ = syscall.Kill(-cmd.Process.Pid, syscall.SIGKILL)
 		p.Session.Close()
+		for {
+			members, scanErr := groupMembers(cmd.Process.Pid, p.birth)
+			if scanErr == nil && len(members) == 0 {
+				break
+			}
+			time.Sleep(10 * time.Millisecond)
+		}
 		stop()
 		p.mu.Lock()
 		p.err = err
@@ -110,14 +163,18 @@ func LaunchLocal(ctx context.Context, spec LocalLaunch) (*Process, error) {
 	return p, nil
 }
 func (p *Process) kill() {
-	select {
-	case <-p.done:
+	p.mu.Lock()
+	if p.killed {
+		p.mu.Unlock()
 		return
-	default:
 	}
+	p.killed = true
+	// The only reaper invokes kill before Wait, so this PID is still reserved.
 	_ = syscall.Kill(-p.cmd.Process.Pid, syscall.SIGKILL)
+	p.mu.Unlock()
 	p.Session.Close()
 }
+
 func (p *Process) Done() <-chan struct{} { return p.done }
 func (p *Process) Wait(ctx context.Context) error {
 	select {
@@ -137,8 +194,12 @@ func (p *Process) Stop(ctx context.Context) error {
 }
 
 type Usage struct {
-	RSSKiB  uint64
-	Threads uint64
+	RSSKiB     uint64
+	Threads    uint64
+	FDs        uint64
+	Processes  uint64
+	CPUTicks   uint64
+	CPUPercent uint64
 }
 
 // Observe uses a bounded Linux proc read. An observed RSS violation kills the

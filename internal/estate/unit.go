@@ -41,6 +41,9 @@ type unit struct {
 	schedules                      map[string]timeline.Schedule
 	canceled                       map[string]time.Time
 	permissions                    map[string]bool
+	usage                          module.Usage
+	violations                     int
+	limits                         module.ProcessLimits
 }
 
 func (u *unit) Stop(ctx context.Context) error {
@@ -91,6 +94,18 @@ func (u *unit) reply(frame module.Frame, value any, err error) error {
 	return err
 }
 func (e *Engine) startUnit(ctx context.Context, id module.Identity, b Bundle) (*unit, error) {
+	if err := e.checkSpace(32 << 20); err != nil {
+		return nil, err
+	}
+	sample := e.config.SampleResources
+	if sample == nil {
+		sample = sampleHost
+	}
+	host, err := sample(e.config.Root)
+	if err != nil || (host.TotalKiB > 0 && host.AvailableKiB < max(uint64(64*1024), host.TotalKiB/20)) || (host.CgroupMemoryLimit > 0 && host.CgroupMemoryBytes > host.CgroupMemoryLimit*85/100) || (host.CgroupPIDLimit > 0 && host.CgroupPIDs+32 >= host.CgroupPIDLimit) || host.Runtime.RSSKiB > RuntimeRSSKiB {
+		return nil, ErrResources
+	}
+
 	stores := map[string]*module.StateStore{}
 	for _, scope := range []string{"persistent", "cache", "generation", "temp"} {
 		s, err := module.AllocateState(e.stateRoot(scope), id)
@@ -100,16 +115,14 @@ func (e *Engine) startUnit(ctx context.Context, id module.Identity, b Bundle) (*
 		stores[scope] = s
 	}
 	childCtx, cancel := context.WithCancel(e.ctx)
-	limit := b.declaration().Resources.MemoryKiB
-	if limit == 0 {
-		limit = 128 * 1024
-	}
-	p, err := module.LaunchLocal(childCtx, module.LocalLaunch{Path: e.archivePath(b.declaration().ArtifactDigest), Identity: id, RSSLimitKiB: limit})
+	limits := limitsFor(b.declaration())
+	p, err := module.LaunchLocal(childCtx, module.LocalLaunch{Path: e.archivePath(b.declaration().ArtifactDigest), Identity: id, Trampoline: e.config.Trampoline, Limits: limits})
 	if err != nil {
 		cancel()
 		return nil, err
 	}
 	u := &unit{engine: e, process: p, identity: id, stores: stores, ctx: childCtx, cancel: cancel, readDone: make(chan struct{}), workersDone: make(chan struct{}), ready: make(chan struct{}), rpcGate: make(chan struct{}, 1), actions: make(chan struct{}, 2), phase: module.Preparing, schedules: map[string]timeline.Schedule{}, canceled: map[string]time.Time{}}
+	u.limits = limits
 	u.permissions = map[string]bool{}
 	for _, capability := range b.declaration().Capabilities {
 		u.permissions[capability] = true
@@ -483,7 +496,10 @@ func (u *unit) storage(f module.Frame) error {
 		if frozen || len(request.Value) > 512<<10 {
 			err = module.ErrFenced
 		} else {
-			err = store.Write(request.Key, request.Value)
+			err = u.engine.checkSpace(uint64(len(request.Value))*3 + 24<<20)
+			if err == nil {
+				err = store.Write(request.Key, request.Value)
+			}
 		}
 	} else {
 		value, err = store.Read(request.Key)

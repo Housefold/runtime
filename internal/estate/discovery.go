@@ -38,7 +38,7 @@ func (e *Engine) OperationalSnapshot() hacontrol.OperationalSnapshot {
 	snapshot := e.Snapshot()
 	out := hacontrol.OperationalSnapshot{Runtime: snapshot.Phase, StorageDegraded: snapshot.StorageDegraded, Catalog: e.CatalogStatus(time.Now().UTC()).Status}
 	for _, m := range snapshot.Modules {
-		out.Modules = append(out.Modules, hacontrol.ModuleSignal{Identity: m.Identity, Version: m.Version, Boot: e.boot, Generation: m.Generation, Phase: m.Phase, Desired: m.Desired, ServiceHealthy: m.ServiceHealthy, UIHealthy: m.UIHealthy, Installed: m.Installed})
+		out.Modules = append(out.Modules, hacontrol.ModuleSignal{Identity: m.Identity, Version: m.Version, Boot: e.boot, Generation: m.Generation, Phase: m.Phase, Desired: m.Desired, ServiceHealthy: m.ServiceHealthy, UIHealthy: m.UIHealthy, Installed: m.Installed, Usage: m.Usage, Limits: m.Limits, PressurePaused: m.PressurePaused})
 	}
 	return out
 }

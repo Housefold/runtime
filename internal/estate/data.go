@@ -49,12 +49,13 @@ func (b Bundle) declaration() (m packageverify.Manifest) {
 }
 
 type Entry struct {
-	Installed   bool
-	Desired     bool
-	Current     *Bundle
-	Previous    *Bundle
-	Pending     *Bundle
-	UpdateError string
+	Installed      bool
+	Desired        bool
+	Current        *Bundle
+	Previous       *Bundle
+	Pending        *Bundle
+	UpdateError    string
+	PressurePaused bool
 }
 type Inventory struct {
 	Version int
@@ -69,22 +70,31 @@ type ModuleStatus struct {
 	ServiceHealthy, UIHealthy bool
 	Accepting                 bool
 	Error                     string
+	Usage                     module.Usage
+	Limits                    module.ProcessLimits
+	Requests                  packageverify.Resources
+	PressurePaused            bool
 }
 type Snapshot struct {
 	StorageDegraded bool
 	Phase           string
+	Resources       ResourceStatus
 	Modules         []ModuleStatus
 }
 type Config struct {
-	Root         string
-	Source       *ha.StateSession
-	Authority    packageverify.Authority
-	Actions      action.Transport
-	Logger       *slog.Logger
-	OnRecovery   func()
-	StoreFactory func(string) durable.Store
-	Catalog      *catalog.Client
-	Discovery    interface {
+	Root            string
+	Trampoline      string
+	SampleResources func(string) (HostResources, error)
+	SampleUsage     func(*module.Process) (module.Usage, error)
+	FreeSpace       func(string) (uint64, error)
+	Source          *ha.StateSession
+	Authority       packageverify.Authority
+	Actions         action.Transport
+	Logger          *slog.Logger
+	OnRecovery      func()
+	StoreFactory    func(string) durable.Store
+	Catalog         *catalog.Client
+	Discovery       interface {
 		DiscoverySnapshot() (discovery.Snapshot, bool)
 	}
 }
@@ -110,6 +120,8 @@ type Engine struct {
 	bindings        *discovery.Generator
 	bindingSource   []byte
 	bindingFresh    bool
+	resources       ResourceStatus
+	pressureClear   int
 }
 
 func New(config Config) *Engine {
@@ -145,6 +157,9 @@ func (s ownedStore) Save(raw []byte) error {
 	s.engine.mu.Unlock()
 	if blocked {
 		return ErrStorage
+	}
+	if err := s.engine.checkSpace(uint64(len(raw)) * 2); err != nil {
+		return err
 	}
 	err := s.store.Save(raw)
 	if errors.Is(err, durable.ErrUncertain) || errors.Is(err, durable.ErrCorrupt) {
@@ -424,7 +439,7 @@ func (e *Engine) Snapshot() Snapshot {
 		e.mu.Unlock()
 		return Snapshot{Phase: phase}
 	}
-	out := Snapshot{Phase: e.phase, StorageDegraded: e.storageDegraded}
+	out := Snapshot{Phase: e.phase, StorageDegraded: e.storageDegraded, Resources: e.resources}
 	d := cloneInventory(e.inv)
 	units := make(map[uint64]*unit, len(e.units))
 	for n, u := range e.units {
@@ -440,11 +455,21 @@ func (e *Engine) Snapshot() Snapshot {
 		sel := rd.Modules[id]
 		g := rd.Generations[sel.Active]
 		status := ModuleStatus{Identity: id, Installed: entry.Installed, Desired: entry.Desired, Version: g.Version, Generation: g.Number, Phase: string(g.Phase), Error: entry.UpdateError, Accepting: r != nil && r.Accepting(id)}
+		status.PressurePaused = entry.PressurePaused
+		if entry.Current != nil {
+			status.Limits = limitsFor(entry.Current.declaration())
+			status.Requests = packageverify.EffectiveRequests(entry.Current.declaration().Requests)
+		}
 		if u := units[g.Number]; u != nil {
 			u.mu.Lock()
 			status.ServiceHealthy = u.service
 			status.UIHealthy = u.ui
+			status.Usage = u.usage
 			u.mu.Unlock()
+		}
+		if entry.PressurePaused {
+			status.Phase = "PRESSURE_PAUSED"
+			status.Accepting = false
 		}
 		if status.Phase == "" {
 			status.Phase = "STOPPED"
@@ -494,6 +519,9 @@ func (e *Engine) verify(b Bundle, artifact []byte, now time.Time) (packageverify
 	return review, nil
 }
 func (e *Engine) writeArtifact(digest string, raw []byte) error {
+	if err := e.checkSpace(uint64(len(raw))); err != nil {
+		return err
+	}
 	path := e.archivePath(digest)
 	if info, err := os.Lstat(path); err == nil {
 		if !info.Mode().IsRegular() || info.Size() > packageverify.MaxArtifact {

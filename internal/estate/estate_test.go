@@ -61,7 +61,7 @@ func bundle(t *testing.T, key ed25519.PrivateKey, id, version, mode string, deps
 func fixtureEngine(t *testing.T) (*Engine, ed25519.PrivateKey) {
 	t.Helper()
 	key := ed25519.NewKeyFromSeed(make([]byte, ed25519.SeedSize))
-	e := New(Config{Root: filepath.Join(t.TempDir(), "estate"), Authority: packageverify.Authority{KeyID: "synthetic", PublicKey: key.Public().(ed25519.PublicKey)}, Logger: slog.New(slog.NewTextHandler(io.Discard, nil))})
+	e := New(Config{Root: filepath.Join(t.TempDir(), "estate"), SampleResources: healthyHost, Authority: packageverify.Authority{KeyID: "synthetic", PublicKey: key.Public().(ed25519.PublicKey)}, Logger: slog.New(slog.NewTextHandler(io.Discard, nil))})
 	if err := e.initialize(time.Now().UTC()); err != nil {
 		t.Fatal(err)
 	}

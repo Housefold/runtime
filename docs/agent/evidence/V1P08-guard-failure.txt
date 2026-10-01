@@ -1,0 +1,5 @@
+--- FAIL: TestPackagedTrampolineGuardsAndLimits (0.27s)
+    limits_linux_test.go:136: {  []} read unix @->@: use of closed network connection exit status 52
+FAIL
+FAIL	github.com/housefold/runtime/internal/module	2.933s
+FAIL

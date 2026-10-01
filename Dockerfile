@@ -19,7 +19,9 @@ RUN --mount=type=secret,id=proxy_ca \
     esac && \
     CGO_ENABLED=0 GOOS=linux GOARCH="${goarch}" \
       go build -trimpath -ldflags="-s -w -X main.buildVersion=${BUILD_VERSION} -X main.buildSource=${BUILD_SOURCE}" \
-      -o /out/housefold-runtime ./cmd/runtime
+      -o /out/housefold-runtime ./cmd/runtime && \
+    CGO_ENABLED=0 GOOS=linux GOARCH="${goarch}" \
+      go build -trimpath -ldflags="-s -w" -o /out/module-launcher ./cmd/module-launcher
 
 FROM scratch
 ARG BUILD_ARCH
@@ -32,6 +34,7 @@ LABEL io.hass.version="${BUILD_VERSION}" \
       org.opencontainers.image.revision="${BUILD_SOURCE}" \
       org.opencontainers.image.source="https://github.com/Housefold/runtime"
 COPY --from=build /out/housefold-runtime /housefold-runtime
+COPY --from=build /out/module-launcher /module-launcher
 COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 COPY --from=build --chown=10001:10001 /out/data/ /data/
 # Only the bounded Go bootstrap runs as root; it drops to UID/GID 10001 before listening.

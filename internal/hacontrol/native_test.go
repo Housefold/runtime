@@ -57,7 +57,7 @@ func TestNativeExplicitAndUnknownOutcomesNeverRetry(t *testing.T) {
 				_, _ = w.Write([]byte(`{"household_value":"must-not-return"}`))
 			})
 			outcome, err := n.Call(context.Background(), nativeRequest())
-			if outcome != row.want || (err == nil) != (row.want == action.Accepted) || calls.Load() != 1 || target.Load() != 0 {
+			if outcome != row.want || (err == nil) != (row.want == action.Accepted || row.want == action.Rejected) || calls.Load() != 1 || target.Load() != 0 {
 				t.Fatal(outcome, err, calls.Load(), target.Load())
 			}
 			if err != nil && (strings.Contains(err.Error(), "SYNTHETIC_SUPERVISOR") || strings.Contains(err.Error(), "household_value")) {
@@ -322,5 +322,46 @@ func TestNativeGatewayUnknownIsDurableAndStaleAuthorityNeverCallsHA(t *testing.T
 	request.ID = "fresh-after-cutover"
 	if record, err = recovered.Submit(context.Background(), id, request); err == nil || record.Outcome != action.NotSent || calls.Load() != 1 {
 		t.Fatal("stale authority reached native HA", record, err, calls.Load())
+	}
+}
+
+func TestNativeExplicitRejectionIsDurableKnownOutcome(t *testing.T) {
+	var calls atomic.Int32
+	n := nativeFixture(t, func(w http.ResponseWriter, r *http.Request) { calls.Add(1); w.WriteHeader(http.StatusForbidden) })
+	root := t.TempDir()
+	manager, err := execution.Open(durable.NewFile(filepath.Join(root, "execution")))
+	if err != nil {
+		t.Fatal(err)
+	}
+	router, err := module.OpenRouter(durable.NewFile(filepath.Join(root, "router")), manager, "synthetic-boot")
+	if err != nil {
+		t.Fatal(err)
+	}
+	id, err := router.Prepare("synthetic", "1.0.0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err = router.Ready(id, true, nil); err != nil {
+		t.Fatal(err)
+	}
+	if err = router.Cutover(id, time.Now()); err != nil {
+		t.Fatal(err)
+	}
+	path := filepath.Join(root, "actions")
+	gateway, err := action.Open(durable.NewFile(path), router, n)
+	if err != nil {
+		t.Fatal(err)
+	}
+	record, err := gateway.Submit(context.Background(), id, nativeRequest())
+	if err != nil || record.Outcome != action.Rejected {
+		t.Fatal(record, err)
+	}
+	gateway, err = action.Open(durable.NewFile(path), router, n)
+	if err != nil {
+		t.Fatal(err)
+	}
+	record, err = gateway.Submit(context.Background(), id, nativeRequest())
+	if err != nil || record.Outcome != action.Rejected || calls.Load() != 1 {
+		t.Fatal("known rejection lost or resent", record, err, calls.Load())
 	}
 }

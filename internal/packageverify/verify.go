@@ -54,6 +54,7 @@ type Resources struct {
 }
 type Manifest struct {
 	Dependencies     []Dependency `json:"dependencies,omitempty"`
+	Requests         Resources    `json:"requests,omitempty"`
 	Resources        Resources    `json:"resources,omitempty"`
 	Priority         string       `json:"priority,omitempty"`
 	Outbound         []string     `json:"outbound,omitempty"`
@@ -127,6 +128,11 @@ func Inspect(authority Authority, catalog, manifest Signed, now time.Time) (Revi
 		return review, ErrInvalid
 	}
 	if len(m.Dependencies) > 32 || len(m.Outbound) > 32 || m.Resources.MemoryKiB > 512*1024 || m.Resources.CPUPercent > 100 || m.Resources.Threads > 128 || m.Resources.FDs > 256 {
+		return review, ErrInvalid
+	}
+	limits := EffectiveLimits(m.Resources)
+	requests := EffectiveRequests(m.Requests)
+	if limits.MemoryKiB < 4096 || limits.Threads < 4 || limits.FDs < 16 || requests.MemoryKiB > limits.MemoryKiB || requests.CPUPercent > limits.CPUPercent || requests.Threads > limits.Threads || requests.FDs > limits.FDs {
 		return review, ErrInvalid
 	}
 	if m.Priority != "" && m.Priority != "essential" && m.Priority != "normal" && m.Priority != "background" {
@@ -209,4 +215,36 @@ func VerifyCatalog(authority Authority, signed Signed, now time.Time) (Catalog, 
 		seen[key] = true
 	}
 	return c, nil
+}
+
+// Zero declarations select conservative defaults, never unlimited resources.
+func EffectiveLimits(r Resources) Resources {
+	if r.MemoryKiB == 0 {
+		r.MemoryKiB = 128 * 1024
+	}
+	if r.CPUPercent == 0 {
+		r.CPUPercent = 50
+	}
+	if r.Threads == 0 {
+		r.Threads = 64
+	}
+	if r.FDs == 0 {
+		r.FDs = 64
+	}
+	return r
+}
+func EffectiveRequests(r Resources) Resources {
+	if r.MemoryKiB == 0 {
+		r.MemoryKiB = 4096
+	}
+	if r.CPUPercent == 0 {
+		r.CPUPercent = 1
+	}
+	if r.Threads == 0 {
+		r.Threads = 4
+	}
+	if r.FDs == 0 {
+		r.FDs = 8
+	}
+	return r
 }

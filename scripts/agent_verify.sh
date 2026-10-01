@@ -26,6 +26,8 @@ out="$(mktemp -d)"
 trap 'rm -rf "$out"' EXIT
 CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -o "$out/runtime-amd64" ./cmd/runtime
 CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -trimpath -o "$out/runtime-arm64" ./cmd/runtime
+CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -o "$out/launcher-amd64" ./cmd/module-launcher
+CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -trimpath -o "$out/launcher-arm64" ./cmd/module-launcher
 if [[ "${1:-}" == "--images" ]]; then
   command -v docker >/dev/null || { echo "BLOCKED: Docker/buildx required" >&2; exit 2; }
   docker buildx version

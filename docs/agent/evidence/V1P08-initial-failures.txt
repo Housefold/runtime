@@ -1,0 +1,15 @@
+--- FAIL: TestBoundedCrashQuarantineSurvivesReboot (0.21s)
+    estate_test.go:278: restart missing before budget exhausted
+--- FAIL: TestProductionScheduleAdmissionAndCancellation (0.41s)
+    --- FAIL: TestProductionScheduleAdmissionAndCancellation/schedule (0.20s)
+        estate_test.go:398: schedule not durably admitted/acknowledged
+    --- FAIL: TestProductionScheduleAdmissionAndCancellation/hold_execution (0.21s)
+        estate_test.go:428: set unix @: use of closed network connection
+FAIL
+FAIL	github.com/housefold/runtime/internal/estate	1.803s
+ok  	github.com/housefold/runtime/internal/module	0.224s
+ok  	github.com/housefold/runtime/internal/packageverify	0.018s
+ok  	github.com/housefold/runtime/internal/hacontrol	0.079s
+ok  	github.com/housefold/runtime/internal/supervisor	0.013s
+ok  	github.com/housefold/runtime/cmd/runtime	9.030s
+FAIL

@@ -134,9 +134,9 @@
         "V1P04"
       ],
       "kind": "implementation",
-      "status": "todo",
+      "status": "done",
       "approval_required": null,
-      "evidence": null,
+      "evidence": "docs/agent/evidence/V1P08.md",
       "blocker": null,
       "acceptance": [
         "Support module resource requests/limits, Runtime safety ceilings, visible usage and priority classes; sustained violations use normal restart/quarantine semantics.",

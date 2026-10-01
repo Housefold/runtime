@@ -99,7 +99,7 @@ func (s *Service) Run(ctx context.Context, listener net.Listener) error {
 	}
 	serveDone := make(chan error, 1)
 	go func() {
-		serveDone <- server.Serve(listener)
+		serveDone <- server.Serve(&boundedListener{Listener: listener, slots: make(chan struct{}, MaxConnections)})
 	}()
 
 	select {
@@ -221,8 +221,8 @@ var statusPage = template.Must(template.New("status").Parse(`<!doctype html>
 	  <p>Runtime process health is independent of Home Assistant availability. Cached state remains stale until a complete new generation is synchronized.</p>
     </section>
     <section aria-labelledby="modules-heading"><h2 id="modules-heading">Modules</h2>
-    <p>Estate: {{.Estate.Phase}}. Storage writes degraded: {{.Estate.StorageDegraded}}</p>
-    {{range .Estate.Modules}}<p>{{.Identity}} {{.Version}} · {{.Phase}} · enabled: {{.Desired}} · service: {{.ServiceHealthy}} · UI: {{.UIHealthy}} · {{.Error}}</p>{{else}}<p>No installed modules.</p>{{end}}
+    <p>Estate: {{.Estate.Phase}}. Pressure: {{.Estate.Resources.Pressure}}. Runtime RSS KiB: {{.Estate.Resources.Host.Runtime.RSSKiB}}. Managed RSS KiB: {{.Estate.Resources.Managed.RSSKiB}}. Storage bytes: {{.Estate.Resources.StorageBytes}}. Free bytes: {{.Estate.Resources.FreeBytes}}. Storage writes degraded: {{.Estate.StorageDegraded}}</p>
+    {{range .Estate.Modules}}<p>{{.Identity}} {{.Version}} · {{.Phase}} · enabled: {{.Desired}} · service: {{.ServiceHealthy}} · UI: {{.UIHealthy}} · RSS KiB: {{.Usage.RSSKiB}} / {{.Limits.MemoryKiB}} · CPU: {{.Usage.CPUPercent}} / {{.Limits.CPUPercent}}% · threads: {{.Usage.Threads}} / {{.Limits.Threads}} · FDs: {{.Usage.FDs}} / {{.Limits.FDs}} · priority: {{.Limits.Priority}} · {{.Error}}</p>{{else}}<p>No installed modules.</p>{{end}}
     </section>
     <p>For app recovery, use Home Assistant Supervisor controls and logs. If Home Assistant is unavailable, use the HAOS host console and <code>ha apps</code> commands.</p>
   </main>

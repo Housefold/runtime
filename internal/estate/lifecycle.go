@@ -82,6 +82,9 @@ func (e *Engine) Ready(ctx context.Context) error {
 	}
 }
 func (e *Engine) plan(d Inventory) ([]string, error) {
+	if err := resourceAdmission(d); err != nil {
+		return nil, err
+	}
 	count := 0
 	for _, row := range d.Modules {
 		if row.Installed {
@@ -676,6 +679,9 @@ func (e *Engine) Reconcile(now time.Time) error {
 	if err := e.router.Drain(now); err != nil {
 		return err
 	}
+	if err := e.resourceTick(now); err != nil {
+		return err
+	}
 	order, err := e.plan(e.inv)
 	if err != nil {
 		return err
@@ -683,7 +689,7 @@ func (e *Engine) Reconcile(now time.Time) error {
 	data := e.router.Snapshot()
 	for _, id := range order {
 		row := e.inv.Modules[id]
-		if row.Current == nil {
+		if row.Current == nil || row.PressurePaused {
 			continue
 		}
 		sel := data.Modules[id]
@@ -716,7 +722,7 @@ func (e *Engine) Reconcile(now time.Time) error {
 				}
 				e.forget(g.Number)
 			default:
-				if _, err = u.process.Observe(); err != nil {
+				if err = e.observeUnit(u); err != nil {
 					if err = e.router.Crash(u.identity, now); err != nil {
 						return err
 					}
@@ -844,5 +850,5 @@ func (e *Engine) Reconcile(now time.Time) error {
 			e.forget(g.Number)
 		}
 	}
-	return nil
+	return e.collectStorage(false)
 }

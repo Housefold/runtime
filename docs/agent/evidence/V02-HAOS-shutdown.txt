@@ -1,0 +1,30 @@
+cat /mnt/data/runtime-tests-repeat.log
+=== RUN   TestRunListenerServesHealthAndStopsStateSession
+--- PASS: TestRunListenerServesHealthAndStopsStateSession (0.07s)
+=== RUN   TestRunListenerFailureCancelsStateSession
+--- PASS: TestRunListenerFailureCancelsStateSession (0.00s)
+=== RUN   TestRunReturnsListenFailure
+--- PASS: TestRunReturnsListenFailure (0.00s)
+=== RUN   TestWholeProcessJoinHasDeadline
+    main_test.go:149: stalled-worker whole process start-to-exit: 9.053249871s
+--- PASS: TestWholeProcessJoinHasDeadline (9.06s)
+=== RUN   TestRunListenerServesHealthAndStopsStateSession
+--- PASS: TestRunListenerServesHealthAndStopsStateSession (0.01s)
+=== RUN   TestRunListenerFailureCancelsStateSession
+--- PASS: TestRunListenerFailureCancelsStateSession (0.00s)
+=== RUN   TestRunReturnsListenFailure
+--- PASS: TestRunReturnsListenFailure (0.00s)
+=== RUN   TestWholeProcessJoinHasDeadline
+    main_test.go:149: stalled-worker whole process start-to-exit: 9.035392497s
+--- PASS: TestWholeProcessJoinHasDeadline (9.04s)
+=== RUN   TestRunListenerServesHealthAndStopsStateSession
+--- PASS: TestRunListenerServesHealthAndStopsStateSession (0.01s)
+=== RUN   TestRunListenerFailureCancelsStateSession
+--- PASS: TestRunListenerFailureCancelsStateSession (0.00s)
+=== RUN   TestRunReturnsListenFailure
+--- PASS: TestRunReturnsListenFailure (0.00s)
+=== RUN   TestWholeProcessJoinHasDeadline
+    main_test.go:149: stalled-worker whole process start-to-exit: 9.043618132s
+--- PASS: TestWholeProcessJoinHasDeadline (9.04s)
+PASS
+# 

@@ -1,20 +1,17 @@
-# Remaining gates
+# Queue completion and production validation
 
-[AGENTS.md](../../AGENTS.md) requires: “Keep proposals proposed until explicit
-maintainer acceptance.” [DECISIONS.md](DECISIONS.md) adds: “Do not automatically
-treat a completed proposal task as an accepted decision.” The ledger's original
-approval_required fields are unchanged; the instruction to carry out the task
-queue authorizes the concrete proposal work, not acceptance of unwritten designs.
+ADR-007/008/009 were explicitly accepted on 2026-10-01. The later stakeholder
+instruction to ignore blockers authorized B03 implementation and explicit
+environment waivers after available checks. The final ledger has 25 done tasks
+and one terminal R07 waiver; there are no blocked/ready/active approval gates.
 
-- G01 needs explicit maintainer acceptance of [ADR-007](../adr/007-public-consumer-and-action-contracts.md)
-  and [ADR-008](../adr/008-module-containment-trust-and-activation.md), recorded
-  references and executable task decomposition. Required HAOS containment
-  feasibility remains unverified; no same-UID fallback or implied privileges.
-- G02 needs explicit maintainer acceptance of [ADR-009](../adr/009-optional-bridge-compatibility-and-fallback.md),
-  a recorded reference and executable tasks coordinated with the separately owned
-  Python integration. Bridge must stay optional.
-- R07 needs an authorized disposable HAOS/appliance test target and local access;
-  see [availability evidence](evidence/R07.md) and [runbook](HAOS-VALIDATION.md).
+- B03 Runtime implementation passed; Python version-pinned ordered-state proof
+  is still required before production activation, which remains unwired.
+- V02 synthetic lifecycle/process/resource checks passed on actual HAOS amd64
+  under non-root container limits. Physical appliance execution is unmeasured.
+- R07 full supported-Core/Supervisor/ingress/watchdog/soak/appliance matrix was
+  attempted and explicitly waived after registry/bootstrap failures. See
+  [actual execution and waiver](evidence/R07-RESUMED.md).
 
-All other ready authorized tasks are complete. No approval request is needed for
-work already completed; these are concrete reviewable results for future decisions.
+A terminal waiver is not test acceptance. Developer tests and image builds are
+kept separate from actual HAOS execution and production readiness claims.

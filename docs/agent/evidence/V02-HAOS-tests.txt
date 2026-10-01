@@ -1,0 +1,233 @@
+cat /mnt/data/v02/module.log /mnt/data/v02/execution.log /mnt/data/v02/action.
+
+log /mnt/data/v02/packageverify.log /mnt/data/v02/bridge.log
+=== RUN   TestStateIsolation
+--- PASS: TestStateIsolation (0.07s)
+=== RUN   TestHandoverCompatibility
+--- PASS: TestHandoverCompatibility (0.01s)
+=== RUN   TestFinalBarrierAndFailure
+--- PASS: TestFinalBarrierAndFailure (0.12s)
+=== RUN   TestHandoverDeadline
+--- PASS: TestHandoverDeadline (0.04s)
+=== RUN   TestSyntheticChild
+--- PASS: TestSyntheticChild (0.00s)
+=== RUN   TestChildIsolationCancelJoin
+--- PASS: TestChildIsolationCancelJoin (0.05s)
+=== RUN   TestChildPressureAndExit
+--- PASS: TestChildPressureAndExit (0.09s)
+=== RUN   TestSyntheticDescendant
+--- PASS: TestSyntheticDescendant (0.00s)
+=== RUN   TestDescendantOutputCannotHoldChildJoin
+--- PASS: TestDescendantOutputCannotHoldChildJoin (0.06s)
+=== RUN   TestNegotiation
+--- PASS: TestNegotiation (0.02s)
+=== RUN   TestRejectedHello
+--- PASS: TestRejectedHello (0.00s)
+=== RUN   TestInvalidFrames
+--- PASS: TestInvalidFrames (0.01s)
+=== RUN   TestCancellationAndDeadline
+--- PASS: TestCancellationAndDeadline (0.01s)
+=== RUN   TestBoundedBlockedWrite
+--- PASS: TestBoundedBlockedWrite (0.14s)
+=== RUN   TestRetentionAndManualRollback
+--- PASS: TestRetentionAndManualRollback (0.20s)
+=== RUN   TestCrashBudgetAndOperatorRecovery
+--- PASS: TestCrashBudgetAndOperatorRecovery (0.37s)
+=== RUN   TestFailedRestartCandidatesExhaust
+--- PASS: TestFailedRestartCandidatesExhaust (0.18s)
+=== RUN   TestCrashCannotRestartBeforeJoin
+--- PASS: TestCrashCannotRestartBeforeJoin (0.09s)
+=== RUN   TestReadinessAndFailure
+--- PASS: TestReadinessAndFailure (0.08s)
+=== RUN   TestCutoverRaceExactlyOnce
+--- PASS: TestCutoverRaceExactlyOnce (2.75s)
+=== RUN   TestDrainStopsOwnedChild
+--- PASS: TestDrainStopsOwnedChild (0.08s)
+=== RUN   TestFailedJoinKeepsOwnedDrainingGeneration
+--- PASS: TestFailedJoinKeepsOwnedDrainingGeneration (0.08s)
+=== RUN   TestFailedCandidateJoinRemainsTracked
+--- PASS: TestFailedCandidateJoinRemainsTracked (0.10s)
+=== RUN   TestStateResetAtomicAndOwnership
+--- PASS: TestStateResetAtomicAndOwnership (0.02s)
+=== RUN   TestStateOrderingModel
+--- PASS: TestStateOrderingModel (0.02s)
+=== RUN   TestStateResetFailureRetainsPublished
+--- PASS: TestStateResetFailureRetainsPublished (0.00s)
+=== RUN   TestStreamTerminal
+--- PASS: TestStreamTerminal (0.00s)
+=== RUN   TestStateIsolation
+--- PASS: TestStateIsolation (0.05s)
+=== RUN   TestHandoverCompatibility
+--- PASS: TestHandoverCompatibility (0.01s)
+=== RUN   TestFinalBarrierAndFailure
+--- PASS: TestFinalBarrierAndFailure (0.13s)
+=== RUN   TestHandoverDeadline
+--- PASS: TestHandoverDeadline (0.06s)
+=== RUN   TestSyntheticChild
+--- PASS: TestSyntheticChild (0.00s)
+=== RUN   TestChildIsolationCancelJoin
+--- PASS: TestChildIsolationCancelJoin (0.03s)
+=== RUN   TestChildPressureAndExit
+--- PASS: TestChildPressureAndExit (0.07s)
+=== RUN   TestSyntheticDescendant
+--- PASS: TestSyntheticDescendant (0.00s)
+=== RUN   TestDescendantOutputCannotHoldChildJoin
+--- PASS: TestDescendantOutputCannotHoldChildJoin (0.06s)
+=== RUN   TestNegotiation
+--- PASS: TestNegotiation (0.00s)
+=== RUN   TestRejectedHello
+--- PASS: TestRejectedHello (0.01s)
+=== RUN   TestInvalidFrames
+--- PASS: TestInvalidFrames (0.01s)
+=== RUN   TestCancellationAndDeadline
+--- PASS: TestCancellationAndDeadline (0.00s)
+=== RUN   TestBoundedBlockedWrite
+--- PASS: TestBoundedBlockedWrite (0.31s)
+=== RUN   TestRetentionAndManualRollback
+--- PASS: TestRetentionAndManualRollback (0.21s)
+=== RUN   TestCrashBudgetAndOperatorRecovery
+--- PASS: TestCrashBudgetAndOperatorRecovery (0.34s)
+=== RUN   TestFailedRestartCandidatesExhaust
+--- PASS: TestFailedRestartCandidatesExhaust (0.17s)
+=== RUN   TestCrashCannotRestartBeforeJoin
+--- PASS: TestCrashCannotRestartBeforeJoin (0.08s)
+=== RUN   TestReadinessAndFailure
+--- PASS: TestReadinessAndFailure (0.07s)
+=== RUN   TestCutoverRaceExactlyOnce
+--- PASS: TestCutoverRaceExactlyOnce (2.67s)
+=== RUN   TestDrainStopsOwnedChild
+--- PASS: TestDrainStopsOwnedChild (0.07s)
+=== RUN   TestFailedJoinKeepsOwnedDrainingGeneration
+--- PASS: TestFailedJoinKeepsOwnedDrainingGeneration (0.06s)
+=== RUN   TestFailedCandidateJoinRemainsTracked
+--- PASS: TestFailedCandidateJoinRemainsTracked (0.06s)
+=== RUN   TestStateResetAtomicAndOwnership
+--- PASS: TestStateResetAtomicAndOwnership (0.00s)
+=== RUN   TestStateOrderingModel
+--- PASS: TestStateOrderingModel (0.02s)
+=== RUN   TestStateResetFailureRetainsPublished
+--- PASS: TestStateResetFailureRetainsPublished (0.00s)
+=== RUN   TestStreamTerminal
+--- PASS: TestStreamTerminal (0.00s)
+=== RUN   TestStateIsolation
+--- PASS: TestStateIsolation (0.04s)
+=== RUN   TestHandoverCompatibility
+--- PASS: TestHandoverCompatibility (0.01s)
+=== RUN   TestFinalBarrierAndFailure
+--- PASS: TestFinalBarrierAndFailure (0.17s)
+=== RUN   TestHandoverDeadline
+--- PASS: TestHandoverDeadline (0.06s)
+=== RUN   TestSyntheticChild
+--- PASS: TestSyntheticChild (0.00s)
+=== RUN   TestChildIsolationCancelJoin
+--- PASS: TestChildIsolationCancelJoin (0.04s)
+=== RUN   TestChildPressureAndExit
+--- PASS: TestChildPressureAndExit (0.09s)
+=== RUN   TestSyntheticDescendant
+--- PASS: TestSyntheticDescendant (0.00s)
+=== RUN   TestDescendantOutputCannotHoldChildJoin
+--- PASS: TestDescendantOutputCannotHoldChildJoin (0.04s)
+=== RUN   TestNegotiation
+--- PASS: TestNegotiation (0.00s)
+=== RUN   TestRejectedHello
+--- PASS: TestRejectedHello (0.00s)
+=== RUN   TestInvalidFrames
+--- PASS: TestInvalidFrames (0.01s)
+=== RUN   TestCancellationAndDeadline
+--- PASS: TestCancellationAndDeadline (0.00s)
+=== RUN   TestBoundedBlockedWrite
+--- PASS: TestBoundedBlockedWrite (0.14s)
+=== RUN   TestRetentionAndManualRollback
+--- PASS: TestRetentionAndManualRollback (0.17s)
+=== RUN   TestCrashBudgetAndOperatorRecovery
+--- PASS: TestCrashBudgetAndOperatorRecovery (0.26s)
+=== RUN   TestFailedRestartCandidatesExhaust
+--- PASS: TestFailedRestartCandidatesExhaust (0.21s)
+=== RUN   TestCrashCannotRestartBeforeJoin
+--- PASS: TestCrashCannotRestartBeforeJoin (0.09s)
+=== RUN   TestReadinessAndFailure
+--- PASS: TestReadinessAndFailure (0.08s)
+=== RUN   TestCutoverRaceExactlyOnce
+--- PASS: TestCutoverRaceExactlyOnce (2.92s)
+=== RUN   TestDrainStopsOwnedChild
+--- PASS: TestDrainStopsOwnedChild (0.07s)
+=== RUN   TestFailedJoinKeepsOwnedDrainingGeneration
+--- PASS: TestFailedJoinKeepsOwnedDrainingGeneration (0.06s)
+=== RUN   TestFailedCandidateJoinRemainsTracked
+--- PASS: TestFailedCandidateJoinRemainsTracked (0.06s)
+=== RUN   TestStateResetAtomicAndOwnership
+--- PASS: TestStateResetAtomicAndOwnership (0.00s)
+=== RUN   TestStateOrderingModel
+--- PASS: TestStateOrderingModel (0.02s)
+=== RUN   TestStateResetFailureRetainsPublished
+--- PASS: TestStateResetFailureRetainsPublished (0.00s)
+=== RUN   TestStreamTerminal
+--- PASS: TestStreamTerminal (0.00s)
+PASS
+=== RUN   TestModes
+=== RUN   TestModes/single
+=== RUN   TestModes/restart
+=== RUN   TestModes/queued
+=== RUN   TestModes/parallel
+--- PASS: TestModes (0.26s)
+    --- PASS: TestModes/single (0.09s)
+    --- PASS: TestModes/restart (0.06s)
+    --- PASS: TestModes/queued (0.05s)
+    --- PASS: TestModes/parallel (0.05s)
+=== RUN   TestRecoveryExpiryAndDedup
+--- PASS: TestRecoveryExpiryAndDedup (0.06s)
+=== RUN   TestSequenceModel
+--- PASS: TestSequenceModel (9.99s)
+=== RUN   TestTimelineCommonAdmission
+--- PASS: TestTimelineCommonAdmission (0.08s)
+=== RUN   TestClaimExactlyOnce
+--- PASS: TestClaimExactlyOnce (0.04s)
+=== RUN   TestUncertainPersistenceFencesExistingAuthority
+--- PASS: TestUncertainPersistenceFencesExistingAuthority (0.03s)
+PASS
+=== RUN   TestOutcomesRecoveryAndEvidence
+--- PASS: TestOutcomesRecoveryAndEvidence (0.33s)
+=== RUN   TestCutoverAndUnknownDedupRace
+--- PASS: TestCutoverAndUnknownDedupRace (0.11s)
+=== RUN   TestCancellationTimeoutAndInput
+--- PASS: TestCancellationTimeoutAndInput (0.06s)
+=== RUN   TestDurableFailuresDoNotRetry
+--- PASS: TestDurableFailuresDoNotRetry (0.10s)
+PASS
+=== RUN   TestOfficialReview
+--- PASS: TestOfficialReview (0.04s)
+=== RUN   TestRejectTamperingAndMismatch
+--- PASS: TestRejectTamperingAndMismatch (0.05s)
+=== RUN   TestSignedInvalidMetadata
+--- PASS: TestSignedInvalidMetadata (0.01s)
+PASS
+=== RUN   TestSharedHelloAndOptionalStatus
+--- PASS: TestSharedHelloAndOptionalStatus (0.09s)
+=== RUN   TestRequiredSemanticsAndLimits
+--- PASS: TestRequiredSemanticsAndLimits (0.01s)
+=== RUN   TestTimeoutMalformedAndSeparateSession
+--- PASS: TestTimeoutMalformedAndSeparateSession (0.01s)
+=== RUN   TestCanonicalBridgeDiscovery
+--- PASS: TestCanonicalBridgeDiscovery (0.11s)
+=== RUN   TestPartialDiscoveryNeverReplaces
+--- PASS: TestPartialDiscoveryNeverReplaces (0.01s)
+=== RUN   TestDistinctionsAndBounds
+--- PASS: TestDistinctionsAndBounds (0.04s)
+=== RUN   TestChunkLimitAndCancellation
+--- PASS: TestChunkLimitAndCancellation (0.01s)
+=== RUN   TestMultipartAndTotalBudget
+--- PASS: TestMultipartAndTotalBudget (0.01s)
+=== RUN   TestNegotiationLossMarksOnlyDiscoveryStale
+--- PASS: TestNegotiationLossMarksOnlyDiscoveryStale (0.01s)
+=== RUN   TestOrderedPreparationAndAutomaticNativeFallback
+--- PASS: TestOrderedPreparationAndAutomaticNativeFallback (0.01s)
+=== RUN   TestOrderedFaultsCannotReplaceNative
+--- PASS: TestOrderedFaultsCannotReplaceNative (0.01s)
+=== RUN   TestOrderedGapFallbackFailureRetainsStale
+--- PASS: TestOrderedGapFallbackFailureRetainsStale (0.00s)
+=== RUN   TestOrderedCapabilityGateAndCancellation
+--- PASS: TestOrderedCapabilityGateAndCancellation (0.00s)
+=== RUN   TestSharedOrderedWireFixture
+--- PASS: TestSharedOrderedWireFixture (0.00s)
+PASS
+# 

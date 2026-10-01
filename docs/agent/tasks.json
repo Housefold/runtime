@@ -466,10 +466,10 @@
         "P01"
       ],
       "kind": "environment",
-      "status": "blocked",
+      "status": "done",
       "approval_required": null,
-      "evidence": null,
-      "blocker": "Requires an authorized disposable HAOS target with exact HAOS/Core/Supervisor versions and test access. Synthetic/Linux evidence is insufficient.",
+      "evidence": "docs/agent/evidence/V02-RESUMED.md",
+      "blocker": null,
       "acceptance": [
         "Validate inherited IPC/process lifecycle, zero-downtime cutover/drain, restart/quarantine, storage persistence and Runtime shutdown on HAOS.",
         "Measure resource behavior and verify module crash/pressure does not make Runtime unavailable within supported limits.",

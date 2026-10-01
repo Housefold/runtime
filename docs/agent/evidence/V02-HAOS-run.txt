@@ -1,0 +1,44 @@
+cat /mnt/data/v02-run.log
+health sample 1 PASS
+health sample 2 PASS
+housefold-v02-runtime 0.00% 1.699MiB / 64MiB
+housefold-v02-module 94.12% 7.785MiB / 256MiB
+health sample 3 PASS
+housefold-v02-runtime 0.14% 1.949MiB / 64MiB
+housefold-v02-module 72.40% 7.766MiB / 256MiB
+health sample 4 PASS
+housefold-v02-runtime 0.00% 1.949MiB / 64MiB
+housefold-v02-module 81.33% 9.164MiB / 256MiB
+health sample 5 PASS
+housefold-v02-runtime 0.11% 1.953MiB / 64MiB
+housefold-v02-module 0.00% 0B / 0B
+health sample 6 PASS
+housefold-v02-runtime 0.00% 2.207MiB / 64MiB
+housefold-v02-module 0.00% 0B / 0B
+health sample 7 PASS
+housefold-v02-runtime 0.00% 2.207MiB / 64MiB
+housefold-v02-module 0.00% 0B / 0B
+health sample 8 PASS
+housefold-v02-runtime 0.00% 1.953MiB / 64MiB
+housefold-v02-module 0.00% 0B / 0B
+health sample 9 PASS
+housefold-v02-runtime 0.00% 2.203MiB / 64MiB
+housefold-v02-module 0.00% 0B / 0B
+health sample 10 PASS
+housefold-v02-runtime 0.00% 2.203MiB / 64MiB
+housefold-v02-module 0.00% 0B / 0B
+health sample 11 PASS
+housefold-v02-runtime 0.00% 2.242MiB / 64MiB
+housefold-v02-module 0.00% 0B / 0B
+health sample 12 PASS
+housefold-v02-runtime 0.00% 2.242MiB / 64MiB
+housefold-v02-module 0.00% 0B / 0B
+execution tests PASS
+action tests PASS
+packageverify tests PASS
+bridge tests PASS
+SIGTERM control-to-exit seconds: 1.75
+exit=0 oom=false running=false
+module exit=0 oom=false
+V02_GUEST_PASS
+# 

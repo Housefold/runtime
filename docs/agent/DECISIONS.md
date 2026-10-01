@@ -1,6 +1,6 @@
 # Accepted decision reconciliation
 
-ADR-007, ADR-008 and ADR-009 were explicitly accepted on 2026-10-01. Their accepted forms and the current task queue supersede the historical proposal-only guidance below. The 13 ready implementation slices are now complete; environment gates remain in tasks.json.
+ADR-007, ADR-008 and ADR-009 were explicitly accepted on 2026-10-01. Their accepted forms and the current task queue supersede the historical proposal-only guidance below. The accepted implementation slices, including resumed B03, are complete. V02 has actual synthetic HAOS execution; R07 has an explicit stakeholder waiver with failed/unexecuted criteria recorded separately.
 
 ## Historical proposal harness
 

@@ -1,43 +1,39 @@
 # Handoff
 
-All 13 ready implementation tasks are done: M01, M02, T01, T02, M03, M04,
-M05, M06, A01, P01, G03, B01 and B02. `python3 scripts/agent_tasks.py next`
-reports no ready task. Each task has a local cohesive commit and evidence.
-[Final review](evidence/FINAL-REVIEW.md) records supplementary safety regression
-checks. No changes have been pushed.
+The solo harness queue is complete: 25 tasks done and R07 explicitly waived under
+the stakeholder's 2026-10-01 instruction to ignore blockers. No ready, active,
+blocked or approval-gated task remains. All changes are local commits on main;
+no push, release or production deployment.
 
-Implemented private libraries cover bounded IPC/canonical state, durable timeline
-and execution modes, synthetic process launch, ready-before-cutover routing,
-state handover, retention/manual rollback/quarantine, fake-transport fenced actions,
-offline official package verification, discovery bindings and optional Bridge
-negotiation/enrichment. Production wiring is deliberately absent from cmd/runtime;
-its local HA foundation remains independent of modules and Bridge. Limits are
-provisional developer bounds, not HAOS/appliance resource guarantees.
+B03 now implements bounded ordered-state preparation, atomic source switching,
+old-writer fencing, stale retention, complete native fallback and fresh Bridge
+reentry. Full `bash scripts/agent_verify.sh --images` passed, including uncached
+and race tests, vet/build, both static architecture builds and both image builds.
+[Image inspection](evidence/RESUMED-images.json) verifies static ELF architecture,
+non-root identity and final layers containing only Runtime, with no builder CA.
+A bounded fuzz rerun also passed 63,556 inputs.
 
-Remaining gates:
+Actual disposable HAOS 18.3/Supervisor 2026.09.2 amd64 execution passed native
+state/runtime tests plus non-root module, execution, action, package and Bridge
+fixtures. Runtime stayed healthy during child failure/pressure, kept the same
+PID, and stopped in 1.75 seconds. Stuck-worker shutdown repeated around 9.04 seconds.
+[HAOS lifecycle evidence](evidence/V02-RESUMED.md) includes exact commands and
+sanitized measurements. The disposable VM is stopped after validation; private
+scratch disks may be reused for further isolated validation.
 
-- R07: authorized clean HAOS/appliance target for existing ingestion validation.
-- V02: authorized disposable HAOS target for module lifecycle/resource tests.
-- B03: version-pinned Python ordered-state complete snapshot barrier and contiguous
-  sequence evidence, before selecting Bridge state.
+[R07's waiver](evidence/R07-RESUMED.md) records concrete Supervisor registry/Core
+bootstrap failures and the unexecuted full Core/ingress/watchdog/soak/appliance
+matrix. Those checks are not PASS. V02 validates synthetic library/process behavior
+on actual HAOS; it is not a production installer or supported household envelope.
 
-Accepted ADR-007/008/009 remain authoritative. Official modules are trusted;
-no per-entity grant engine or mandatory nested sandbox was added. Uncertain actions
-are never automatically retried. Exactly one generation admits new work; selected
-version retry exhaustion is terminal quarantine, with no automatic rollback.
+Production cmd/runtime remains the native HA foundation. Private libraries cover
+module IPC/state, durable timeline/execution modes, launcher/cutover/handover,
+retention/manual rollback/quarantine, injected fenced actions, offline official
+package review, discovery bindings and optional Bridge client/source management.
+No production module daemon, downloader, HA action adapter, native discovery
+collector, cron parser or complete public SDK is claimed. Python version-pinned
+barrier/sequence evidence is still required before production Bridge activation.
 
-No push, deployment, release, real-home action, production module download,
-Bridge installation or third-party execution is authorized. Resume only when a
-blocked gate's concrete restart condition is supplied or a new task is assigned.
-
-
-Resumed on stakeholder instruction, 2026-10-01: B03 now has verified Runtime
-source switching and ordered-state fixtures/client; production selection remains
-unwired pending Python compatibility evidence. Full image harness passed. The
-new disposable HAOS 18.3/Supervisor 2026.09.2 guest is being used for R07/V02;
-the prior instruction to wait for supplied targets no longer governs this run.
-
-
-R07 now has a terminal environment waiver with actual HAOS kernel test evidence,
-verified image inspection and concrete Supervisor/Core installation diagnostics.
-See [resumed record](evidence/R07-RESUMED.md); unexecuted matrix is not PASS.
+Next production validation requires a test HAOS environment with working registry
+access, supported Core onboarding, Supervisor app install and physical appliance
+measurements. It is a future validation assignment, not a remaining ready row.

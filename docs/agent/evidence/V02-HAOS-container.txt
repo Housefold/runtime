@@ -1,0 +1,11 @@
+docker inspect housefold-v02-module --format "user={{.Config.User}} readonly={
+
+{.HostConfig.ReadonlyRootfs}} capdrop={{.HostConfig.CapDrop}} security={{.HostCo
+
+nfig.SecurityOpt}} network={{.HostConfig.NetworkMode}} memory={{.HostConfig.Memo
+
+ry}} nano_cpu={{.HostConfig.NanoCpus}} apparmor={{.AppArmorProfile}} exit={{.Sta
+
+te.ExitCode}}"
+user=10001:10001 readonly=true capdrop=[ALL] security=[no-new-privileges] network=none memory=268435456 nano_cpu=1000000000 apparmor=docker-default exit=0
+# 

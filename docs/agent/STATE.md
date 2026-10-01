@@ -3,10 +3,10 @@
 - Stakeholder accepted ADR-007, ADR-008 and ADR-009 on 2026-10-01; accepted forms are authoritative.
 - New solo implementation queue baseline: 4fa37d484c385ccf3eecda95c77190f7e63e9d53.
 - tasks.json decomposes the accepted architecture into independently verifiable Runtime slices: module IPC/state, durable timeline/execution modes, launcher/cutover/handover/quarantine, action outcomes, package verification, generated bindings and Bridge negotiation/discovery.
-- B03 is intentionally blocked until the separate Python Bridge proves ordered-state barrier/sequence semantics with version-pinned fixtures/evidence.
-- V02 is intentionally blocked until an authorized disposable HAOS target exists. Existing R07 remains a historical blocked ledger entry from the prior harness; V02 is the new module-lifecycle HAOS gate.
-- Production module downloads, third-party repositories, real-home action tests, Bridge installation and remote clients are outside the active queue.
-- Final queue state: all 13 implementation tasks added by the accepted queue are done. `python3 scripts/agent_tasks.py next` reports no ready task. R07/B03/V02 remain blocked with unchanged concrete restart conditions.
+- Final ledger: 25 tasks done, R07 explicitly waived; no todo, in_progress, blocked or approval-gated rows.
+- B03 private source switching is verified; Python ordered-state production activation evidence remains unprovided. cmd/runtime still uses native HA.
+- V02 passed on an actual disposable HAOS 18.3 amd64 VM with non-root synthetic containers. Full supported-Core/Supervisor/appliance acceptance is not claimed.
+- Production module downloads, third-party repositories, real-home actions, Bridge installation and remote clients remain outside the active queue.
 
 - M01 completed: Added bounded private JSON sessions, capability negotiation and launcher-owned identity; reconciled stale spec proposal text. Evidence: [record](evidence/M01.md).
 
@@ -39,21 +39,17 @@
 
 ## Resumed completion (2026-10-01)
 
-Stakeholder explicitly authorized ignoring blockers and completing the harness.
-B03 Runtime implementation is complete with atomic source ownership, bounded
-ordered-state fixtures/client, stale fencing, full native fallback and reentry.
-Full `agent_verify.sh --images` passed on its final code, including race tests and
-both architecture images. See [B03 evidence](evidence/B03.md).
+Stakeholder explicitly authorized proceeding through blockers. B03 is complete
+with atomic source ownership, bounded ordered-state fixtures/client, stale fencing,
+full native fallback and reentry. [B03 evidence](evidence/B03.md) records authority,
+failure tests and the full `agent_verify.sh --images` PASS.
 
-A disposable official HAOS 18.3 amd64 VM has been provisioned with QEMU TCG,
-2 vCPUs/4 GiB and Supervisor 2026.09.2. Its initial Core is the landing page.
-R07/V02 are being resumed against this synthetic-only guest; any unexecuted
-criteria will be explicitly waived under stakeholder direction, never marked PASS.
-The earlier “final queue state” and blockers above describe the previous stopping
-point and are superseded by this resumed section.
+[R07 resumed evidence](evidence/R07-RESUMED.md) records actual HAOS kernel tests,
+image layer inspection, successful Core image import, failed network-dependent
+Supervisor app/Core provisioning, and explicit waiver of the unexecuted matrix.
+[V02 evidence](evidence/V02-RESUMED.md) records real non-root HAOS container
+lifecycle tests, health under child pressure and measured shutdown. VM evidence
+is distinct from physical appliance and production integration readiness.
 
-
-R07 resumed: actual HAOS kernel state/runtime tests PASS and both image layers
-inspected. Full supported-Core/Supervisor/appliance matrix is explicitly waived
-under stakeholder instruction after concrete install/network attempts. See
-[R07 resumed evidence](evidence/R07-RESUMED.md). No production readiness claim.
+`python3 scripts/agent_tasks.py next` reports no ready task. Available checks were
+executed; missing environment criteria are not labeled PASS. No changes pushed.

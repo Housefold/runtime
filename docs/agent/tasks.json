@@ -388,9 +388,9 @@
         "M02"
       ],
       "kind": "implementation",
-      "status": "todo",
+      "status": "done",
       "approval_required": null,
-      "evidence": null,
+      "evidence": "docs/agent/evidence/G03.md",
       "blocker": null,
       "acceptance": [
         "Define sanitized discovery snapshot model supporting stable provider identity where HA supplies it and explicit weak identity otherwise.",

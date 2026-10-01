@@ -27,3 +27,5 @@
 - A01 completed: Added boot/generation-fenced canonical action gateway with durable unknown-before-send metadata, bounded deduplication and distinct HA outcomes. Evidence: [record](evidence/A01.md).
 
 - P01 completed: Added source-neutral official manifest/catalog review and offline Ed25519/digest compatibility verification. Evidence: [record](evidence/P01.md).
+
+- G03 completed: Added bounded canonical discovery and deterministic Go binding prototype with durable stable identity-to-symbol mapping. Evidence: [record](evidence/G03.md).

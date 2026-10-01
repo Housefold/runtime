@@ -275,3 +275,21 @@ at 16 MiB and declarations at 32 entries. Review data reports provenance and
 compatibility; declarations are disclosures, never per-entity grants. No arbitrary
 repository, unsigned path, downloader, installer or unattended activation exists.
 Production signing keys/catalog freshness persistence require later wiring.
+
+## Canonical discovery and Go binding prototype (G03)
+
+Discovery schema 1 represents HA entities, services, devices/areas and capability
+visibility. Stable HA registry keys remain provider-qualified; entity-ID-only
+bindings are explicitly weak. Missing, unsupported and permission-redacted differ
+from available empty results. Normalization deep-copies and strips display control
+characters, rejecting malformed/duplicate identity and bounded-data violations.
+Snapshots cap canonical JSON at 1 MiB, entities/devices/areas at 512 each,
+services at 256 and supported fields at 32 per object.
+
+The internal generator emits deterministic standalone Go references and typed
+attribute/request fields only from supplied schemas. Unknown field types use
+`any`; GenericEntity/GenericService preserve unknown-domain/service access.
+A private durable binding manifest retains up to 1,024 established symbols across
+provider entity/display renames; changing a Go symbol requires explicit Rename.
+Generated private-home files remain local; only synthetic tests are committed.
+This is a tooling prototype, not a frozen public SDK or native discovery collector.

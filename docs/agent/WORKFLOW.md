@@ -1,15 +1,29 @@
 # Solo workflow
 
-Read repository instructions/spec/ADRs and agent audit/state/handoff. Inspect Git status and HEAD, preserve user edits, and reconcile newer source before relying on audit claims. Run agent_tasks.py next and claim exactly one ready task with start ID. Establish baseline checks before implementation.
+Read AGENTS.md, the Runtime specification, accepted ADR-007/008/009, AUDIT.md, STATE.md, HANDOFF.md and tasks.json. Reconcile all claims with current Git HEAD and preserve existing work.
 
-Define a complete small behavior and regression first. Keep HA wire handling under internal/ha and private consumer types independent of transport. Use interfaces at actual boundaries; avoid wrappers around every Go concrete type. Prefer standard library and the existing dependency; justify additions.
+Run python3 scripts/agent_tasks.py next and claim exactly one ready task with start ID. Implement the smallest complete behavior satisfying that task. Continue independently through ready tasks after recording evidence and committing each cohesive slice.
 
-For subscriptions, serialize initial snapshot and registration against publication/live updates/freshness. Each consumer owns its nested data. Slow consumers cannot stall ingestion. Bound count/bytes including reset/initial snapshots and total subscriber cost. Overflow ends only that subscription visibly. Avoid send/close races. Generation/revision metadata must describe the exact returned data.
+## Engineering rules
 
-Run focused tests, then bash scripts/agent_verify.sh; use --images for packaging. Review the diff separately for data leaks, lost updates, unbounded work, weakened tests and undocumented authority. Do not invent an independent reviewer.
+- Accepted ADR-007/008/009 are implementation authority for their stated boundaries. Do not reopen them merely because the old harness called them Proposed.
+- Do not broaden scope into remote clients, third-party repositories, generic secret brokerage, Runtime self-update, production HA actions or Bridge installation.
+- Production module downloads/execution remain out until the task explicitly reaches an accepted package/install slice; tests use local synthetic fixtures.
+- Bridge Python implementation belongs to its separate repository. Runtime may implement protocol fixtures/client behavior but B03 remains blocked until ordered-state server evidence exists.
+- Real HAOS/appliance claims require an authorized target. Docker/Linux tests are not HAOS evidence.
+- Use interfaces at real boundaries: clock/timeline persistence, process launcher/IPC, HA action transport, Bridge transport and filesystem/package verification. Avoid interface-per-struct ceremony.
+- Prefer deterministic clocks/barriers/channels over sleeps. Race/model/fuzz tests must be bounded and reproducible.
+- Every queue, frame, replay horizon, retry loop, child join and persisted collection needs an explicit bound or a documented reason it is finite.
+- Never log or fixture real household identities, entity payloads, credentials or activity.
 
-Write evidence using evidence/TEMPLATE.md: exact commands/results, HEAD, acceptance criteria, faults, limitations and review findings. Complete the ledger only when required evidence exists. A proposal being done means a reviewable proposal, not approval. Update STATE.md/HANDOFF.md and make a small local commit if identity is available; continue ready tasks. Missing identity blocks the commit, not the work.
+## Verification
 
-For absent tools/environments, record attempted safe alternatives and a concrete restart condition. For public/security decisions, write a Proposed ADR with options, recommendation, failure/permission/compatibility implications and tests. Existing AGENTS.md requires review before those boundaries. Do not self-accept or silently amend accepted ADRs. Continue independent tasks.
+For code changes run focused tests then bash scripts/agent_verify.sh. Use --images for packaging/Dockerfile changes. Add deterministic task-specific model/fault tests; compilation is never acceptance.
 
-The ledger is advisory, not sandbox enforcement. Only explicit maintainer acceptance referenced by an accepted ADR or concrete instruction may unlock gated epics. Stop when authorized work is done or genuinely blocked; report exact checks and limits. Never add feature modules, remote control, unattended downloads or production actions just to finish the queue.
+Review each diff for duplicate execution, dual-generation admission, blind action retry, stale authority, unbounded replay/queues, descriptor/credential leaks, persistence corruption and weakened fallback.
+
+Evidence under docs/agent/evidence must record exact commands/results, entering/final HEAD, acceptance mapping, fault tests, limitations and review findings. Missing tools/environment are BLOCKED, never PASS.
+
+Update STATE.md and HANDOFF.md after each task and make a small local commit when identity is available. Do not push, deploy, release, force-reset or operate the real home unless explicitly directed.
+
+Stop only when no ready task remains. A blocked environment task does not block independent ready work.

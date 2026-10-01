@@ -59,13 +59,16 @@ type RegistryRecord struct {
 	Area     string       `json:"area,omitempty"`
 }
 type Snapshot struct {
-	Schema         int              `json:"schema"`
-	Entities       []Entity         `json:"entities"`
-	Services       []Service        `json:"services"`
-	Devices        []RegistryRecord `json:"devices,omitempty"`
-	Areas          []RegistryRecord `json:"areas,omitempty"`
-	RegistryStatus Availability     `json:"registry_status"`
-	ServicesStatus Availability     `json:"services_status"`
+	EntityRegistryStatus Availability     `json:"entity_registry_status,omitempty"`
+	DeviceRegistryStatus Availability     `json:"device_registry_status,omitempty"`
+	AreaRegistryStatus   Availability     `json:"area_registry_status,omitempty"`
+	Schema               int              `json:"schema"`
+	Entities             []Entity         `json:"entities"`
+	Services             []Service        `json:"services"`
+	Devices              []RegistryRecord `json:"devices,omitempty"`
+	Areas                []RegistryRecord `json:"areas,omitempty"`
+	RegistryStatus       Availability     `json:"registry_status"`
+	ServicesStatus       Availability     `json:"services_status"`
 }
 
 var identifier = regexp.MustCompile(`^[a-z0-9_]{1,128}$`)
@@ -115,6 +118,14 @@ func Normalize(in Snapshot) (Snapshot, error) {
 	var out Snapshot
 	if json.Unmarshal(raw, &out) != nil || out.Schema != 1 || !status(out.RegistryStatus) || !status(out.ServicesStatus) || len(out.Entities) > MaxEntities || len(out.Services) > MaxServices || len(out.Devices) > MaxEntities || len(out.Areas) > MaxEntities {
 		return Snapshot{}, ErrInvalid
+	}
+	for _, value := range []*Availability{&out.EntityRegistryStatus, &out.DeviceRegistryStatus, &out.AreaRegistryStatus} {
+		if *value == "" {
+			*value = out.RegistryStatus
+		}
+		if !status(*value) {
+			return Snapshot{}, ErrInvalid
+		}
 	}
 	seen := map[string]bool{}
 	entityIDs := map[string]bool{}

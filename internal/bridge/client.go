@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"github.com/housefold/runtime/internal/discovery"
 	"sync"
 	"time"
 )
@@ -78,12 +79,14 @@ type Result struct {
 	NextProbe     time.Time
 }
 type Client struct {
-	transport Transport
-	gate      chan struct{}
-	mu        sync.Mutex
-	result    Result
-	nextID    uint64
-	failures  int
+	lastDiscovery  *discovery.Snapshot
+	discoveryFresh bool
+	transport      Transport
+	gate           chan struct{}
+	mu             sync.Mutex
+	result         Result
+	nextID         uint64
+	failures       int
 }
 
 func New(transport Transport) *Client {
@@ -128,6 +131,9 @@ func boundedJSON(raw []byte, limit int) bool {
 	return true
 }
 func (c *Client) exchange(ctx context.Context, kind string, body any, limit int) (Response, error) {
+	if ctx.Err() != nil {
+		return Response{}, ctx.Err()
+	}
 	c.nextID++
 	if c.nextID == 0 {
 		return Response{}, ErrProtocol
@@ -139,6 +145,9 @@ func (c *Client) exchange(ctx context.Context, kind string, body any, limit int)
 	raw, err = c.transport.Exchange(ctx, raw, limit)
 	if err != nil {
 		return Response{}, err
+	}
+	if ctx.Err() != nil {
+		return Response{}, ctx.Err()
 	}
 	var response Response
 	if !boundedJSON(raw, limit) || json.Unmarshal(raw, &response) != nil || response.ID != c.nextID || response.Type != "result" {

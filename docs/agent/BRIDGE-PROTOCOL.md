@@ -24,3 +24,19 @@ Unknown-command means absent. Denial/timeout/malformed response means temporaril
 unavailable; incompatible major means incompatible. Runtime never installs Bridge,
 broadens credentials or constructs a remote listener. Python-side version-pinned
 fixtures proving snapshot barriers and sequences remain required for B03.
+
+## Discovery v1
+
+`housefold/discovery` body contains cursor (empty initially) and bounded response
+frame limit. Results follow `discovery_response_v1.json`: schema, epoch, contiguous
+zero-based index, more, next cursor and status/rows sections for entities, devices,
+areas and services. All pages share one provider epoch and section statuses.
+Final page has no cursor; repeated cursors, gaps, changed epoch/status, duplicate
+identities, over-limit counts/bytes or failed pages discard the candidate.
+
+Collection status is available, missing, unsupported or permission_redacted.
+Non-available collections have no rows. Entity registry IDs establish strong
+provider identities only when supplied; otherwise the entity-ID reference is
+weak. Device/area relationships and open service schemas enter the same canonical
+model used by native discovery/bindings. No page envelope, Bridge epoch or Python
+model escapes to modules. This is enrichment, never a selected state source.

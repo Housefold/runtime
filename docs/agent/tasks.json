@@ -426,9 +426,9 @@
         "G03"
       ],
       "kind": "implementation",
-      "status": "todo",
+      "status": "done",
       "approval_required": null,
-      "evidence": null,
+      "evidence": "docs/agent/evidence/B02.md",
       "blocker": null,
       "acceptance": [
         "Normalize richer Bridge registry/service discovery into the same canonical discovery model used by native HA.",

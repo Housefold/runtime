@@ -304,3 +304,16 @@ timeout responses leave native HA ingestion and process health untouched. Probe
 backoff is finite and caller-driven; there is no install, broadened credential,
 Core restart, extra listener or Bridge state selection. Synthetic schema fixtures
 are not Python compatibility or HAOS evidence.
+
+## Bridge discovery normalization (B02)
+
+Discovery v1 fetches at most 16 contiguous chunks/1 MiB with a two-second total
+context deadline and negotiated per-frame cap. Epoch/index/cursor/status
+continuity is mandatory. Only a complete normalized candidate replaces retained
+discovery; failure marks its discovery freshness false without touching native
+HA state freshness or Runtime health. Per-collection missing/unsupported/redacted
+status, stable/weak IDs, device/area relationships and open service schemas survive
+canonicalization. Module projection uses only `discovery_reset` canonical data;
+large single IPC projections fail explicitly. Wire/candidate/retained copies are
+bounded separately; serialized limits are not heap/RSS guarantees. Fixtures are
+synthetic and versioned; Python server/HAOS compatibility remains unverified.

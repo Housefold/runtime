@@ -31,3 +31,5 @@
 - G03 completed: Added bounded canonical discovery and deterministic Go binding prototype with durable stable identity-to-symbol mapping. Evidence: [record](evidence/G03.md).
 
 - B01 completed: Added optional separate Core-style Bridge negotiation with bounded schemas/fixtures and explicit availability/backoff. Evidence: [record](evidence/B01.md).
+
+- B02 completed: Added bounded chunked Bridge discovery into canonical provider identities, relationships, schemas and per-collection visibility statuses. Evidence: [record](evidence/B02.md).

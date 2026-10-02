@@ -84,7 +84,7 @@
       "status": "blocked",
       "approval_required": null,
       "evidence": "docs/agent/evidence/V1P05.md",
-      "blocker": "Official signed catalog/source cannot be provisioned with current GitHub integration: repository create and signing-secret/Actions administration denied; endpoint absent. All independent ready work complete. Exact evidence and resume requirements: docs/agent/evidence/BLOCKED.md.",
+      "blocker": "Official maintainable signing custody/pinned authority and remote signed source remain absent; signing-secret/admin and repository-create permissions denied. Code/ref writes and CI dispatch work; BIOS lifecycle UX is implemented. No waiver. See docs/agent/evidence/BLOCKED.md.",
       "acceptance": [
         "Implement one remotely maintained signed official Housefold catalog with verified cached metadata and no custom/unsigned repositories.",
         "Implement production download/stage/verify/install/update/remove flows, dependency planning and familiar HA-App-like lifecycle UX through BIOS.",
@@ -185,10 +185,10 @@
         "V1P02"
       ],
       "kind": "implementation",
-      "status": "in_progress",
+      "status": "blocked",
       "approval_required": null,
-      "evidence": null,
-      "blocker": null,
+      "evidence": "docs/agent/evidence/V1P11.md",
+      "blocker": "Candidate/signing/promotion tooling, exact-source reproducibility and hosted CI verified, but actual official signer/source/hosting/immutable history and retention are not provisioned. Signing-secret/admin and repository-create permissions denied; gates remain mandatory. See docs/agent/evidence/BLOCKED.md.",
       "acceptance": [
         "Choose sensible repo boundaries and, where GitHub permission permits, create/wire the Housefold HA App repository and signed module catalog hosting (GitHub Pages is an acceptable default).",
         "Create CI/release automation for exact amd64/aarch64 artifacts, catalog metadata/signatures and installable repository metadata without embedding secrets.",

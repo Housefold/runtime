@@ -1,0 +1,37 @@
+No ready task. BLOCKED criteria remain and prevent Runtime v1 completion:
+[
+  {
+    "id": "V1P05",
+    "title": "Implement Supervisor-like official module catalog lifecycle",
+    "depends_on": [
+      "V1P04"
+    ],
+    "kind": "implementation",
+    "status": "blocked",
+    "approval_required": null,
+    "evidence": "docs/agent/evidence/V1P05.md",
+    "blocker": "Official maintainable signing custody/pinned authority and remote signed source remain absent; signing-secret/admin and repository-create permissions denied. Code/ref writes and CI dispatch work; BIOS lifecycle UX is implemented. No waiver. See docs/agent/evidence/BLOCKED.md.",
+    "acceptance": [
+      "Implement one remotely maintained signed official Housefold catalog with verified cached metadata and no custom/unsigned repositories.",
+      "Implement production download/stage/verify/install/update/remove flows, dependency planning and familiar HA-App-like lifecycle UX through BIOS.",
+      "Interrupted/offline catalog operations cannot affect active modules; removal preserves data by default; updates use ready-before-cutover/drain/retention."
+    ]
+  },
+  {
+    "id": "V1P11",
+    "title": "Build real Housefold distribution infrastructure",
+    "depends_on": [
+      "V1P02"
+    ],
+    "kind": "implementation",
+    "status": "blocked",
+    "approval_required": null,
+    "evidence": "docs/agent/evidence/V1P11.md",
+    "blocker": "Candidate/signing/promotion tooling, exact-source reproducibility and hosted CI verified, but actual official signer/source/hosting/immutable history and retention are not provisioned. Signing-secret/admin and repository-create permissions denied; gates remain mandatory. See docs/agent/evidence/BLOCKED.md.",
+    "acceptance": [
+      "Choose sensible repo boundaries and, where GitHub permission permits, create/wire the Housefold HA App repository and signed module catalog hosting (GitHub Pages is an acceptable default).",
+      "Create CI/release automation for exact amd64/aarch64 artifacts, catalog metadata/signatures and installable repository metadata without embedding secrets.",
+      "Prove release artifacts are reproducible/traceable to source and that Runtime/module releases remain loosely coupled by declared compatibility."
+    ]
+  }
+]

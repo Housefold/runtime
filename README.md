@@ -10,7 +10,7 @@ resource/lifecycle recovery and optional Bridge enrichment.
 continuing independent engineering while official catalog provisioning (V1P05)
 remains externally blocked. Production catalog trust stays unconfigured; no
 fixture authority is trusted. HA-admin BIOS and bounded diagnostics/audit are implemented;
-actual distribution and mandatory security/soak/exact-artifact disposable-HAOS
+official distribution custody/hosting and mandatory security/soak/exact-artifact disposable-HAOS
 acceptance remain to complete. See [STATE](docs/agent/STATE.md),
 [HANDOFF](docs/agent/HANDOFF.md) and [blocker evidence](docs/agent/evidence/BLOCKED.md).
 
@@ -35,7 +35,7 @@ without version-pinned Python snapshot/sequence proof. See
 ## Development
 
 Requires Go 1.26.8. Root config.yaml/Dockerfile are the development App build
-context; real Housefold repository/catalog distribution is still V1P11.
+context. Source-traceable OCI/catalog preparation and guarded promotion are implemented; actual official custody/hosting and release gates remain V1P05/11 onward. See [distribution preparation](distribution/README.md).
 
 ```sh
 bash scripts/agent_verify.sh
@@ -63,3 +63,5 @@ The stakeholder's live installation is never a productization test target.
 See [AGENTS](AGENTS.md), [CONTRIBUTING](CONTRIBUTING.md), and the authoritative
 [productization contract](docs/agent/PRODUCTIZATION.md). The task ledger has no
 autonomous waivers; `python3 scripts/agent_tasks.py next` exposes remaining blockers.
+
+Reviewed development source: [agent/v1-productization](https://github.com/Housefold/runtime/tree/agent/v1-productization). Remote main is unchanged; no validated v1 release is published.

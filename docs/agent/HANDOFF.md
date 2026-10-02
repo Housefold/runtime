@@ -1,7 +1,22 @@
-# Handoff — stakeholder-authorized independent continuation
+# Handoff — independent engineering completed; external BLOCKED
 
-V1P05 remains blocked; stakeholder authorized proceeding with independent BIOS
-and distribution work. See evidence/CATALOG-BYPASS.md. V1P03 and V1P07 are committed; V1P11 distribution is active: finish exact-source reproducibility and record remaining external custody/hosting constraints. Preserve all remaining final release dependencies and criteria.
+V1P03 and V1P07 are DONE after the stakeholder-authorized V1P05 scheduling bypass.
+V1P11 offline candidate/signing/distribution preparation is implemented and verified
+but remains BLOCKED alongside V1P05: actual official signer/custody/source/hosting
+and retention are absent. See evidence/BLOCKED.md for exact evidence/resume path.
+No ready or active independent task remains; 12–15 mandatory gates are unchanged.
+
+Source branch agent/v1-productization contains exact cohesive commits imported
+through Git data APIs; remote main is unchanged. Code writes/ordinary hosted CI
+work; signing-secret/settings/repository creation permissions are distinct and denied.
+4ca2934 hardened source passes hosted CI and isolated byte-for-byte dual-architecture
+OCI/binary/metadata reproducibility. bd99290 adds OCI-capable candidate CI setup.
+Development candidates are unvalidated, with empty official authority. No release
+artifact, registry transfer, catalog/stable feed publication or live HAOS operation.
+
+Resume actual 05/11 provisioning, build a new exact-source candidate, then security,
+supported measured soak, real-repo clean disposable HAOS/full matrix, and same-byte
+publication. Do not count Docker, unit tests or green CI as any mandatory gate.
 
 Production composition: cmd/runtime starts unpublished HTTP/native state and
 independent estate/native control owners. Estate owns verified ELF inventory,
@@ -34,10 +49,8 @@ production authority. BIOS now enforces current HA-admin membership with a dedic
 Toolchain Go1.26.8: PATH=/workspace/toolchain/go/bin:$PATH. Image worker proxy CA:
 HOUSEFOLD_BUILD_CA=/etc/ssl/certs/ca-certificates.crt. Pinned official ECR builder
 avoids Docker Hub rate limiting. Run focused checks plus agent_verify; --images
-for packaging. Final production source ed0be3f; final documentation/ledger commit
-records this blocker and verification. Every implementation slice has exact
-logs/evidence and a cohesive commit. Changes are local commits based on main;
-no remote deployment/push/publication was performed.
+for packaging. Final hardened Runtime source 4ca2934; distribution CI setup bd99290. Evidence records the remaining external constraints. Every implementation slice has exact
+logs/evidence and a cohesive commit. Changes are cohesive commits based on main, also preserved on the development branch through Git data APIs. No release deployment/publication occurred.
 
 V1P07: audit is an estate-owned store with an explicit initialized marker. Never
 recreate a marked missing/corrupt journal. Audit intent precedes lifecycle mutation,

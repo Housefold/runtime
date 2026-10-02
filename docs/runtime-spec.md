@@ -13,8 +13,8 @@ Housefold Runtime is the stable, local supervisor and control plane for Housefol
 | Topic | Baseline |
 |---|---|
 | First deployment form | Supervisor-managed Home Assistant OS app, auto-started with `system` startup ordering, protected mode and AppArmor enabled, no host port or extra host privileges. Supervisor owns process lifecycle and initial local recovery. See [ADR-001](adr/001-haos-runtime-lifecycle.md). |
-| HA connection | WebSocket state session through the Supervisor Core API proxy (`homeassistant_api: true`) is authoritative for operational HA status and freshness; REST is diagnostic only. General Supervisor API access stays disabled. The custom HA integration Bridge is optional and cannot be a boot or core-operation dependency. Reconnect uses the bounded schedule in [ADR-004](adr/004-ha-connection-checks.md). |
-| Optional Go modules | Trusted official separate processes with private inherited IPC under accepted ADR-007/008; implemented internal foundations remain separate from production installation/activation. |
+| HA connection | WebSocket state session through the Supervisor Core API proxy (`homeassistant_api: true`) is authoritative for HA status and freshness; fixed local REST provides fenced actions and coarse operational signals. General Supervisor API access stays disabled. The custom HA integration Bridge is optional and cannot be a boot or core-operation dependency. Reconnect uses the bounded schedule in [ADR-004](adr/004-ha-connection-checks.md). |
+| Optional Go modules | Trusted official separate processes with private inherited IPC under accepted ADR-007/008; the production estate owns verified launch/activation/storage; remotely maintained official installation awaits configured catalog authority. |
 | Operating principle | Essential, latency-sensitive behavior remains local when the VPS, internet, cloud AI, or an optional module is unavailable. |
 | HA ownership | HA remains authoritative for device integrations, raw entity state, and service execution. Runtime keeps a private, memory-only state view and rebuilds it after disconnects. See [ADR-003](adr/003-ha-state-cache-and-reconnection.md). |
 | Management | The v1 contract requires an HA-admin-only BIOS through ingress, including recovery during subsystem degradation. Current production BIOS verifies ingress identity against current HA admin membership before every read or mutation. ADR-010 supersedes ADR-005 for v1. Supervisor/host-console recovery remains independent. |
@@ -32,7 +32,7 @@ The HA state view is an internal Runtime facility. It is not a public module API
 
 Implementations may use small internal packages, but must not prematurely freeze a public module API or add feature modules just to demonstrate extensibility.
 
-## Implemented foundation
+## Historical implemented foundation
 
 - The HAOS app starts the foreground Go process, exposes a read-only `/healthz` watchdog check, and handles bounded termination without publishing a host port.
 - Runtime opens a long-lived WebSocket through the Supervisor Core API proxy. The synchronization state machine is `Disconnected → Connecting → Authenticating → Subscribing → Syncing → Ready`. Runtime bounds and buffers `state_changed` frames as soon as it requests the subscription; only after acknowledgement does it request `get_states`, reconcile the candidate, and publish it atomically. HA WebSocket health controls operational connection and freshness; REST diagnostics cannot override it. See [ADR-003](adr/003-ha-state-cache-and-reconnection.md) and [ADR-004](adr/004-ha-connection-checks.md).
@@ -58,13 +58,13 @@ Latency, memory, disk, reconnect, and recovery thresholds must be measured and a
 ## Remaining implementation and validation requirements
 
 - Appliance-hardware behavior, LAN discovery and USB-radio passthrough; the clean HAOS 18.3 generic AArch64 VM smoke verified internal watchdog reachability, app recovery, and auto-start, but not appliance hardware.
-- HA WebSocket guarantees beyond the observed snapshot-plus-buffer reconciliation, event-gap detection, supported-version behavior, and appliance performance remain verification limits in [ADR-003](adr/003-ha-state-cache-and-reconnection.md). ADR-007 and PRODUCTIZATION.md authorize fenced actions; production transport and supported-version evidence remain required.
+- HA WebSocket guarantees beyond the observed snapshot-plus-buffer reconciliation, event-gap detection, supported-version behavior, and appliance performance remain verification limits in [ADR-003](adr/003-ha-state-cache-and-reconnection.md). ADR-007 and PRODUCTIZATION.md authorize fenced actions; native production transport is implemented; supported-version evidence remains required.
 - HA ingress user experience and source filtering on appliance hardware; see [ADR-005](adr/005-local-operator-status.md). The accepted page is not a recovery surface when HA Core UI is unavailable; use the HAOS host console.
 - Measured HA REST/WebSocket rate limits, state reconciliation, event ordering, and stale-state behavior; the accepted cache/data boundary is recorded in [ADR-003](adr/003-ha-state-cache-and-reconnection.md).
-- Production wiring and HAOS validation of the accepted module protocol, readiness, timeouts and backpressure (ADR-007/008).
+- HAOS validation of the production-wired module protocol, readiness, timeouts and backpressure (ADR-007/008).
 - Measured HAOS resource controls for trusted official modules. Third-party containment requires a new decision; official modules have no per-entity grant engine (ADR-008).
-- Production official signing authority/catalog freshness and explicit installation review wiring under ADR-008; offline verification is implemented.
-- Production integration and HAOS validation of durable timeline/admission, generation drain and negotiated state handover under ADR-008.
+- Actual official signing authority/source/freshness under ADR-008; offline verification, backend and BIOS installation review are implemented.
+- HAOS validation of production-integrated durable timeline/admission, generation drain and negotiated state handover under ADR-008.
 - Persistence, diagnostic retention, household privacy, and remote/VPS access boundaries.
 - Measured resource and latency budgets for the target HAOS hardware.
 

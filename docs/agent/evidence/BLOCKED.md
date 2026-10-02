@@ -1,61 +1,68 @@
-# Final Runtime v1 productization state — BLOCKED
+# Runtime v1 — externally BLOCKED after authorized catalog bypass
 
-Entering run HEAD: df3ebbe3d7dd11e4edd6832526dd88cdad6f54de (current main).
-Last production implementation HEAD: ed0be3f. Final HEAD: documentation/ledger
-commit containing this record. No active/independent ready task remains.
+Initial main: df3ebbe3d7dd11e4edd6832526dd88cdad6f54de. Stakeholder explicitly
+authorized continuing independent work around V1P05 (CATALOG-BYPASS.md).
+V1P03 BIOS and V1P07 log/diagnostics/audit are now DONE. V1P11 production
+distribution preparation is implemented and verified but its actual official
+source/signing/hosting criteria remain BLOCKED. Initial stop evidence is preserved
+in BLOCKED-initial.md; it is history, not current completion status.
 
-Completed: V1P01/02/04/06/08/09/10, with concrete evidence, focused/native-child/
-loopback failure/concurrency/privacy tests and full ordinary/race/vet/build,
-dual architecture runtime/launcher/images and disposable packaging checks.
-V1P05 has committed verified catalog/backend lifecycle implementation but cannot
-pass its official remote-source/signing criterion. Production authority remains
-empty/unconfigured. See all V1P evidence and exact development image IDs; these
-are not release artifacts or HAOS acceptance.
+Completed ledger tasks: V1P01/02/03/04/06/07/08/09/10. V1P05 and V1P11 BLOCKED;
+mandatory V1P12 security, V1P13 supported measured soak, V1P14 exact-artifact
+clean supported disposable HAOS and V1P15 same-artifact publication remain pending.
+No active or independent ready work remains. No acceptance or release dependency
+was waived; only implementation scheduling for V1P03/V1P11 changed.
 
-Exact external blocker and attempts (no secret values in evidence):
+## Exact external constraints
 
-1. Authorized Housefold/modules repository creation failed with GraphQL
-   `Resource not accessible by integration (createRepository)`.
-2. Existing-runtime route was investigated. `gh api repos/Housefold/runtime`
-   reports admin/maintain/push/pull/triage, and workflows can be listed, but
-   `gh api repos/Housefold/runtime/actions/secrets/public-key` returns HTTP403
-   `Resource not accessible by integration`. Original and final recheck logs
-   preserve this discrepancy. No maintainable Housefold signing key/custody was
-   supplied/configured in this environment; no fixture/ephemeral key replaces it.
-3. `gh api repos/Housefold/runtime/actions/permissions` also returns HTTP403
-   (BLOCKED-actions-permissions*). `gh api repos/Housefold/runtime/pages` returns
-   HTTP404 (BLOCKED-pages.json); intended catalog endpoint also404 (V1P05 logs).
-   Existing-repo hosting alone cannot supply the absent signing custody/source.
-4. Workflow/OIDC metadata is readable (BLOCKED-oidc-metadata.json), but is not a
-   configured signed catalog policy/key/publisher. Tool capability inspection
-   found no repo-create/signing-secret administration or separate signing service.
-   No actual official signed source, public signing authority, real App repository
-   acceptance path or version-pinned Python Bridge proof is claimed.
+- Housefold/modules and Housefold/home-assistant-apps creation denied by integration
+  (createRepository). Existing runtime is a viable App-repo boundary: Supervisor
+  supports metadata-only candidate/<source> and apps branches. This fallback is
+  implemented; repository creation alone is no longer the App blocker.
+- Latest signing-secret public-key API HTTP403; Actions administration HTTP403;
+  Pages absent404; intended official catalog endpoint HTTP404. No actual
+  maintainable Housefold signing custody or public pinned authority is configured.
+  Production authority stays empty and signing CLI rejects fixture keys.
+- Source writes and ordinary CI dispatch DO work: all cohesive local commits were
+  imported using Git data APIs with identical tree/commit SHAs and fast-forwarded
+  to agent/v1-productization after Git HTTPS returned401. Hosted Go/race/image
+  verification passed at 3486ab3 and hardened 4ca2934. Settings/secret limitations
+  must not be confused with ordinary code/CI permissions.
+- Exact commands/errors: V1P11-infrastructure.txt, V1P11-final-signing-permissions.txt,
+  V1P11-final-pages.txt, V1P11-final-catalog-http.txt,
+  V1P11-source-api-import.txt and V1P11-final-source-import.txt. Implementation/acceptance mapping: V1P11.md and V1P05.md.
 
-Resume requires a maintainable authorized Housefold signed source/signing custody
-and hosting: grant the GitHub integration required creation/signing-secret/hosting
-capabilities, or provision equivalent secure custody/hosting in an existing
-Housefold repository, or supply a maintainer-provisioned signed source and its
-pinned public authority. Then resume V1P05 through the ledger and prove actual
-endpoint refresh/download/provenance/compatibility before proceeding.
+Two isolated builds at hardened production source 4ca2934 matched all 11 candidate
+files, OCI archives/manifests and full receipts (V1P11-final-repro-comparison.json).
+Candidate receipt explicitly says release_validated=false and authority is empty.
+There is no release artifact that passed security, soak or HAOS acceptance.
+Green builds, Docker/loopback/native tests and reproducibility are supplementary.
 
-Remaining tasks, not complete: V1P05 actual official signed catalog/lifecycle UX;
-V1P03 full server-side HA-admin BIOS and recovery management; V1P07 diagnostic
-export/logging/admin audit; V1P11 actual App/catalog distribution and traceability;
-V1P12 independent adversarial security gate; V1P13 supported measured soak;
-V1P14 exact release candidate installed through real Housefold App repository
-onto clean supported disposable HAOS and all specified E2E acceptance; V1P15
-publish that same validated artifact and close the harness. Their ledger
-dependencies are unchanged; no ready task can bypass the blocker.
+## What is required to resume
 
-Final checks: full implementation --images PASS at V1P10; final documentation/
-ledger ordinary repository verifier result is retained in BLOCKED-verification.txt.
-Block evidence is now recorded as a ledger field with validated path containment;
-new Python checks prove evidence updates cannot complete or waive blocked tasks.
-`next` and `list` exact output is retained; final git status is clean after commit.
-Every change is a local cohesive commit; none was deployed/pushed/published.
+Provision maintainable authorized Housefold signing custody and a real maintained
+official signed source/hosting with immutable prior-version history and object
+retention, plus its pinned public authority. Grant the corresponding administration
+capabilities, or provide equivalent Housefold-owned custody/source. Existing runtime
+repository/branches can host the App feed without creating another repository.
+Do not substitute fixture keys or unsigned remote metadata.
 
-Runtime v1 remains incomplete. No v1 security/soak/HAOS gate has passed, no
-validated release artifact exists, no household data/actions were used and the
-stakeholder live HAOS was never accessed. Docker/loopback/native tests were
-supplementary only. No gate, invariant or acceptance criterion was waived.
+Resume V1P05, prove actual remote refresh/download/provenance, use implemented BIOS
+review/lifecycle UX, then resume V1P11 and verify actual hosting/distribution pipeline.
+Prepare a new exact-source artifact after provisioning changes; current development
+candidates cannot certify a changed signing authority. Run independent adversarial
+security and representative supported measured soak, stage the same candidate
+through the actual App repo on clean supported disposable HAOS and complete every
+acceptance item. Only then promote/publish that exact artifact and close V1P15.
+
+Source is reviewable at https://github.com/Housefold/runtime/tree/agent/v1-productization.
+Remote main is unchanged. No registry artifact, signed catalog or stable App feed
+was published. No household identities/actions were used; stakeholder live HAOS
+was never accessed, modified, deployed to or tested against.
+
+Final current-state verification: BLOCKED-current-verification.txt records PASS
+for Python tests, Go ordinary/race tests, vet, build and both-architecture binary
+builds. BLOCKED-current-list.txt and BLOCKED-current-next.txt record the exact
+ledger and no ready task. Prior image/repro/hosted CI logs remain supplementary.
+The task-specific disposable BuildKit builder was removed; no persistent
+household or Runtime data was involved in that cleanup.

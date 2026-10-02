@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/housefold/runtime/internal/audit"
 	"github.com/housefold/runtime/internal/catalog"
 	"github.com/housefold/runtime/internal/estate"
 	"github.com/housefold/runtime/internal/packageverify"
@@ -276,5 +277,60 @@ func TestRecoveryBIOSAndDiagnosticPrivacy(t *testing.T) {
 	}
 	if w := biosRequest(s, "GET", "/healthz", "", nil); w.Code != 503 {
 		t.Fatal("integrity health", w.Code)
+	}
+}
+
+func (m *managementFixture) AuditSnapshot() estate.AuditSnapshot {
+	return estate.AuditSnapshot{Status: "test"}
+}
+func (m *managementFixture) BeginAdmin(string, string, string, time.Time) (uint64, error) {
+	return 1, nil
+}
+func (m *managementFixture) FinishAdmin(uint64, bool, bool) error { return nil }
+
+type unauditableManagement struct{ managementFixture }
+
+func (m *unauditableManagement) BeginAdmin(string, string, string, time.Time) (uint64, error) {
+	return 0, errManagement
+}
+func TestUnauditableMutationDoesNotInvokeLifecycle(t *testing.T) {
+	m := &unauditableManagement{}
+	s := withManagement(m)
+	key, _ := s.issue(testAdmin)
+	if w := biosRequest(s, "POST", "/manage", testAdmin, url.Values{"csrf": {key}, "operation": {"restart"}, "module": {"synthetic"}}); w.Code != 303 {
+		t.Fatal(w.Code)
+	}
+	s.workers.Wait()
+	if len(m.calls) != 0 || s.operation().State != "failed" || !strings.Contains(s.operation().Result, "not attempted") {
+		t.Fatal(m.calls, s.operation())
+	}
+}
+
+type privateAuditFixture struct{ managementFixture }
+
+func (m *privateAuditFixture) AuditSnapshot() estate.AuditSnapshot {
+	return estate.AuditSnapshot{Status: "available", Entries: []audit.Entry{{User: testAdmin, Operation: "restart", Subject: "synthetic", Outcome: "completed"}}}
+}
+
+type privateEstateFixture struct{}
+
+func (privateEstateFixture) Snapshot() estate.Snapshot {
+	return estate.Snapshot{Phase: "running", Modules: []estate.ModuleStatus{{Identity: "synthetic", Version: "1.0.0", Error: "PRIVATE_RAW_ERROR /data/foreign", Outbound: []string{"private-household.local"}, Capabilities: []string{"PRIVATE_FUTURE_FIELD"}}}}
+}
+func TestDiagnosticProjectionExcludesActualAuditAndFutureSensitiveFields(t *testing.T) {
+	s := withManagement(&privateAuditFixture{})
+	s.status.SetEstate(privateEstateFixture{})
+	w := biosRequest(s, "GET", "/diagnostics", testAdmin, nil)
+	for _, bad := range []string{testAdmin, "private-household", "PRIVATE_", "/data/", "Outbound", "Capabilities", `"Error":`} {
+		if strings.Contains(w.Body.String(), bad) {
+			t.Fatal("export leaked", bad, w.Body.String())
+		}
+	}
+	if !strings.Contains(w.Body.String(), `"audit_entries_retained":1`) || !strings.Contains(w.Body.String(), "synthetic") {
+		t.Fatal("coarse diagnostics lost", w.Body.String())
+	}
+	w = biosRequest(s, "GET", "/", testAdmin, nil)
+	if !strings.Contains(w.Body.String(), testAdmin) {
+		t.Fatal("verified BIOS lacked attributed audit")
 	}
 }

@@ -16,6 +16,7 @@ import (
 
 	"github.com/housefold/runtime/internal/bootstrap"
 	"github.com/housefold/runtime/internal/catalog"
+	"github.com/housefold/runtime/internal/diagnostics"
 	"github.com/housefold/runtime/internal/estate"
 	"github.com/housefold/runtime/internal/ha"
 	"github.com/housefold/runtime/internal/hacontrol"
@@ -31,13 +32,19 @@ var errProcessShutdownTimeout = errors.New("runtime shutdown deadline exceeded")
 
 func main() {
 	debug.SetMemoryLimit(128 << 20)
-	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	logs, err := diagnostics.NewStdout()
+	if err != nil {
+		os.Exit(1)
+	}
+	defer logs.Close()
+	logger := slog.New(logs)
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
 	dataErr := bootstrap.Prepare("/data/housefold", 10001)
 	if err := bootstrap.Drop(10001); err != nil {
 		logger.Error("Runtime privilege drop failed")
+		logs.Close()
 		os.Exit(1)
 	}
 	if dataErr != nil {
@@ -45,6 +52,7 @@ func main() {
 	}
 	if err := run(ctx, ":8099", logger, dataErr != nil); err != nil {
 		logger.Error("runtime stopped with error", "error", err.Error())
+		logs.Close()
 		os.Exit(1)
 	}
 	logger.Info("runtime stopped")
@@ -100,6 +108,10 @@ func runListener(ctx context.Context, listener net.Listener, token string, logge
 	defer cancel()
 	logger.Info("runtime started", "health", "/healthz", "version", buildVersion, "source", buildSource)
 	status := &supervisor.StatusStore{}
+	status.SetBuild(buildVersion, buildSource)
+	if logs, ok := logger.Handler().(*diagnostics.Handler); ok {
+		status.SetLogs(logs)
+	}
 	if len(composition) > 0 && composition[0].RecoveryRequired {
 		status.SetRecoveryRequired()
 	}

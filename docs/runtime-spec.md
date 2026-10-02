@@ -594,3 +594,22 @@ Diagnostics export excludes household state, credentials, raw errors, paths and
 admin identities/approvals. Tests cover genuine estate reset/restart, role revocation,
 authenticated loopback Core, forged/duplicate/missing identity, approval replay,
 concurrency and invalid/traversal/reset forms. These do not prove the HAOS gate.
+
+## Production logs, diagnostics and audit (V1P07)
+
+Runtime and module events use a privacy-allowlisted structured JSON HA App stream,
+with actual launcher identity/version/generation on module IPC code events. Global
+module log cap is 64/second; event ring 128; output queue 64; frame 1KiB; inherited
+nonblocking output pipe writes have 100ms deadlines. Producers cannot block on
+App output, and output failures/drops remain visible in BIOS.
+
+BIOS displays events and administrative audit only after current HA-admin checks.
+Download diagnostics use explicit coarse DTOs and exclude household contents,
+credentials, raw errors/paths, network declarations, audit identities and log data.
+The estate owns a private checksummed audit journal with at most 256 records,
+monotonic sequence, verified admin ID, finite operation/module/time/outcome.
+Intent commits before mutation; completion commits after. Prior requested entries
+become interrupted on boot, never retried. Marked missing/corrupt state cannot be
+recreated. Audit participates in storage gates and cold backup/checkpoints; no
+audit writes follow a stopped-estate checkpoint. Explicit confirmed factory reset
+deletes the audit with all data and remains possible if that journal is unwritable.

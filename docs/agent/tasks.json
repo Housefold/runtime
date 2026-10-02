@@ -116,9 +116,9 @@
         "V1P04"
       ],
       "kind": "implementation",
-      "status": "todo",
+      "status": "done",
       "approval_required": null,
-      "evidence": null,
+      "evidence": "docs/agent/evidence/V1P07.md",
       "blocker": null,
       "acceptance": [
         "Route Runtime and bounded structured module logs into the native HA App live log stream with module/version/generation attribution.",

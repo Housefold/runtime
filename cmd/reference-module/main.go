@@ -124,6 +124,20 @@ func run() error {
 		}
 		switch f.Type {
 		case "activated":
+			if err = send("log", "", struct {
+				Code string `json:"code"`
+			}{"ready"}); err != nil {
+				return err
+			}
+			if buildMode == "log_flood" {
+				for n := 0; n < 10000; n++ {
+					if err = send("log", "", struct {
+						Code string `json:"code"`
+					}{"ready"}); err != nil {
+						return err
+					}
+				}
+			}
 			if buildMode == "exit_after_activation" {
 				return errors.New("synthetic crash")
 			}
@@ -143,6 +157,11 @@ func run() error {
 				continue
 			}
 			counter++
+			if err = send("log", "", struct {
+				Code string `json:"code"`
+			}{"work_completed"}); err != nil {
+				return err
+			}
 			if err = persist(); err != nil {
 				return err
 			}

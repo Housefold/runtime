@@ -9,7 +9,7 @@ resource/lifecycle recovery and optional Bridge enrichment.
 **Runtime v1 is incomplete and not release-ready.** The stakeholder authorized
 continuing independent engineering while official catalog provisioning (V1P05)
 remains externally blocked. Production catalog trust stays unconfigured; no
-fixture authority is trusted. HA-admin BIOS is implemented; diagnostics/audit,
+fixture authority is trusted. HA-admin BIOS and bounded diagnostics/audit are implemented;
 actual distribution and mandatory security/soak/exact-artifact disposable-HAOS
 acceptance remain to complete. See [STATE](docs/agent/STATE.md),
 [HANDOFF](docs/agent/HANDOFF.md) and [blocker evidence](docs/agent/evidence/BLOCKED.md).

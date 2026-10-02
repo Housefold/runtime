@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/housefold/runtime/internal/action"
+	"github.com/housefold/runtime/internal/audit"
 	"github.com/housefold/runtime/internal/catalog"
 	"github.com/housefold/runtime/internal/discovery"
 	"github.com/housefold/runtime/internal/durable"
@@ -124,6 +125,7 @@ type Engine struct {
 	bindings        *discovery.Generator
 	bindingSource   []byte
 	bindingFresh    bool
+	audit           *audit.Journal
 	resources       ResourceStatus
 	pressureClear   int
 }
@@ -238,6 +240,7 @@ func (e *Engine) initialize(now time.Time) error {
 		Version     int
 		Initialized bool
 		Bindings    bool
+		Audit       bool
 	}
 	if fresh {
 		entries, err := os.ReadDir(e.config.Root)
@@ -251,6 +254,12 @@ func (e *Engine) initialize(now time.Time) error {
 		}
 	} else if err != nil || json.Unmarshal(raw, &meta) != nil || meta.Version != 1 {
 		return ErrRecovery
+	}
+	// Audit is a durable owner even if another store later fails validation.
+	// Existing estates migrate once using the explicit Audit marker; a marked
+	// missing/corrupt journal is never silently recreated.
+	if err = e.openAudit(!meta.Audit); err != nil {
+		return err
 	}
 	required := []string{"inventory", "execution", "router", "timeline", "actions"}
 	if meta.Bindings {
@@ -410,6 +419,7 @@ func (e *Engine) initialize(now time.Time) error {
 	}
 	meta.Initialized = true
 	meta.Bindings = true
+	meta.Audit = true
 	raw, _ = json.Marshal(meta)
 	if err = marker.Save(raw); err != nil {
 		return err

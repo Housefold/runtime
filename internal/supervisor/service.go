@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/housefold/runtime/internal/catalog"
+	"github.com/housefold/runtime/internal/diagnostics"
 	"github.com/housefold/runtime/internal/estate"
 	"github.com/housefold/runtime/internal/hacontrol"
 	"html/template"
@@ -42,6 +43,8 @@ type StatusStore struct {
 	bridge     interface{ BridgeSnapshot() hacontrol.BridgeInfo }
 	management Management
 	admin      AdminAuthorizer
+	build      BuildInfo
+	logs       interface{ Snapshot() diagnostics.Snapshot }
 }
 
 func (s *StatusStore) SetBridge(b interface{ BridgeSnapshot() hacontrol.BridgeInfo }) {
@@ -247,6 +250,8 @@ type statusPageData struct {
 	CSRF           string
 	Catalog        catalog.Snapshot
 	Job            operationStatus
+	Logs           diagnostics.Snapshot
+	Audit          estate.AuditSnapshot
 }
 
 var statusPage = template.Must(template.New("status").Parse(`<!doctype html>
@@ -299,6 +304,9 @@ var statusPage = template.Must(template.New("status").Parse(`<!doctype html>
  <section><h2>Storage and recovery</h2><p>Cleanup preserves all active and retained state. Factory reset removes all Runtime and module data, then requires an App restart.</p>
  <form action="./manage" method="post"><input type="hidden" name="csrf" value="{{.CSRF}}"><button name="operation" value="cleanup">Safe storage cleanup</button></form>
  <form action="./manage" method="post"><input type="hidden" name="csrf" value="{{.CSRF}}"><label>Type DELETE ALL HOUSEFOLD DATA to confirm <input name="confirmation" autocomplete="off" maxlength="64"></label><button name="operation" value="factory_reset">Factory reset all Housefold data</button></form></section>
+ <section><h2>Structured App logs</h2><p>Dropped: {{.Logs.Dropped}} · output failures: {{.Logs.OutputFailed}}. Full live stream uses normal HA App logs.</p><pre>{{range .Logs.Entries}}{{.At}} {{.Level}} {{.Message}} {{.Module}} {{.Version}} generation={{.Generation}} {{.Code}} {{.Phase}} {{.Status}}
+{{end}}</pre></section>
+ <section><h2>Administrative audit</h2><p>Status: {{.Audit.Status}}. Explicit factory reset deletes this journal with all Runtime data.</p><table><thead><tr><th>Sequence / time</th><th>HA user ID</th><th>Operation</th><th>Subject</th><th>Outcome</th></tr></thead><tbody>{{range .Audit.Entries}}<tr><td>{{.Sequence}} / {{.At}}</td><td>{{.User}}</td><td>{{.Operation}}</td><td>{{.Subject}}</td><td>{{.Outcome}}</td></tr>{{end}}</tbody></table></section>
  <p>For app recovery, use Home Assistant Supervisor controls and logs. If Home Assistant is unavailable, use the HAOS host console and <code>ha apps</code> commands.</p>
   </main>
 </body>
@@ -312,7 +320,7 @@ func (s *Service) serveStatus(w http.ResponseWriter, csrf string) {
 	if s.status != nil {
 		current = s.status.HA()
 	}
-	page := statusPageData{CSRF: csrf, Catalog: s.catalogStatus(), Job: s.operation(), Bridge: s.status.Bridge(), Estate: s.status.Estate(), Runtime: "Healthy", Phase: "disconnected", Connection: "unavailable", Freshness: "none", LastSuccessful: "Not yet synchronized"}
+	page := statusPageData{CSRF: csrf, Logs: s.status.Logs(), Audit: s.auditSnapshot(), Catalog: s.catalogStatus(), Job: s.operation(), Bridge: s.status.Bridge(), Estate: s.status.Estate(), Runtime: "Healthy", Phase: "disconnected", Connection: "unavailable", Freshness: "none", LastSuccessful: "Not yet synchronized"}
 	if s.status.RecoveryRequired() {
 		page.Runtime = "Recovery required: private storage unavailable"
 	}
@@ -363,4 +371,26 @@ func isIngressPeer(remoteAddr string) bool {
 	}
 	ip := net.ParseIP(host)
 	return ip != nil && ip.Equal(net.ParseIP(ingressPeer))
+}
+
+func (s *StatusStore) SetLogs(logs interface{ Snapshot() diagnostics.Snapshot }) {
+	s.mu.Lock()
+	s.logs = logs
+	s.mu.Unlock()
+}
+func (s *StatusStore) Logs() diagnostics.Snapshot {
+	s.mu.RLock()
+	logs := s.logs
+	s.mu.RUnlock()
+	if logs == nil {
+		return diagnostics.Snapshot{}
+	}
+	return logs.Snapshot()
+}
+func (s *Service) auditSnapshot() estate.AuditSnapshot {
+	owner, _ := s.status.managementOwner()
+	if owner == nil {
+		return estate.AuditSnapshot{Status: "unavailable"}
+	}
+	return owner.AuditSnapshot()
 }

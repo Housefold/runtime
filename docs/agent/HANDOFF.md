@@ -1,8 +1,7 @@
 # Handoff — stakeholder-authorized independent continuation
 
 V1P05 remains blocked; stakeholder authorized proceeding with independent BIOS
-and distribution work. See evidence/CATALOG-BYPASS.md. V1P03 is committed; continue V1P07,
-and prepare V1P11. Preserve all remaining final release dependencies and criteria.
+and distribution work. See evidence/CATALOG-BYPASS.md. V1P03 and V1P07 are committed; proceed with V1P11 distribution. Preserve all remaining final release dependencies and criteria.
 
 Production composition: cmd/runtime starts unpublished HTTP/native state and
 independent estate/native control owners. Estate owns verified ELF inventory,
@@ -39,3 +38,10 @@ for packaging. Final production source ed0be3f; final documentation/ledger commi
 records this blocker and verification. Every implementation slice has exact
 logs/evidence and a cohesive commit. Changes are local commits based on main;
 no remote deployment/push/publication was performed.
+
+V1P07: audit is an estate-owned store with an explicit initialized marker. Never
+recreate a marked missing/corrupt journal. Audit intent precedes lifecycle mutation,
+interrupted intent is not replayed, and no finish write may follow a checkpoint.
+Confirmed reset deliberately deletes the audit and can escape unwritable audit.
+App output has one bounded/deadline writer, finite queue/ring/global module rate;
+exporter uses explicit DTOs excluding audit IDs and household/network/log payloads.

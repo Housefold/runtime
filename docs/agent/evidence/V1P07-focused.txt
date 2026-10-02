@@ -1,0 +1,5 @@
+ok  	github.com/housefold/runtime/internal/audit	4.772s
+ok  	github.com/housefold/runtime/internal/diagnostics	1.858s
+ok  	github.com/housefold/runtime/internal/estate	5.518s
+ok  	github.com/housefold/runtime/internal/supervisor	1.106s
+ok  	github.com/housefold/runtime/cmd/runtime	10.043s

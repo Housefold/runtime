@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
-	"encoding/json"
 	"errors"
 	"html/template"
 	"net/http"
@@ -22,6 +21,9 @@ type AdminAuthorizer interface {
 
 // Management deliberately has no arbitrary path, executable or HA service API.
 type Management interface {
+	AuditSnapshot() estate.AuditSnapshot
+	BeginAdmin(string, string, string, time.Time) (uint64, error)
+	FinishAdmin(uint64, bool, bool) error
 	CatalogStatus(time.Time) catalog.Snapshot
 	ReviewInstall(string, string, time.Time) (string, []packageverify.Manifest, error)
 	Install(context.Context, string, string, string, time.Time) error
@@ -198,7 +200,14 @@ func (s *Service) manage(w http.ResponseWriter, r *http.Request, user string) {
 		defer s.workers.Done()
 		defer cancel()
 		now := time.Now()
-		var err error
+		sequence, err := owner.BeginAdmin(user, op, id, now)
+		if err != nil {
+			s.mu.Lock()
+			s.job.State, s.job.Result = "failed", "Administrative audit unavailable; operation was not attempted."
+			s.working = false
+			s.mu.Unlock()
+			return
+		}
 		switch op {
 		case "start":
 			err = owner.SetDesired(id, true)
@@ -223,12 +232,17 @@ func (s *Service) manage(w http.ResponseWriter, r *http.Request, user string) {
 		case "install":
 			err = owner.Install(ctx, id, version, digest, now)
 		}
+		resetComplete := op == "factory_reset" && errors.Is(err, estate.ErrRestartRequired)
+		auditErr := owner.FinishAdmin(sequence, err == nil || resetComplete, resetComplete)
 		state, result := "complete", "Operation completed. Refresh status."
 		if err != nil {
 			state, result = "failed", operationError(err)
 		}
 		if errors.Is(err, estate.ErrRestartRequired) {
 			state, result = "complete", "Reset complete. Restart Runtime using Home Assistant App controls."
+		}
+		if auditErr != nil {
+			state, result = "audit_incomplete", "Operation outcome could not be audited. Inspect current status before retrying."
 		}
 		s.mu.Lock()
 		s.job.State, s.job.Result = state, result
@@ -291,28 +305,4 @@ func (s *Service) review(w http.ResponseWriter, r *http.Request, user string) {
 		CSRF, Digest, ID, Version string
 		Manifests                 []packageverify.Manifest
 	}{csrf, digest, query.Get("module"), query.Get("version"), manifests})
-}
-func (s *Service) diagnostics(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		w.Header().Set("Allow", "GET")
-		http.Error(w, "method not allowed", 405)
-		return
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Content-Disposition", `attachment; filename="housefold-runtime-diagnostics.json"`)
-	// Explicit allowlist: no household/entity/state/bindings, raw errors, identities,
-	// credentials, local paths, user names or admin form approvals.
-	state := s.status.Estate()
-	for i := range state.Modules {
-		state.Modules[i].Error = ""
-	}
-	cat := s.catalogStatus()
-	_ = json.NewEncoder(w).Encode(struct {
-		Schema   int             `json:"schema"`
-		Recovery bool            `json:"recovery_required"`
-		HA       HAStatus        `json:"ha"`
-		Estate   estate.Snapshot `json:"estate"`
-		Bridge   string          `json:"bridge_status"`
-		Catalog  string          `json:"catalog_status"`
-	}{1, s.status.RecoveryRequired(), s.status.HA(), state, s.status.Bridge().Status, cat.Status})
 }

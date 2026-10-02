@@ -1,0 +1,46 @@
+#1 [internal] booting buildkit
+#1 pulling image moby/buildkit:v0.24.0
+#1 pulling image moby/buildkit:v0.24.0 4.1s done
+#1 creating container buildx_buildkit_housefold-candidate-builder0
+#1 creating container buildx_buildkit_housefold-candidate-builder0 0.7s done
+#1 DONE 4.8s
+Name:          housefold-candidate-builder
+Driver:        docker-container
+Last Activity: 2026-10-02 00:28:37 +0000 UTC
+
+Nodes:
+Name:                  housefold-candidate-builder0
+Endpoint:              unix:///var/run/docker.sock
+Driver Options:        image="moby/buildkit:v0.24.0"
+Status:                running
+BuildKit daemon flags: --allow-insecure-entitlement=network.host
+BuildKit version:      v0.24.0
+Platforms:             linux/amd64, linux/amd64/v2, linux/amd64/v3, linux/amd64/v4
+Labels:
+ org.mobyproject.buildkit.worker.executor:         oci
+ org.mobyproject.buildkit.worker.hostname:         88213d08efe8
+ org.mobyproject.buildkit.worker.network:          host
+ org.mobyproject.buildkit.worker.oci.process-mode: sandbox
+ org.mobyproject.buildkit.worker.selinux.enabled:  false
+ org.mobyproject.buildkit.worker.snapshotter:      native
+GC Policy rule#0:
+ All:            false
+ Filters:        type==source.local,type==exec.cachemount,type==source.git.checkout
+ Keep Duration:  48h0m0s
+ Max Used Space: 488.3MiB
+GC Policy rule#1:
+ All:            false
+ Keep Duration:  1440h0m0s
+ Reserved Space: 3.725GiB
+ Max Used Space: 24.21GiB
+ Min Free Space: 6.519GiB
+GC Policy rule#2:
+ All:            false
+ Reserved Space: 3.725GiB
+ Max Used Space: 24.21GiB
+ Min Free Space: 6.519GiB
+GC Policy rule#3:
+ All:            true
+ Reserved Space: 3.725GiB
+ Max Used Space: 24.21GiB
+ Min Free Space: 6.519GiB

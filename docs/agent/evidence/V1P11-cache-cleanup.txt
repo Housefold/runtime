@@ -1,0 +1,47 @@
+Flag --keep-storage has been deprecated, keep-storage flag has been changed to reserved-space
+ID						RECLAIMABLE	SIZE		LAST ACCESSED
+3h4yhb26lywcq8yyph5acd8jk*              	true 		109.7MB   	5 hours ago
+w02a448ehkzhsql4s0rj2z31v*              	true 	111MB     	4 hours ago
+cfwibk4u3wrixtzz5fhk24bl7*              	true 	109.8MB   	4 hours ago
+rvt7nz5t1ota6fgla13mrx31i*              	true 	111MB     	4 hours ago
+h98ms3heue3uqn3nzvbryx92k*              	true 	109.8MB   	4 hours ago
+mqjryxdxn9hvt0b4yahmrr30m*              	true 	111.6MB   	4 hours ago
+cghrisomq9nkdnot7vef0prwv*              	true 	110.4MB   	4 hours ago
+p1c2rwmdffl2ybe8pncr5lrjq*              	true 	118.9MB   	4 hours ago
+f827077h06w2zggg5uremd016*              	true 	117.4MB   	4 hours ago
+vvx8lh36q5viz2igxdwn630ng               	true 	294.8kB   	6 hours ago
+f46bhfcm1bbbosxrdds7r5wt9*              	true 	118.9MB   	3 hours ago
+co97x7p7booyt2spdzg853d6v               	true 	294.8kB   	6 hours ago
+2aylkyfagr0fkr3ru1f7ibl17               	true 	9.168kB   	6 hours ago
+dal66w1yobv3yaxd29r7gy46m*              	true 	117.4MB   	3 hours ago
+lfyh3q4judrw030wex71iayjl               	true 	370.5kB   	5 hours ago
+j6zru1m9go3rhb6hfw1treihv               	true 	14.88kB   	5 hours ago
+bjhr83gekgumdevlz6q8gyk51*              	true 	118.9MB   	3 hours ago
+na1m11mp46fgdkyrw3jlgofdw*              	true 	117.4MB   	3 hours ago
+ibc8llm2my07vudq3qxi2va22               	true 	382.8kB   	4 hours ago
+riglm8vfg1b5ls99u3mmsncew               	true 	15.58kB   	4 hours ago
+y5p4ex1r3p39jvftx3rzmmy3v               	true 	384.7kB   	4 hours ago
+xf7k5w9ifup6sw83if1gxvx8i               	true 	17.84kB   	4 hours ago
+z3g3zej46h7f8i3ukrvu0iins*              	true 	123.7MB   	3 hours ago
+i0z1ndqf43no5wfwtlur3iz7j               	true 	499.6kB   	3 hours ago
+s9npqgppqowt9ykajmufv1wm2*              	true 	122MB     	3 hours ago
+wgkyr6tabhy7ahr20ar1ea72s               	true 	500.8kB   	3 hours ago
+y3megaf91brcf83sqz3eozn5p               	true 	411kB     	4 hours ago
+itfw2su53m6m4r0lnvo14qzbs               	true 	18.16kB   	4 hours ago
+p14kxldjyvigmiiq84fmqf770*              	true 	123.7MB   	3 hours ago
+qtexuurhxbxwkapl12gycnyet*              	true 	122MB     	3 hours ago
+w085chmzs8blm1fjd8i3sx0ai               	true 	456kB     	4 hours ago
+5lyy8irr626oyr3kj3ro1v1jd               	true 	456kB     	3 hours ago
+i84kzt69lwktu73n8sjmwegn2*              	true 	123.9MB   	2 hours ago
+ekk1z5vnayvjpfvd3w43f7ljx*              	true 	122.2MB   	2 hours ago
+23fx8zzbv7w0n6uo6z55y2pbi               	true 	457.7kB   	3 hours ago
+bge37zul13mpgtznb99u7s31n               	true 	502kB     	3 hours ago
+w85gzkewwsim6o6vfv6aqisnf               	true 	19kB      	3 hours ago
+7yof0tisu1lepotnyeo7ncwy5*              	true 	124.5MB   	2 hours ago
+k8yw0sagz3g7nyh2ej5huanhc*              	true 	122.8MB   	2 hours ago
+g1inxczco7mgl83v8j7uwwoaz               	true 	522.1kB   	2 hours ago
+ta33hii6wugknxhdcs9ahdqhk               	true 	19.12kB   	2 hours ago
+4b8lkyhgh9vwk7vt8us1t0c8o               	true 	536.4kB   	2 hours ago
+sel6fadllkb8xq8grvo2c7bdd               	true 	19.15kB   	2 hours ago
+0l0hdt8n71epm0fv94mfeqavv               	true 	19.23kB   	3 hours ago
+Total:	2.473GB

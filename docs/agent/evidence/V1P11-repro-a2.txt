@@ -1,0 +1,30 @@
+#0 building with "housefold-candidate-builder" instance using docker-container driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 1.92kB done
+#1 DONE 0.0s
+
+#2 resolve image config for docker-image://docker.io/docker/dockerfile:1
+#2 ERROR: failed to do request: Head "https://registry-1.docker.io/v2/docker/dockerfile/manifests/1": dial tcp 34.233.183.139:443: connect: connection refused
+------
+ > resolve image config for docker-image://docker.io/docker/dockerfile:1:
+------
+Dockerfile:1
+--------------------
+   1 | >>> # syntax=docker/dockerfile:1
+   2 |     FROM --platform=$BUILDPLATFORM public.ecr.aws/docker/library/golang:1.26.8-alpine@sha256:8ac98ca534ac3f51e1f420a1dd2c15e74c75cfa0f23f3ad27eb5d7236c349a0c AS build
+   3 |     
+--------------------
+ERROR: failed to build: failed to solve: failed to resolve source metadata for docker.io/docker/dockerfile:1: failed to do request: Head "https://registry-1.docker.io/v2/docker/dockerfile/manifests/1": dial tcp 34.233.183.139:443: connect: connection refused
+Traceback (most recent call last):
+  File "/workspace/runtime/scripts/release_candidate.py", line 152, in <module>
+    if __name__=="__main__":main()
+                            ^^^^^^
+  File "/workspace/runtime/scripts/release_candidate.py", line 143, in main
+    if a.command=="prepare":prepare(a.source or "",out,a.version or "",a.images)
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/runtime/scripts/release_candidate.py", line 71, in prepare
+    subprocess.run(args,check=True)
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/subprocess.py", line 571, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['docker', 'buildx', 'build', '--platform', 'linux/amd64', '--provenance=false', '--sbom=false', '--build-arg', 'BUILD_ARCH=amd64', '--build-arg', 'BUILD_VERSION=1.0.0-candidate.3486ab3bf58f', '--build-arg', 'BUILD_SOURCE=3486ab3bf58f5ab7dce1a00efbc47bf977dbec8f', '--build-arg', 'SOURCE_DATE_EPOCH=1790900856', '--output', 'type=oci,dest=/tmp/housefold-repro-a2-3486ab3/runtime-amd64.oci.tar,rewrite-timestamp=true', '/tmp/housefold-candidate-yayhr0o6/src', '--secret', 'id=proxy_ca,src=/etc/ssl/certs/ca-certificates.crt']' returned non-zero exit status 1.

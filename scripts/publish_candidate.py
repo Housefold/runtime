@@ -64,7 +64,7 @@ def publish_repository(out,receipt,stage):
         if subprocess.run(['git','diff','--cached','--quiet'],cwd=root).returncode==0:return
         if stage and exists:raise ValueError('immutable candidate repository conflict')
         subprocess.run(['git','-c','user.name=Housefold Release','-c','user.email=release@housefold.invalid','commit','-m',f"{'Stage' if stage else 'Publish'} exact Runtime {receipt['version']} from {receipt['source']}"],cwd=root,check=True,env=env)
-        subprocess.run(['git','push','origin','HEAD:refs/heads/'+branch],cwd=root,check=True,env=env,timeout=120)
+        subprocess.run(['git','-c','credential.helper=','-c','credential.helper=!gh auth git-credential','push','origin','HEAD:refs/heads/'+branch],cwd=root,check=True,env=env,timeout=120)
 
 def main():
     p=argparse.ArgumentParser();p.add_argument('command',choices=['stage','promote']);p.add_argument('--out',type=Path,required=True);p.add_argument('--gates',type=Path,required=True)

@@ -613,3 +613,18 @@ become interrupted on boot, never retried. Marked missing/corrupt state cannot b
 recreated. Audit participates in storage gates and cold backup/checkpoints; no
 audit writes follow a stopped-estate checkpoint. Explicit confirmed factory reset
 deletes the audit with all data and remains possible if that journal is unwritable.
+
+## Distribution preparation (V1P11)
+
+Source-traceable offline candidates use full Git commits, Go1.26.8, trimpath,
+buildvcs=false, normalized OCI timestamps and exact per-architecture manifest/file
+hashes. The metadata-only Housefold/runtime candidate/<source> and apps branches
+are the fallback repository boundary when creating a separate Housefold repo is
+unavailable. The publisher never replaces Runtime main, force-pushes, rebuilds a
+validated candidate or overwrites a conflicting registry version. Stage requires
+actual security/soak gates and configured official authority; promotion also
+requires matching complete actual disposable HAOS repository-install evidence.
+CI preparation archives are explicitly unvalidated. Signing CLI uses external
+private custody matching the actual pinned Housefold authority, never fixture trust.
+Official signer/hosting/retention and final release gates remain unresolved; neither
+code nor a green CI/reproducibility build claims those gates have passed.

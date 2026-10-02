@@ -1,0 +1,11 @@
+{
+  "source": "3486ab3bf58f5ab7dce1a00efbc47bf977dbec8f",
+  "all_files_identical": true,
+  "oci_manifests_identical": true,
+  "receipts_identical": true,
+  "file_count": 11,
+  "image_manifests": {
+    "aarch64": "sha256:f4703bf24e6e60f1676b00094943044b3ffdf435b8e8a0e1a9797273f8d900ad",
+    "amd64": "sha256:1ff194b9f857d5c65758dfd111ccec35b065fd7931a5bf9c7fe8eba87d770c0b"
+  }
+}

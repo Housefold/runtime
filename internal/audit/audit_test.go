@@ -150,3 +150,19 @@ func TestAuditAcceptsFullSignedIdentityLength(t *testing.T) {
 		t.Fatal("excessive identity accepted")
 	}
 }
+
+func TestMalformedInitializedAuditCannotBecomeEmpty(t *testing.T) {
+	store := durable.NewFile(filepath.Join(t.TempDir(), "audit.json"))
+	for _, raw := range []string{`null`, `{}`, `{"Version":1,"unknown":"PRIVATE"}`} {
+		if err := store.Save([]byte(raw)); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := Open(store, false); err != ErrUnavailable {
+			t.Fatal("malformed journal silently initialized", raw, err)
+		}
+		preserved, err := store.Load()
+		if err != nil || string(preserved) != raw {
+			t.Fatal("malformed journal changed", raw, err)
+		}
+	}
+}

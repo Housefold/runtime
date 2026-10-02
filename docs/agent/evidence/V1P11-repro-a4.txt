@@ -1,0 +1,174 @@
+#0 building with "housefold-candidate-proxy" instance using docker-container driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 1.92kB done
+#1 DONE 0.0s
+
+#2 resolve image config for docker-image://docker.io/docker/dockerfile:1
+#2 DONE 1.1s
+
+#3 docker-image://docker.io/docker/dockerfile:1@sha256:4edf897a3ffa55b89f906fc8cc78afdb3f1834cc9c7083565e611a8a7d5fe99e
+#3 resolve docker.io/docker/dockerfile:1@sha256:4edf897a3ffa55b89f906fc8cc78afdb3f1834cc9c7083565e611a8a7d5fe99e done
+#3 sha256:9d2b4f57f9e20f33279375ce25c6ff14f30f64270ed5c7b613b2b30256754f62 0B / 14.28MB 0.2s
+#3 sha256:9d2b4f57f9e20f33279375ce25c6ff14f30f64270ed5c7b613b2b30256754f62 10.49MB / 14.28MB 0.6s
+#3 sha256:9d2b4f57f9e20f33279375ce25c6ff14f30f64270ed5c7b613b2b30256754f62 14.28MB / 14.28MB 0.6s done
+#3 extracting sha256:9d2b4f57f9e20f33279375ce25c6ff14f30f64270ed5c7b613b2b30256754f62 0.1s done
+#3 DONE 0.8s
+
+#4 [internal] load metadata for public.ecr.aws/docker/library/golang:1.26.8-alpine@sha256:8ac98ca534ac3f51e1f420a1dd2c15e74c75cfa0f23f3ad27eb5d7236c349a0c
+#4 DONE 1.0s
+
+#5 [internal] load .dockerignore
+#5 transferring context:
+#5 transferring context: 2B done
+#5 DONE 0.5s
+
+#6 [internal] load build context
+#6 DONE 0.0s
+
+#7 [build 1/6] FROM public.ecr.aws/docker/library/golang:1.26.8-alpine@sha256:8ac98ca534ac3f51e1f420a1dd2c15e74c75cfa0f23f3ad27eb5d7236c349a0c
+#7 resolve public.ecr.aws/docker/library/golang:1.26.8-alpine@sha256:8ac98ca534ac3f51e1f420a1dd2c15e74c75cfa0f23f3ad27eb5d7236c349a0c
+#7 resolve public.ecr.aws/docker/library/golang:1.26.8-alpine@sha256:8ac98ca534ac3f51e1f420a1dd2c15e74c75cfa0f23f3ad27eb5d7236c349a0c 0.4s done
+#7 ...
+
+#6 [internal] load build context
+#6 transferring context: 645.38kB 0.2s done
+#6 DONE 1.1s
+
+#7 [build 1/6] FROM public.ecr.aws/docker/library/golang:1.26.8-alpine@sha256:8ac98ca534ac3f51e1f420a1dd2c15e74c75cfa0f23f3ad27eb5d7236c349a0c
+#7 sha256:4f4fb700ef54461cfa02571ae0db9a0dc1e0cdb5577484a6d75e68dc38e8acc1 32B / 32B 0.1s done
+#7 sha256:68ed9cc945387f62e6993f95484c65db531f4a4c6c076363d90fd1d575e36633 0B / 126B 0.2s
+#7 sha256:2cb3e687d353c47479f7eb82d6cc1b230f1d252bfefaddbeec9d3de57edf5d49 0B / 67.31MB 0.2s
+#7 sha256:e2de96513ba9eb53b431787ec8a65cdde380ac4772a3e4c4b714dcfde2a102b5 0B / 3.85MB 0.2s
+#7 sha256:4009a0783f338ed55a73885b00ecad4c761c55b29337bc83f4ba5893b456a80c 247.52kB / 247.52kB 0.1s done
+#7 sha256:68ed9cc945387f62e6993f95484c65db531f4a4c6c076363d90fd1d575e36633 126B / 126B 0.3s done
+#7 sha256:e2de96513ba9eb53b431787ec8a65cdde380ac4772a3e4c4b714dcfde2a102b5 3.85MB / 3.85MB 0.3s done
+#7 extracting sha256:e2de96513ba9eb53b431787ec8a65cdde380ac4772a3e4c4b714dcfde2a102b5 0.1s done
+#7 extracting sha256:4009a0783f338ed55a73885b00ecad4c761c55b29337bc83f4ba5893b456a80c 0.1s done
+#7 sha256:2cb3e687d353c47479f7eb82d6cc1b230f1d252bfefaddbeec9d3de57edf5d49 12.58MB / 67.31MB 0.6s
+#7 sha256:2cb3e687d353c47479f7eb82d6cc1b230f1d252bfefaddbeec9d3de57edf5d49 19.92MB / 67.31MB 0.8s
+#7 sha256:2cb3e687d353c47479f7eb82d6cc1b230f1d252bfefaddbeec9d3de57edf5d49 29.36MB / 67.31MB 0.9s
+#7 sha256:2cb3e687d353c47479f7eb82d6cc1b230f1d252bfefaddbeec9d3de57edf5d49 38.80MB / 67.31MB 1.1s
+#7 sha256:2cb3e687d353c47479f7eb82d6cc1b230f1d252bfefaddbeec9d3de57edf5d49 48.23MB / 67.31MB 1.2s
+#7 sha256:2cb3e687d353c47479f7eb82d6cc1b230f1d252bfefaddbeec9d3de57edf5d49 57.67MB / 67.31MB 1.4s
+#7 sha256:2cb3e687d353c47479f7eb82d6cc1b230f1d252bfefaddbeec9d3de57edf5d49 67.31MB / 67.31MB 1.5s
+#7 sha256:2cb3e687d353c47479f7eb82d6cc1b230f1d252bfefaddbeec9d3de57edf5d49 67.31MB / 67.31MB 1.5s done
+#7 extracting sha256:2cb3e687d353c47479f7eb82d6cc1b230f1d252bfefaddbeec9d3de57edf5d49
+#7 extracting sha256:2cb3e687d353c47479f7eb82d6cc1b230f1d252bfefaddbeec9d3de57edf5d49 4.5s done
+#7 DONE 7.5s
+
+#7 [build 1/6] FROM public.ecr.aws/docker/library/golang:1.26.8-alpine@sha256:8ac98ca534ac3f51e1f420a1dd2c15e74c75cfa0f23f3ad27eb5d7236c349a0c
+#7 extracting sha256:68ed9cc945387f62e6993f95484c65db531f4a4c6c076363d90fd1d575e36633
+#7 extracting sha256:68ed9cc945387f62e6993f95484c65db531f4a4c6c076363d90fd1d575e36633 3.9s done
+#7 DONE 11.5s
+
+#7 [build 1/6] FROM public.ecr.aws/docker/library/golang:1.26.8-alpine@sha256:8ac98ca534ac3f51e1f420a1dd2c15e74c75cfa0f23f3ad27eb5d7236c349a0c
+#7 extracting sha256:4f4fb700ef54461cfa02571ae0db9a0dc1e0cdb5577484a6d75e68dc38e8acc1
+#7 extracting sha256:4f4fb700ef54461cfa02571ae0db9a0dc1e0cdb5577484a6d75e68dc38e8acc1 1.2s done
+#7 DONE 12.7s
+
+#8 [build 2/6] WORKDIR /src
+#8 DONE 3.3s
+
+#9 [build 3/6] COPY go.mod go.sum ./
+#9 DONE 3.0s
+
+#10 [build 4/6] COPY cmd/ ./cmd/
+#10 DONE 0.8s
+
+#11 [build 5/6] COPY internal/ ./internal/
+#11 DONE 0.8s
+
+#12 [build 6/6] RUN --mount=type=secret,id=proxy_ca     if [ -f /run/secrets/proxy_ca ]; then export SSL_CERT_FILE=/run/secrets/proxy_ca; fi &&     mkdir -p /out/data/housefold &&     case "amd64" in       amd64) goarch=amd64 ;;       aarch64) goarch=arm64 ;;       *) echo "unsupported BUILD_ARCH: amd64" >&2; exit 1 ;;     esac &&     CGO_ENABLED=0 GOOS=linux GOARCH="${goarch}"       go build -trimpath -buildvcs=false -ldflags="-s -w -X main.buildVersion=1.0.0-candidate.3486ab3bf58f -X main.buildSource=3486ab3bf58f5ab7dce1a00efbc47bf977dbec8f"       -o /out/housefold-runtime ./cmd/runtime &&     CGO_ENABLED=0 GOOS=linux GOARCH="${goarch}"       go build -trimpath -buildvcs=false -ldflags="-s -w" -o /out/module-launcher ./cmd/module-launcher
+#12 2.905 go: downloading github.com/coder/websocket v1.8.15
+#12 DONE 13.7s
+
+#13 [stage-1 1/4] COPY --from=build /out/housefold-runtime /housefold-runtime
+#13 DONE 0.0s
+
+#14 [stage-1 2/4] COPY --from=build /out/module-launcher /module-launcher
+#14 DONE 0.0s
+
+#15 [stage-1 3/4] COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
+#15 DONE 0.0s
+
+#16 [stage-1 4/4] COPY --from=build --chown=10001:10001 /out/data/ /data/
+#16 DONE 0.0s
+
+#17 exporting to oci image format
+#17 exporting layers
+#17 exporting layers 0.4s done
+#17 rewriting layers with source-date-epoch 1790900856 (2026-10-02 00:27:36 +0000 UTC)
+#17 rewriting layers with source-date-epoch 1790900856 (2026-10-02 00:27:36 +0000 UTC) 0.5s done
+#17 exporting manifest sha256:1ff194b9f857d5c65758dfd111ccec35b065fd7931a5bf9c7fe8eba87d770c0b done
+#17 exporting config sha256:19655a36589f8d10b4ae7267d7cf3dcc8eea5ef926088daadaecbd07ecef8a72 done
+#17 sending tarball 0.0s done
+#17 DONE 1.0s
+#0 building with "housefold-candidate-proxy" instance using docker-container driver
+
+#1 [internal] load build definition from Dockerfile
+#1 DONE 0.0s
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 1.92kB done
+#1 DONE 0.0s
+
+#2 resolve image config for docker-image://docker.io/docker/dockerfile:1
+#2 DONE 0.2s
+
+#3 docker-image://docker.io/docker/dockerfile:1@sha256:4edf897a3ffa55b89f906fc8cc78afdb3f1834cc9c7083565e611a8a7d5fe99e
+#3 resolve docker.io/docker/dockerfile:1@sha256:4edf897a3ffa55b89f906fc8cc78afdb3f1834cc9c7083565e611a8a7d5fe99e done
+#3 CACHED
+
+#4 [internal] load metadata for public.ecr.aws/docker/library/golang:1.26.8-alpine@sha256:8ac98ca534ac3f51e1f420a1dd2c15e74c75cfa0f23f3ad27eb5d7236c349a0c
+#4 DONE 0.0s
+
+#5 [internal] load .dockerignore
+#5 transferring context: 2B done
+#5 DONE 0.0s
+
+#6 [build 1/6] FROM public.ecr.aws/docker/library/golang:1.26.8-alpine@sha256:8ac98ca534ac3f51e1f420a1dd2c15e74c75cfa0f23f3ad27eb5d7236c349a0c
+#6 resolve public.ecr.aws/docker/library/golang:1.26.8-alpine@sha256:8ac98ca534ac3f51e1f420a1dd2c15e74c75cfa0f23f3ad27eb5d7236c349a0c done
+#6 DONE 0.0s
+
+#7 [internal] load build context
+#7 transferring context: 6.23kB done
+#7 DONE 0.0s
+
+#8 [build 2/6] WORKDIR /src
+#8 CACHED
+
+#9 [build 3/6] COPY go.mod go.sum ./
+#9 CACHED
+
+#10 [build 4/6] COPY cmd/ ./cmd/
+#10 CACHED
+
+#11 [build 5/6] COPY internal/ ./internal/
+#11 CACHED
+
+#12 [build 6/6] RUN --mount=type=secret,id=proxy_ca     if [ -f /run/secrets/proxy_ca ]; then export SSL_CERT_FILE=/run/secrets/proxy_ca; fi &&     mkdir -p /out/data/housefold &&     case "aarch64" in       amd64) goarch=amd64 ;;       aarch64) goarch=arm64 ;;       *) echo "unsupported BUILD_ARCH: aarch64" >&2; exit 1 ;;     esac &&     CGO_ENABLED=0 GOOS=linux GOARCH="${goarch}"       go build -trimpath -buildvcs=false -ldflags="-s -w -X main.buildVersion=1.0.0-candidate.3486ab3bf58f -X main.buildSource=3486ab3bf58f5ab7dce1a00efbc47bf977dbec8f"       -o /out/housefold-runtime ./cmd/runtime &&     CGO_ENABLED=0 GOOS=linux GOARCH="${goarch}"       go build -trimpath -buildvcs=false -ldflags="-s -w" -o /out/module-launcher ./cmd/module-launcher
+#12 2.881 go: downloading github.com/coder/websocket v1.8.15
+#12 DONE 13.7s
+
+#13 [stage-1 1/4] COPY --from=build /out/housefold-runtime /housefold-runtime
+#13 DONE 0.0s
+
+#14 [stage-1 2/4] COPY --from=build /out/module-launcher /module-launcher
+#14 DONE 0.0s
+
+#15 [stage-1 3/4] COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
+#15 DONE 0.0s
+
+#16 [stage-1 4/4] COPY --from=build --chown=10001:10001 /out/data/ /data/
+#16 DONE 0.0s
+
+#17 exporting to oci image format
+#17 exporting layers
+#17 exporting layers 0.3s done
+#17 rewriting layers with source-date-epoch 1790900856 (2026-10-02 00:27:36 +0000 UTC)
+#17 rewriting layers with source-date-epoch 1790900856 (2026-10-02 00:27:36 +0000 UTC) 0.4s done
+#17 exporting manifest sha256:f4703bf24e6e60f1676b00094943044b3ffdf435b8e8a0e1a9797273f8d900ad done
+#17 exporting config sha256:0df3fbf848380f70ed23f7c98e40514eb0431cd65aec959d8ad50c0fd360be5c done
+#17 sending tarball 0.0s done
+#17 DONE 0.8s

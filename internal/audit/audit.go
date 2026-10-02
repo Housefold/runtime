@@ -3,6 +3,7 @@
 package audit
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"math"
@@ -61,8 +62,14 @@ func Open(store durable.Store, create bool) (*Journal, error) {
 	if fresh && !create {
 		return nil, ErrUnavailable
 	}
-	if !fresh && (err != nil || len(raw) > 128<<10 || json.Unmarshal(raw, &d) != nil || d.Version != 1 || len(d.Entries) > MaxEntries) {
-		return nil, ErrUnavailable
+	if !fresh {
+		var restored data
+		decoder := json.NewDecoder(bytes.NewReader(raw))
+		decoder.DisallowUnknownFields()
+		if err != nil || len(raw) > 128<<10 || decoder.Decode(&restored) != nil || !json.Valid(raw) || restored.Version != 1 || len(restored.Entries) > MaxEntries {
+			return nil, ErrUnavailable
+		}
+		d = restored
 	}
 	last := uint64(0)
 	dirty := fresh

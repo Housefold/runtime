@@ -1,0 +1,14 @@
+internal/estate/data.go:22:2: open /home/agent/.cache/go-build/ac/ac05320df059dd87b8e74d8435e7838f0c412d5e7b8b02686767fde717503e58-a: no space left on device
+internal/module/router.go:8:2: open /home/agent/.cache/go-build/87/87688308c29470a7030e6408611fcdb873881ca67de1dbcaf0089b2f250a429f-a: no space left on device
+Traceback (most recent call last):
+  File "/workspace/runtime/scripts/release_candidate.py", line 152, in <module>
+    if __name__=="__main__":main()
+                            ^^^^^^
+  File "/workspace/runtime/scripts/release_candidate.py", line 143, in main
+    if a.command=="prepare":prepare(a.source or "",out,a.version or "",a.images)
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/runtime/scripts/release_candidate.py", line 65, in prepare
+    subprocess.run(["go","build","-trimpath","-buildvcs=false",f"-ldflags={flags}","-o",str(out/name),f"./cmd/{command}"],cwd=src,env=env,check=True)
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/subprocess.py", line 571, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['go', 'build', '-trimpath', '-buildvcs=false', '-ldflags=-s -w -X main.buildVersion=1.0.0-candidate.3486ab3bf58f -X main.buildSource=3486ab3bf58f5ab7dce1a00efbc47bf977dbec8f', '-o', '/tmp/housefold-repro-b-3486ab3/runtime-amd64', './cmd/runtime']' returned non-zero exit status 1.

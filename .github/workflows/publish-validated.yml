@@ -79,6 +79,7 @@ jobs:
       - name: Transfer existing OCI manifests and update only the distribution branch
         env:
           MODE: ${{ inputs.mode }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           EVIDENCE: ${{ inputs.gate_evidence }}
           REGISTRY_AUTH_FILE: ${{ runner.temp }}/registry-auth.json
         run: python3 scripts/publish_candidate.py "$MODE" --out "$RUNNER_TEMP/candidate" --gates "$EVIDENCE"

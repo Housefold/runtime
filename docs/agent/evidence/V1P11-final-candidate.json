@@ -1,0 +1,32 @@
+{
+  "artifacts": {
+    "module-launcher-aarch64": "sha256:0eff1097e62318f287214fee70d983ca8f128a685902c59661a2ba9cd5db0884",
+    "module-launcher-amd64": "sha256:4fa1019c44348af644ba6b304c8c1fdb59d9979362872ccb0c2baf2533724f96",
+    "reference-module-aarch64": "sha256:0eca84175d3d8db0ee8c5e90cb88711b2574977996daf44e873008de8d6d3b13",
+    "reference-module-amd64": "sha256:f13d3b65597c6b927da45287dbf230eb1e449a950ee95fb3f7d89f9fd1f2b85d",
+    "repository/housefold_runtime/DOCS.md": "sha256:7204e29cac1a54f4abf5f360d88ae841ad2149d73170eee78126ffd9a9ace8ca",
+    "repository/housefold_runtime/config.yaml": "sha256:cfb46fa2deb11f8261c8950e152603e8aa4bd2bde818351fd1c783c51bf13f7a",
+    "repository/repository.yaml": "sha256:da621cf78bd1cbf59ed2416aa9633866649fdbcb36e336374116a84ebaeaccc3",
+    "runtime-aarch64": "sha256:ab320c0df3c60ec441668afb1f09d97c3a2e80c4d62bb07910fdceeba0524533",
+    "runtime-aarch64.oci.tar": "sha256:3b4e489b39f591ba464076a5dbd10789c207ff6bf49215b1f545487b2601781c",
+    "runtime-amd64": "sha256:f39a60a1bfb7bc8eedb52e11f990d2036b4c666e40fbc038b4abd8435d35d631",
+    "runtime-amd64.oci.tar": "sha256:3362771653157ecd195ce3f55e4c69dabe3496d3431694eca383baf4abda22cf"
+  },
+  "catalog_authority": {
+    "key_id": "housefold-modules-v1",
+    "public_key": "",
+    "url": "https://housefold.github.io/modules/v1/"
+  },
+  "image_manifests": {
+    "aarch64": "sha256:3b6e0fee796c00f61c2d316cd242ad893a03b82014721749b19ff5e434406866",
+    "amd64": "sha256:0b8527c0f34a2dffada9ca160df4ea8de4938fbb4f32c5a11bc4dc56e20972f5"
+  },
+  "protocol_major": 1,
+  "release_validated": false,
+  "runtime_major": 1,
+  "schema": 1,
+  "source": "4ca2934623616eb010c33e58753cf7a674ab162b",
+  "source_date_epoch": 1790901920,
+  "toolchain": "go version go1.26.8 linux/amd64",
+  "version": "1.0.0-candidate.4ca293462361"
+}

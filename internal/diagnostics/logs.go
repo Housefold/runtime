@@ -19,6 +19,7 @@ const LogQueue = 64
 const ModuleLogsPerSecond = 64
 const WriteTimeout = 100 * time.Millisecond
 
+var safeModule = regexp.MustCompile(`^[a-z][a-z0-9._-]{0,127}$`)
 var safeValue = regexp.MustCompile(`^[a-zA-Z0-9_.:/-]{1,64}$`)
 
 type Event struct {
@@ -181,6 +182,12 @@ func (h *Handler) Handle(_ context.Context, r slog.Record) error {
 			}
 		}
 
+		if a.Key == "module" {
+			if safeModule.MatchString(value) {
+				e.Module = value
+			}
+			return true
+		}
 		if !safeValue.MatchString(value) {
 			return true
 		}

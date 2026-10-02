@@ -66,7 +66,7 @@ func (s *Service) authorize(r *http.Request) (string, error) {
 }
 
 var haUserID = regexp.MustCompile(`^[a-f0-9]{32}$`)
-var moduleID = regexp.MustCompile(`^[a-z0-9][a-z0-9._-]{0,63}$`)
+var moduleID = regexp.MustCompile(`^[a-z][a-z0-9._-]{0,127}$`)
 var versionID = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9.+_-]{0,63}$`)
 var digestID = regexp.MustCompile(`^[a-f0-9]{64}$`)
 var errManagement = errors.New("management unavailable")

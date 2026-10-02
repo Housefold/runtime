@@ -18,7 +18,7 @@ const MaxEntries = 256
 
 var ErrUnavailable = errors.New("administrative audit unavailable")
 var userID = regexp.MustCompile(`^[a-f0-9]{32}$`)
-var subject = regexp.MustCompile(`^[a-z0-9][a-z0-9._-]{0,63}$`)
+var subject = regexp.MustCompile(`^[a-z][a-z0-9._-]{0,127}$`)
 
 type Entry struct {
 	Sequence  uint64    `json:"sequence"`

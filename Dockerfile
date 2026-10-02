@@ -9,6 +9,7 @@ COPY internal/ ./internal/
 ARG BUILD_ARCH
 ARG BUILD_VERSION=dev
 ARG BUILD_SOURCE=unknown
+ARG SOURCE_DATE_EPOCH
 RUN --mount=type=secret,id=proxy_ca \
     if [ -f /run/secrets/proxy_ca ]; then export SSL_CERT_FILE=/run/secrets/proxy_ca; fi && \
     mkdir -p /out/data/housefold && \
@@ -18,10 +19,10 @@ RUN --mount=type=secret,id=proxy_ca \
       *) echo "unsupported BUILD_ARCH: ${BUILD_ARCH}" >&2; exit 1 ;; \
     esac && \
     CGO_ENABLED=0 GOOS=linux GOARCH="${goarch}" \
-      go build -trimpath -ldflags="-s -w -X main.buildVersion=${BUILD_VERSION} -X main.buildSource=${BUILD_SOURCE}" \
+      go build -trimpath -buildvcs=false -ldflags="-s -w -X main.buildVersion=${BUILD_VERSION} -X main.buildSource=${BUILD_SOURCE}" \
       -o /out/housefold-runtime ./cmd/runtime && \
     CGO_ENABLED=0 GOOS=linux GOARCH="${goarch}" \
-      go build -trimpath -ldflags="-s -w" -o /out/module-launcher ./cmd/module-launcher
+      go build -trimpath -buildvcs=false -ldflags="-s -w" -o /out/module-launcher ./cmd/module-launcher
 
 FROM scratch
 ARG BUILD_ARCH

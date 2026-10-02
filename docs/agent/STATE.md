@@ -1,7 +1,7 @@
 # Current state — implementing remaining independent work
 
 Stakeholder authorized bypassing V1P05 for independent engineering work.
-V1P03 BIOS is complete; V1P07 diagnostics/audit is implemented; V1P11 distribution is next; V1P11 distribution preparation also no longer depends on
+V1P03 BIOS is complete; V1P07 diagnostics/audit is implemented; V1P11 distribution is active; offline preparation/promotion is implemented, external signer/hosting remains blocked; V1P11 distribution preparation also no longer depends on
 catalog provisioning to begin. V1P05 remains BLOCKED with unchanged acceptance.
 See evidence/CATALOG-BYPASS.md and evidence/BLOCKED.md. All mandatory security,
 soak, exact-artifact disposable HAOS and publication gates remain unchanged.

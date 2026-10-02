@@ -1,0 +1,10 @@
+ok  	github.com/housefold/runtime/internal/catalogrelease	1.037s
+ok  	github.com/housefold/runtime/cmd/catalog-release	1.015s
+ok  	github.com/housefold/runtime/internal/supervisor	(cached)
+ok  	github.com/housefold/runtime/internal/audit	(cached)
+ok  	github.com/housefold/runtime/internal/diagnostics	(cached)
+.................
+----------------------------------------------------------------------
+Ran 17 tests in 2.946s
+
+OK

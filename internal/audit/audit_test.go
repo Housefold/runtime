@@ -5,6 +5,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -134,5 +135,18 @@ func TestConcurrentAuditBoundedAndUnique(t *testing.T) {
 	rows := j.Entries()
 	if len(rows) != MaxEntries || rows[MaxEntries-1].Sequence != 320 {
 		t.Fatal("concurrent journal lost records")
+	}
+}
+
+func TestAuditAcceptsFullSignedIdentityLength(t *testing.T) {
+	j, err := Open(durable.NewFile(filepath.Join(t.TempDir(), "audit.json")), true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err = j.Begin(admin, "install", strings.Repeat("a", 128), time.Now()); err != nil {
+		t.Fatal("signed identity rejected", err)
+	}
+	if _, err = j.Begin(admin, "install", strings.Repeat("a", 129), time.Now()); err == nil {
+		t.Fatal("excessive identity accepted")
 	}
 }

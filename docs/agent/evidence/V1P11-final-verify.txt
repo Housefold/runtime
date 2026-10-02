@@ -1,0 +1,54 @@
+.................
+----------------------------------------------------------------------
+Ran 17 tests in 2.920s
+
+OK
+go version go1.26.8 linux/amd64
+linux
+amd64
+1
+ok  	github.com/housefold/runtime/cmd/catalog-release	0.005s
+?   	github.com/housefold/runtime/cmd/module-launcher	[no test files]
+?   	github.com/housefold/runtime/cmd/reference-module	[no test files]
+ok  	github.com/housefold/runtime/cmd/runtime	9.022s
+ok  	github.com/housefold/runtime/internal/action	0.010s
+ok  	github.com/housefold/runtime/internal/audit	0.677s
+ok  	github.com/housefold/runtime/internal/bootstrap	0.005s
+ok  	github.com/housefold/runtime/internal/bridge	0.014s
+ok  	github.com/housefold/runtime/internal/catalog	0.092s
+ok  	github.com/housefold/runtime/internal/catalogrelease	0.008s
+ok  	github.com/housefold/runtime/internal/diagnostics	0.331s
+ok  	github.com/housefold/runtime/internal/discovery	0.007s
+ok  	github.com/housefold/runtime/internal/durable	0.003s
+ok  	github.com/housefold/runtime/internal/estate	3.164s
+ok  	github.com/housefold/runtime/internal/execution	0.805s
+ok  	github.com/housefold/runtime/internal/ha	1.313s
+ok  	github.com/housefold/runtime/internal/hacontrol	0.073s
+ok  	github.com/housefold/runtime/internal/module	0.694s
+ok  	github.com/housefold/runtime/internal/packageverify	0.020s
+?   	github.com/housefold/runtime/internal/state	[no test files]
+ok  	github.com/housefold/runtime/internal/supervisor	0.017s
+ok  	github.com/housefold/runtime/internal/timeline	0.023s
+ok  	github.com/housefold/runtime/cmd/catalog-release	1.020s
+?   	github.com/housefold/runtime/cmd/module-launcher	[no test files]
+?   	github.com/housefold/runtime/cmd/reference-module	[no test files]
+ok  	github.com/housefold/runtime/cmd/runtime	10.049s
+ok  	github.com/housefold/runtime/internal/action	1.027s
+ok  	github.com/housefold/runtime/internal/audit	4.429s
+ok  	github.com/housefold/runtime/internal/bootstrap	2.020s
+ok  	github.com/housefold/runtime/internal/bridge	1.055s
+ok  	github.com/housefold/runtime/internal/catalog	1.200s
+ok  	github.com/housefold/runtime/internal/catalogrelease	1.045s
+ok  	github.com/housefold/runtime/internal/diagnostics	1.735s
+ok  	github.com/housefold/runtime/internal/discovery	1.035s
+ok  	github.com/housefold/runtime/internal/durable	1.014s
+ok  	github.com/housefold/runtime/internal/estate	6.434s
+ok  	github.com/housefold/runtime/internal/execution	6.388s
+ok  	github.com/housefold/runtime/internal/ha	8.823s
+ok  	github.com/housefold/runtime/internal/hacontrol	1.183s
+ok  	github.com/housefold/runtime/internal/module	5.102s
+ok  	github.com/housefold/runtime/internal/packageverify	1.099s
+?   	github.com/housefold/runtime/internal/state	[no test files]
+ok  	github.com/housefold/runtime/internal/supervisor	1.085s
+ok  	github.com/housefold/runtime/internal/timeline	1.090s
+PASS: requested checks completed; HAOS/hardware validation is separate

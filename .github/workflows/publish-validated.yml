@@ -1,0 +1,87 @@
+name: Stage or promote exact validated Runtime candidate
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        type: choice
+        options: [stage, promote]
+        required: true
+      candidate_run:
+        description: Exact candidate preparation workflow run ID
+        required: true
+      source:
+        description: Full exact candidate source commit
+        required: true
+      gate_evidence:
+        description: Committed gate receipt JSON path under docs/agent/evidence
+        required: true
+permissions:
+  contents: write
+  packages: write
+  actions: read
+concurrency:
+  group: housefold-runtime-distribution
+  cancel-in-progress: false
+jobs:
+  publish:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Validate request against mandatory ledger before credentials or download
+        env:
+          MODE: ${{ inputs.mode }}
+          SOURCE: ${{ inputs.source }}
+          EVIDENCE: ${{ inputs.gate_evidence }}
+        run: |
+          python3 - <<'PY'
+          import os,re,sys
+          from pathlib import Path
+          sys.path.insert(0,'scripts')
+          from publish_candidate import check_ledger
+          mode=os.environ['MODE']
+          if mode not in ('stage','promote') or not re.fullmatch('[a-f0-9]{40}',os.environ['SOURCE']):raise SystemExit('invalid candidate request')
+          path=Path(os.environ['EVIDENCE'])
+          if not path.resolve().is_relative_to(Path('docs/agent/evidence').resolve()) or not path.is_file():raise SystemExit('committed gate receipts required')
+          check_ledger(mode=='stage')
+          PY
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: runtime-candidate-${{ inputs.source }}
+          run-id: ${{ inputs.candidate_run }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: ${{ runner.temp }}/candidate
+      - name: Confirm downloaded source and artifact identity
+        env:
+          EXPECTED_SOURCE: ${{ inputs.source }}
+        run: |
+          python3 scripts/release_candidate.py verify --out "$RUNNER_TEMP/candidate"
+          python3 - <<'PY'
+          import json,os
+          from pathlib import Path
+          receipt=json.loads((Path(os.environ['RUNNER_TEMP'])/'candidate/candidate.json').read_text())
+          if receipt['source']!=os.environ['EXPECTED_SOURCE']:raise SystemExit('downloaded candidate source mismatch')
+          PY
+      - name: Configure bounded exact-artifact registry transfer
+        env:
+          REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          command -v skopeo >/dev/null || { sudo apt-get update && sudo apt-get install -y skopeo; }
+          python3 - <<'PY'
+          import base64,json,os
+          from pathlib import Path
+          path=Path(os.environ['RUNNER_TEMP'])/'registry-auth.json'
+          credential=base64.b64encode(('Housefold:'+os.environ['REGISTRY_TOKEN']).encode()).decode()
+          fd=os.open(path,os.O_WRONLY|os.O_CREAT|os.O_EXCL,0o600)
+          with os.fdopen(fd,'w') as out:json.dump({'auths':{'ghcr.io':{'auth':credential}}},out)
+          PY
+      - name: Transfer existing OCI manifests and update only the distribution branch
+        env:
+          MODE: ${{ inputs.mode }}
+          EVIDENCE: ${{ inputs.gate_evidence }}
+          REGISTRY_AUTH_FILE: ${{ runner.temp }}/registry-auth.json
+        run: python3 scripts/publish_candidate.py "$MODE" --out "$RUNNER_TEMP/candidate" --gates "$EVIDENCE"
+      - name: Remove registry credential material
+        if: always()
+        run: rm -f "$RUNNER_TEMP/registry-auth.json"

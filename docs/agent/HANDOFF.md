@@ -1,7 +1,7 @@
 # Handoff — stakeholder-authorized independent continuation
 
 V1P05 remains blocked; stakeholder authorized proceeding with independent BIOS
-and distribution work. See evidence/CATALOG-BYPASS.md. V1P03 and V1P07 are committed; proceed with V1P11 distribution. Preserve all remaining final release dependencies and criteria.
+and distribution work. See evidence/CATALOG-BYPASS.md. V1P03 and V1P07 are committed; V1P11 distribution is active: finish exact-source reproducibility and record remaining external custody/hosting constraints. Preserve all remaining final release dependencies and criteria.
 
 Production composition: cmd/runtime starts unpublished HTTP/native state and
 independent estate/native control owners. Estate owns verified ELF inventory,

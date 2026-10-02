@@ -1,0 +1,3 @@
+GraphQL: Resource not accessible by integration (createRepository)
+{"message":"Resource not accessible by integration","documentation_url":"https://docs.github.com/rest/actions/secrets#get-a-repository-public-key","status":"403"}gh: Resource not accessible by integration (HTTP 403)
+{"message":"Resource not accessible by integration","documentation_url":"https://docs.github.com/rest/actions/permissions#get-github-actions-permissions-for-a-repository","status":"403"}gh: Resource not accessible by integration (HTTP 403)

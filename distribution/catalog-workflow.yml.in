@@ -1,0 +1,45 @@
+# Install only in the actual Housefold/modules repository once official custody,
+# immutable source/tool pins and Pages hosting are provisioned and verified.
+name: Prepare official signed module catalog
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          path: modules
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: Housefold/runtime
+          ref: ${{ vars.HOUSEFOLD_CATALOG_TOOL_SOURCE }}
+          path: runtime
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
+        with:
+          go-version: 1.26.8
+      - name: Prepare signed bytes against the tool's pinned Runtime authority
+        env:
+          HOUSEFOLD_SIGNING_SEED: ${{ secrets.HOUSEFOLD_CATALOG_SIGNING_SEED }}
+          TOOL_SOURCE: ${{ vars.HOUSEFOLD_CATALOG_TOOL_SOURCE }}
+        run: |
+          python3 - <<'PY'
+          import os,re
+          from pathlib import Path
+          if not re.fullmatch('[a-f0-9]{40}',os.environ['TOOL_SOURCE']): raise SystemExit('full tool source pin required')
+          seed=os.environ.get('HOUSEFOLD_SIGNING_SEED','')
+          if not re.fullmatch('[a-f0-9]{64}',seed): raise SystemExit('official signing custody unavailable')
+          path=Path(os.environ['RUNNER_TEMP'])/'catalog-signing-seed'
+          fd=os.open(path,os.O_WRONLY|os.O_CREAT|os.O_EXCL,0o600)
+          with os.fdopen(fd,'w') as out: out.write(seed)
+          PY
+          unset HOUSEFOLD_SIGNING_SEED
+          trap 'rm -f "$RUNNER_TEMP/catalog-signing-seed"' EXIT
+          cd runtime
+          go run ./cmd/catalog-release plan.json "$GITHUB_WORKSPACE/modules" "$RUNNER_TEMP/catalog-signing-seed" "$RUNNER_TEMP/catalog" previous/catalog.json
+      # Publishing/deployment is deliberately not silently enabled: real Pages
+      # custody, immutable prior-version history, artifact retention and official
+      # remote verification are the unresolved V1P05/V1P11 acceptance criteria.
